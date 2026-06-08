@@ -1,122 +1,52 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import type { ReactNode } from 'react'
+import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom'
+import Login from './pages/Login'
+import Registro from './pages/Registro'
+import Painel from './pages/Painel'
+import Configuracao from './pages/Configuracao'
 
-function App() {
-  const [count, setCount] = useState(0)
+const linkBase = 'px-3 py-2 rounded text-sm font-medium'
+const linkClass = ({ isActive }: { isActive: boolean }) =>
+  `${linkBase} ${isActive ? 'bg-teal-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`
 
+function Layout({ children }: { children: ReactNode }) {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <div className="min-h-full bg-gray-50">
+      <header className="border-b bg-white">
+        <nav className="mx-auto flex max-w-3xl items-center gap-1 p-3">
+          <span className="mr-2 font-semibold text-teal-700">Desperdício</span>
+          <NavLink to="/registro" className={linkClass}>
+            Registro
+          </NavLink>
+          <NavLink to="/painel" className={linkClass}>
+            Painel
+          </NavLink>
+          <NavLink to="/configuracao" className={linkClass}>
+            Configuração
+          </NavLink>
+          <NavLink to="/login" className={`${linkClass({ isActive: false })} ml-auto`}>
+            Login
+          </NavLink>
+        </nav>
+      </header>
+      <main>{children}</main>
+    </div>
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Navigate to="/registro" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Registro />} />
+          <Route path="/painel" element={<Painel />} />
+          <Route path="/configuracao" element={<Configuracao />} />
+          <Route path="*" element={<Navigate to="/registro" replace />} />
+        </Routes>
+      </Layout>
+    </BrowserRouter>
+  )
+}
