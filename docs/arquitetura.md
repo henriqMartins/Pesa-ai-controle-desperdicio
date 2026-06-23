@@ -56,8 +56,10 @@ Mudança de mentalidade em relação a um back-end tradicional:
 
 - `src/lib/supabase.ts` cria o cliente único do Supabase a partir das variáveis
   de ambiente.
-- `src/pages/` contém as telas (Login, Registro, Painel, Configuração), ligadas
-  por roteamento em `src/App.tsx` (react-router).
-- `src/hooks/` abrigará os hooks de dados na próxima etapa (ex.:
-  `useRegistrosRealtime`, `useTotais`).
+- `src/pages/` contém as três telas (Registro, Painel, Configuração), ligadas
+  por roteamento em `src/App.tsx` (react-router). Não há tela de login — o
+  sistema é aberto; o funcionário seleciona o próprio nome na tela de Registro.
+- `src/hooks/` contém os hooks de dados: `useAlimentos`, `useFuncionarios`,
+  `useRegistros` (com Realtime), `useTotais` (com Realtime) e
+  `useFuncionarioAtual` (persiste a seleção no localStorage).
 - `src/types/` define os tipos espelhando as tabelas do banco.

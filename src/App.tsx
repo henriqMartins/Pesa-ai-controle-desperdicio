@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom'
-import Login from './pages/Login'
 import Registro from './pages/Registro'
 import Painel from './pages/Painel'
 import Configuracao from './pages/Configuracao'
@@ -14,7 +13,7 @@ function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-full bg-gray-50">
       <header className="border-b bg-white">
         <nav className="mx-auto flex max-w-3xl items-center gap-1 p-3">
-          <span className="mr-2 font-semibold text-teal-700">Desperdício</span>
+          <span className="mr-2 font-semibold text-teal-700">Pesa Aí</span>
           <NavLink to="/registro" className={linkClass}>
             Registro
           </NavLink>
@@ -23,9 +22,6 @@ function Layout({ children }: { children: ReactNode }) {
           </NavLink>
           <NavLink to="/configuracao" className={linkClass}>
             Configuração
-          </NavLink>
-          <NavLink to="/login" className={`${linkClass({ isActive: false })} ml-auto`}>
-            Login
           </NavLink>
         </nav>
       </header>
@@ -40,7 +36,6 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Navigate to="/registro" replace />} />
-          <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
           <Route path="/painel" element={<Painel />} />
           <Route path="/configuracao" element={<Configuracao />} />

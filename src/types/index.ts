@@ -4,4 +4,4 @@ export type {
   NovoFuncionario,
   PapelFuncionario,
 } from './funcionario'
-export type { Registro, NovoRegistro } from './registro'
+export type { Registro, NovoRegistro, RegistroCompleto } from './registro'

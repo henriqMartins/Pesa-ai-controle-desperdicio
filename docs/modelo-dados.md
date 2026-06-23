@@ -22,13 +22,12 @@ Alimentos cadastrados pela dona.
 | `criado_em` | timestamptz | Default `now()`. |
 
 ### `funcionarios`
-Usados para login simples e atribuição do registro.
+Usados para identificação e atribuição do registro. O sistema não tem senha — o funcionário seleciona o próprio nome na tela.
 
 | Coluna | Tipo | Observações |
 |---|---|---|
 | `id` | uuid | PK, `gen_random_uuid()`. |
 | `nome` | text | Obrigatório. |
-| `pin` | text | PIN de 4 dígitos (controle leve, não segurança forte). |
 | `papel` | text | `'funcionario'` ou `'gestor'`; default `'funcionario'`. |
 | `ativo` | boolean | Default `true`. |
 | `criado_em` | timestamptz | Default `now()`. |
@@ -81,8 +80,6 @@ order by total desc;
 
 ## RLS (ponto de partida pragmático)
 
-Para começar, ative o RLS e crie políticas permitindo leitura/escrita ao usuário
-autenticado do app. Refine depois (ex.: só `gestor` enxerga o ranking).
-Mantenha simples no início — é um ambiente confiável (um único local). Os
-comandos `enable row level security` estão comentados no `schema.sql`, prontos
-para a etapa de controle de acesso.
+O sistema usa a `anon key` sem autenticação de usuário. Para começar, deixe o
+RLS desativado (padrão). Os comandos `enable row level security` estão comentados
+no `schema.sql` para uma eventual etapa futura de controle de acesso.

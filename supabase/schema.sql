@@ -8,7 +8,7 @@
 -- =====================================================================
 
 -- Alimentos cadastrados pela dona
-create table alimentos (
+create table if not exists alimentos (
   id          uuid primary key default gen_random_uuid(),
   nome        text not null,
   categoria   text,
@@ -17,11 +17,10 @@ create table alimentos (
   criado_em   timestamptz not null default now()
 );
 
--- Funcionários (usados para login simples e atribuição do registro)
-create table funcionarios (
+-- Funcionários (identificação na tela — sem senha nem PIN)
+create table if not exists funcionarios (
   id        uuid primary key default gen_random_uuid(),
   nome      text not null,
-  pin       text,                       -- PIN de 4 dígitos (controle leve, não segurança forte)
   papel     text not null default 'funcionario'
               check (papel in ('funcionario','gestor')),
   ativo     boolean not null default true,
@@ -29,7 +28,7 @@ create table funcionarios (
 );
 
 -- Registros de desperdício
-create table registros (
+create table if not exists registros (
   id                   uuid primary key default gen_random_uuid(),
   alimento_id          uuid not null references alimentos(id),
   funcionario_id       uuid not null references funcionarios(id),
@@ -45,7 +44,18 @@ create table registros (
 );
 
 -- Índice para acelerar consultas por data
-create index idx_registros_criado_em on registros (criado_em);
+create index if not exists idx_registros_criado_em on registros (criado_em);
+
+-- Habilitar Realtime para a tabela de registros (necessário para o painel ao vivo)
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'registros'
+  ) then
+    alter publication supabase_realtime add table registros;
+  end if;
+end $$;
 
 
 -- =====================================================================
@@ -72,15 +82,31 @@ create index idx_registros_criado_em on registros (criado_em);
 
 
 -- =====================================================================
--- RLS (ponto de partida pragmático)
--- Para começar, ative o RLS e crie políticas permitindo leitura/escrita ao
--- usuário autenticado do app. Refine depois (ex.: só 'gestor' enxerga o
--- ranking). Mantenha simples no início — é um ambiente confiável (um local).
+-- RLS (Row Level Security)
 --
--- As linhas abaixo ficam comentadas: descomente quando for configurar o
--- controle de acesso na próxima etapa.
+-- O Supabase exige RLS ativo para que o Realtime funcione corretamente.
+-- Como este sistema é aberto (sem login), criamos políticas permissivas
+-- para a anon key — qualquer pessoa com a URL pode ler e escrever.
+--
+-- Se no futuro for necessário restringir acesso (ex.: só gestor vê o
+-- ranking), substitua a política de `registros` por regras específicas.
 -- =====================================================================
 
--- alter table alimentos    enable row level security;
--- alter table funcionarios enable row level security;
--- alter table registros    enable row level security;
+alter table alimentos    enable row level security;
+alter table funcionarios enable row level security;
+alter table registros    enable row level security;
+
+-- Políticas permissivas para a anon key (sistema aberto, ambiente interno)
+-- DROP IF EXISTS garante que re-executar o script não gera erro de duplicata
+drop policy if exists "anon_acesso_total" on alimentos;
+drop policy if exists "anon_acesso_total" on funcionarios;
+drop policy if exists "anon_acesso_total" on registros;
+
+create policy "anon_acesso_total" on alimentos
+  for all to anon using (true) with check (true);
+
+create policy "anon_acesso_total" on funcionarios
+  for all to anon using (true) with check (true);
+
+create policy "anon_acesso_total" on registros
+  for all to anon using (true) with check (true);

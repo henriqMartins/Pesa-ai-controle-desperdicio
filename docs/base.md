@@ -33,7 +33,7 @@ importante quanto qualquer funcionalidade.
 
 ### MVP (primeira entrega — o que faz a dona largar o caderno)
 - Cadastro de alimentos (nome, categoria, valor por kg).
-- Login simples por funcionário (toca no nome + PIN de 4 dígitos).
+- Seleção de funcionário (toca no nome para se identificar — sem senha nem PIN).
 - Tela de registro de desperdício (escolhe o item, digita o peso, confirma).
 - Cálculo automático do custo.
 - Painel com: últimos registros, total do dia, total do mês.
@@ -50,8 +50,8 @@ importante quanto qualquer funcionalidade.
 - Motivo/categoria do desperdício (sobra, queima, validade etc.).
 
 > **Sobre o ranking de funcionários:** numa equipe pequena, expor "quem mais
-> desperdiça" para todos pode gerar clima ruim. Recomenda-se manter visível
-> só para a gestão.
+> desperdiça" para todos pode gerar clima ruim. O sistema não tem controle de
+> acesso por senha; a decisão de exibir o ranking fica a critério da dona.
 
 ---
 
@@ -116,11 +116,10 @@ create table alimentos (
   criado_em   timestamptz not null default now()
 );
 
--- Funcionários (usados para login simples e atribuição do registro)
+-- Funcionários (identificação na tela — sem senha nem PIN)
 create table funcionarios (
   id        uuid primary key default gen_random_uuid(),
   nome      text not null,
-  pin       text,                       -- PIN de 4 dígitos (controle leve, não segurança forte)
   papel     text not null default 'funcionario'
               check (papel in ('funcionario','gestor')),
   ativo     boolean not null default true,
@@ -166,7 +165,7 @@ from registros r join alimentos a on a.id = r.alimento_id
 group by a.nome
 order by total desc;
 
--- Ranking de funcionários (só para a gestão)
+-- Ranking de funcionários
 select f.nome, sum(r.custo) as total
 from registros r join funcionarios f on f.id = r.funcionario_id
 group by f.nome
@@ -174,9 +173,9 @@ order by total desc;
 ```
 
 ### RLS (ponto de partida pragmático)
-Para começar, ative o RLS e crie políticas permitindo leitura/escrita ao usuário
-autenticado do app. Refine depois (ex.: só `gestor` enxerga o ranking). Mantenha
-simples no início — é um ambiente confiável (um único local).
+O sistema usa a `anon key` sem autenticação de usuário — RLS desativado por
+padrão (ambiente interno confiável). Os comandos `enable row level security`
+estão comentados no `schema.sql` para uma eventual etapa futura.
 
 ---
 
