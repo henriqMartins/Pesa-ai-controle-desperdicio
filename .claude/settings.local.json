@@ -8,7 +8,8 @@
       "Bash(Sort-Object FullName)",
       "Bash(Format-Table -AutoSize)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "PowerShell(git add index.html src/App.tsx src/index.css src/pages/Configuracao.tsx src/pages/Painel.tsx src/pages/Registro.tsx tailwind.config.js)"
     ]
   }
 }
