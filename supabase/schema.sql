@@ -110,3 +110,16 @@ create policy "anon_acesso_total" on funcionarios
 
 create policy "anon_acesso_total" on registros
   for all to anon using (true) with check (true);
+
+
+-- =====================================================================
+-- GRANTs
+--
+-- Tabelas criadas via SQL Editor não recebem GRANTs automáticos.
+-- Sem GRANT, o role anon recebe "permission denied" antes mesmo de
+-- o RLS ser verificado. Ambos precisam passar para o acesso funcionar.
+-- =====================================================================
+
+grant select, insert, update, delete on public.alimentos    to anon, authenticated;
+grant select, insert, update, delete on public.funcionarios to anon, authenticated;
+grant select, insert, update, delete on public.registros    to anon, authenticated;
