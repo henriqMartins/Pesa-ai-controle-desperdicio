@@ -3,6 +3,8 @@ import { useRegistrosFiltro } from '../hooks/useRegistrosFiltro'
 import { calcularPeriodo, type PeriodoRapido, type Periodo } from '../lib/filtros'
 import { exportarExcel, exportarPDF } from '../lib/exportar'
 
+const GRAD = 'linear-gradient(135deg, #ff8a4c, #f0464e)'
+
 function brl(valor: number) {
   return `R$ ${valor.toFixed(2).replace('.', ',')}`
 }
@@ -10,10 +12,9 @@ function brl(valor: number) {
 function formatarDataHora(iso: string) {
   const d = new Date(iso)
   const hoje = new Date()
-  const ontem = new Date()
-  ontem.setDate(hoje.getDate() - 1)
+  const ontem = new Date(); ontem.setDate(hoje.getDate() - 1)
   const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-  if (d.toDateString() === hoje.toDateString()) return `hoje ${hora}`
+  if (d.toDateString() === hoje.toDateString())  return `hoje ${hora}`
   if (d.toDateString() === ontem.toDateString()) return `ontem ${hora}`
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ` ${hora}`
 }
@@ -41,90 +42,105 @@ export default function Painel() {
 
   const dadosExport = { registros, topAlimentos, ranking, total, label: periodoAtivo.label }
 
+  const inputDateStyle: React.CSSProperties = {
+    background: '#1c160f',
+    border: '1px solid rgba(255,220,180,.15)',
+    color: '#fff',
+    borderRadius: '10px',
+    padding: '6px 12px',
+    fontSize: '13px',
+    outline: 'none',
+    colorScheme: 'dark',
+  }
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-4">
+    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
 
       {/* ── Filtro de período ── */}
-      <section className="rounded-xl bg-gray-50 p-3 ring-1 ring-gray-200">
+      <section
+        className="rounded-2xl p-3"
+        style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.07)' }}
+      >
         <div className="flex flex-wrap gap-2">
           {(
-            [
-              ['hoje', 'Hoje'],
-              ['semana', 'Últimos 7 dias'],
-              ['mes', 'Este mês'],
-            ] as [Exclude<PeriodoRapido, 'personalizado'>, string][]
+            [['hoje', 'Hoje'], ['semana', 'Últimos 7 dias'], ['mes', 'Este mês']] as
+              [Exclude<PeriodoRapido, 'personalizado'>, string][]
           ).map(([p, label]) => (
             <button
               key={p}
               onClick={() => selecionarRapido(p)}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-                periodoRapido === p
-                  ? 'bg-teal-600 text-white'
-                  : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
-              }`}
+              className="rounded-xl px-3 py-2 text-sm font-semibold transition-opacity"
+              style={periodoRapido === p
+                ? { background: GRAD, color: '#fff', boxShadow: '0 4px 14px rgba(240,70,78,.22)' }
+                : { background: 'rgba(255,255,255,.05)', color: 'rgba(255,255,255,.6)', border: '1px solid rgba(255,220,180,.08)' }
+              }
             >
               {label}
             </button>
           ))}
           <button
             onClick={() => setPeriodoRapido('personalizado')}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-              periodoRapido === 'personalizado'
-                ? 'bg-teal-600 text-white'
-                : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
-            }`}
+            className="rounded-xl px-3 py-2 text-sm font-semibold transition-opacity"
+            style={periodoRapido === 'personalizado'
+              ? { background: GRAD, color: '#fff', boxShadow: '0 4px 14px rgba(240,70,78,.22)' }
+              : { background: 'rgba(255,255,255,.05)', color: 'rgba(255,255,255,.6)', border: '1px solid rgba(255,220,180,.08)' }
+            }
           >
             Personalizado
           </button>
         </div>
 
         {periodoRapido === 'personalizado' && (
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <input
-              type="date"
-              value={customDe}
-              onChange={(e) => setCustomDe(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-teal-500 focus:outline-none"
-            />
-            <span className="text-sm text-gray-400">até</span>
-            <input
-              type="date"
-              value={customAte}
-              onChange={(e) => setCustomAte(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-teal-500 focus:outline-none"
-            />
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <input type="date" value={customDe} onChange={(e) => setCustomDe(e.target.value)} style={inputDateStyle} />
+            <span className="text-sm text-white/35">até</span>
+            <input type="date" value={customAte} onChange={(e) => setCustomAte(e.target.value)} style={inputDateStyle} />
             <button
               onClick={aplicarCustom}
               disabled={!customDe || !customAte}
-              className="rounded-lg bg-teal-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-40"
+              className="btn-accent rounded-xl px-3 py-1.5 text-sm font-bold"
             >
               Aplicar
             </button>
           </div>
         )}
 
-        <p className="mt-1.5 text-xs text-gray-400">{periodoAtivo.label}</p>
+        <p className="mt-2 text-xs text-white/35">{periodoAtivo.label}</p>
       </section>
 
       {/* ── Cards de resumo ── */}
       {loading ? (
         <div className="grid grid-cols-2 gap-4">
-          <div className="h-24 animate-pulse rounded-xl bg-gray-100" />
-          <div className="h-24 animate-pulse rounded-xl bg-gray-100" />
+          {[0, 1].map((i) => (
+            <div key={i} className="h-24 animate-pulse rounded-2xl" style={{ background: '#1c160f' }} />
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <div
+            className="rounded-2xl px-5 py-5"
+            style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.07)' }}
+          >
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">
               Total desperdiçado
             </p>
-            <p className="mt-1 text-3xl font-bold text-teal-700">{brl(total)}</p>
-            <p className="mt-0.5 text-xs text-gray-400">{periodoAtivo.label}</p>
+            <p
+              className="mt-2 text-3xl font-extrabold font-variant-numeric tabular-nums"
+              style={{ color: '#ff8a4c' }}
+            >
+              {brl(total)}
+            </p>
+            <p className="mt-0.5 text-xs text-white/35">{periodoAtivo.label}</p>
           </div>
-          <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Registros</p>
-            <p className="mt-1 text-3xl font-bold text-teal-700">{registros.length}</p>
-            <p className="mt-0.5 text-xs text-gray-400">{periodoAtivo.label}</p>
+          <div
+            className="rounded-2xl px-5 py-5"
+            style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.07)' }}
+          >
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Registros</p>
+            <p className="mt-2 text-3xl font-extrabold" style={{ color: '#ff8a4c' }}>
+              {registros.length}
+            </p>
+            <p className="mt-0.5 text-xs text-white/35">{periodoAtivo.label}</p>
           </div>
         </div>
       )}
@@ -132,48 +148,54 @@ export default function Painel() {
       {/* ── Exportar ── */}
       {!loading && registros.length > 0 && (
         <div className="flex gap-2">
-          <button
-            onClick={() => exportarExcel(dadosExport)}
-            className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50"
-          >
-            Exportar Excel
-          </button>
-          <button
-            onClick={() => exportarPDF(dadosExport)}
-            className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50"
-          >
-            Exportar PDF
-          </button>
+          {[
+            { label: 'Exportar Excel', fn: () => exportarExcel(dadosExport) },
+            { label: 'Exportar PDF',   fn: () => exportarPDF(dadosExport) },
+          ].map(({ label, fn }) => (
+            <button
+              key={label}
+              onClick={fn}
+              className="rounded-xl px-3 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
+              style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.1)', color: 'rgba(255,255,255,.65)' }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       )}
 
       {/* ── Top alimentos ── */}
       {!loading && topAlimentos.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-white/40">
             Top alimentos
           </h2>
-          <div className="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-gray-100">
+          <div
+            className="overflow-x-auto rounded-2xl"
+            style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.07)' }}
+          >
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 text-left text-xs text-gray-400">
-                  <th className="px-4 py-2 font-medium">#</th>
-                  <th className="px-4 py-2 font-medium">Alimento</th>
-                  <th className="px-4 py-2 text-right font-medium">Total (R$)</th>
-                  <th className="px-4 py-2 text-right font-medium">Peso total</th>
+                <tr style={{ borderBottom: '1px solid rgba(255,220,180,.06)' }}>
+                  {['#', 'Alimento', 'Total (R$)', 'Registros'].map((h) => (
+                    <th
+                      key={h}
+                      className={`px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white/35 ${h === 'Total (R$)' || h === 'Registros' ? 'text-right' : 'text-left'}`}
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {topAlimentos.map((a, i) => (
-                  <tr key={a.nome}>
-                    <td className="px-4 py-2.5 text-gray-400">{i + 1}</td>
-                    <td className="px-4 py-2.5 font-medium text-gray-800">{a.nome}</td>
-                    <td className="px-4 py-2.5 text-right font-semibold text-teal-700">
+                  <tr key={a.nome} style={{ borderBottom: '1px solid rgba(255,220,180,.04)' }}>
+                    <td className="px-4 py-3 text-white/35">{i + 1}</td>
+                    <td className="px-4 py-3 font-semibold text-white">{a.nome}</td>
+                    <td className="px-4 py-3 text-right font-bold tabular-nums" style={{ color: '#ff8a4c' }}>
                       {brl(a.total)}
                     </td>
-                    <td className="px-4 py-2.5 text-right text-gray-500">
-                      {a.pesoTotal.toFixed(0)} g
-                    </td>
+                    <td className="px-4 py-3 text-right text-white/50">{a.quantidade}</td>
                   </tr>
                 ))}
               </tbody>
@@ -182,31 +204,38 @@ export default function Painel() {
         </section>
       )}
 
-      {/* ── Ranking de funcionários ── */}
+      {/* ── Ranking funcionários ── */}
       {!loading && ranking.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-white/40">
             Ranking de funcionários
           </h2>
-          <div className="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-gray-100">
+          <div
+            className="overflow-x-auto rounded-2xl"
+            style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.07)' }}
+          >
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 text-left text-xs text-gray-400">
-                  <th className="px-4 py-2 font-medium">#</th>
-                  <th className="px-4 py-2 font-medium">Funcionário</th>
-                  <th className="px-4 py-2 text-right font-medium">Total (R$)</th>
-                  <th className="px-4 py-2 text-right font-medium">Registros</th>
+                <tr style={{ borderBottom: '1px solid rgba(255,220,180,.06)' }}>
+                  {['#', 'Funcionário', 'Total (R$)', 'Registros'].map((h) => (
+                    <th
+                      key={h}
+                      className={`px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white/35 ${h === 'Total (R$)' || h === 'Registros' ? 'text-right' : 'text-left'}`}
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {ranking.map((f, i) => (
-                  <tr key={f.nome}>
-                    <td className="px-4 py-2.5 text-gray-400">{i + 1}</td>
-                    <td className="px-4 py-2.5 font-medium text-gray-800">{f.nome}</td>
-                    <td className="px-4 py-2.5 text-right font-semibold text-teal-700">
+                  <tr key={f.nome} style={{ borderBottom: '1px solid rgba(255,220,180,.04)' }}>
+                    <td className="px-4 py-3 text-white/35">{i + 1}</td>
+                    <td className="px-4 py-3 font-semibold text-white">{f.nome}</td>
+                    <td className="px-4 py-3 text-right font-bold tabular-nums" style={{ color: '#ff8a4c' }}>
                       {brl(f.total)}
                     </td>
-                    <td className="px-4 py-2.5 text-right text-gray-500">{f.quantidade}</td>
+                    <td className="px-4 py-3 text-right text-white/50">{f.quantidade}</td>
                   </tr>
                 ))}
               </tbody>
@@ -217,42 +246,54 @@ export default function Painel() {
 
       {/* ── Lista de registros ── */}
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h2 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-white/40">
           Registros
         </h2>
 
         {loading && (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-14 animate-pulse rounded-xl bg-gray-100" />
+              <div key={i} className="h-14 animate-pulse rounded-xl" style={{ background: '#1c160f' }} />
             ))}
           </div>
         )}
 
         {!loading && registros.length === 0 && (
-          <p className="rounded-xl bg-white px-4 py-6 text-center text-gray-400 ring-1 ring-gray-100">
+          <div
+            className="rounded-2xl px-4 py-8 text-center text-sm text-white/40"
+            style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.07)' }}
+          >
             Nenhum registro no período selecionado.
-          </p>
+          </div>
         )}
 
         {!loading && registros.length > 0 && (
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-100">
+          <div
+            className="overflow-hidden rounded-2xl"
+            style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.07)' }}
+          >
             {registros.map((r) => (
-              <li key={r.id} className="flex items-center justify-between px-4 py-3">
+              <div
+                key={r.id}
+                className="flex items-center justify-between px-4 py-3.5"
+                style={{ borderBottom: '1px solid rgba(255,220,180,.04)' }}
+              >
                 <div>
-                  <span className="font-medium text-gray-800">{r.alimentos.nome}</span>
-                  <span className="mx-2 text-gray-300">·</span>
-                  <span className="text-sm text-gray-500">{Number(r.peso_g).toFixed(0)} g</span>
-                  <span className="mx-2 text-gray-300">·</span>
-                  <span className="text-sm text-gray-500">{r.funcionarios.nome}</span>
-                  <p className="text-xs text-gray-400">{formatarDataHora(r.criado_em)}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-white">{r.alimentos.nome}</span>
+                    <span className="text-white/25">·</span>
+                    <span className="text-sm text-white/50">{Number(r.peso_g).toFixed(0)} g</span>
+                    <span className="text-white/25">·</span>
+                    <span className="text-sm text-white/50">{r.funcionarios.nome}</span>
+                  </div>
+                  <p className="text-xs text-white/35 mt-0.5">{formatarDataHora(r.criado_em)}</p>
                 </div>
-                <span className="ml-4 shrink-0 font-semibold text-teal-700">
+                <span className="ml-4 shrink-0 font-bold tabular-nums" style={{ color: '#ff8a4c' }}>
                   {brl(Number(r.custo))}
                 </span>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </section>
     </div>
