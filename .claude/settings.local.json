@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(npm install *)",
-      "WebFetch(domain:supabase.com)"
+      "WebFetch(domain:supabase.com)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Projetos\\\\Pesa-ai-design_system\" -Recurse -Depth 2)",
+      "Bash(Select-Object -Property FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "PowerShell(git add index.html src/App.tsx src/index.css src/pages/Configuracao.tsx src/pages/Painel.tsx src/pages/Registro.tsx tailwind.config.js)"
     ]
   }
 }
