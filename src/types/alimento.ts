@@ -1,16 +1,14 @@
-/**
- * Alimento cadastrado pela dona.
- * Espelha a tabela `alimentos` do schema (supabase/schema.sql).
- */
+import type { UnidadeBase } from '../lib/unidades'
+
 export interface Alimento {
   id: string
   nome: string
   categoria: string | null
-  valor_por_kg: number
+  preco_por_unidade: number
+  unidade: UnidadeBase
   ativo: boolean
   criado_em: string
 }
 
-/** Campos necessários para criar um novo alimento (o banco preenche o resto). */
-export type NovoAlimento = Pick<Alimento, 'nome' | 'valor_por_kg'> &
+export type NovoAlimento = Pick<Alimento, 'nome' | 'preco_por_unidade' | 'unidade'> &
   Partial<Pick<Alimento, 'categoria' | 'ativo'>>

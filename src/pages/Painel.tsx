@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useRegistrosFiltro } from '../hooks/useRegistrosFiltro'
 import { calcularPeriodo, type PeriodoRapido, type Periodo } from '../lib/filtros'
 import { exportarExcel, exportarPDF } from '../lib/exportar'
+import { exibirQuantidade } from '../lib/unidades'
 
 function brl(valor: number) {
   return `R$ ${valor.toFixed(2).replace('.', ',')}`
@@ -160,7 +161,7 @@ export default function Painel() {
                   <th className="px-4 py-2 font-medium">#</th>
                   <th className="px-4 py-2 font-medium">Alimento</th>
                   <th className="px-4 py-2 text-right font-medium">Total (R$)</th>
-                  <th className="px-4 py-2 text-right font-medium">Peso total</th>
+                  <th className="px-4 py-2 text-right font-medium">Qtd. total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -172,7 +173,7 @@ export default function Painel() {
                       {brl(a.total)}
                     </td>
                     <td className="px-4 py-2.5 text-right text-gray-500">
-                      {a.pesoTotal.toFixed(0)} g
+                      {a.quantidadeTotal.toFixed(3).replace(/\.?0+$/, '')} {a.unidade}
                     </td>
                   </tr>
                 ))}
@@ -242,7 +243,9 @@ export default function Painel() {
                 <div>
                   <span className="font-medium text-gray-800">{r.alimentos.nome}</span>
                   <span className="mx-2 text-gray-300">·</span>
-                  <span className="text-sm text-gray-500">{Number(r.peso_g).toFixed(0)} g</span>
+                  <span className="text-sm text-gray-500">
+                    {exibirQuantidade(Number(r.quantidade), r.unidade_registro, r.alimentos.unidade)}
+                  </span>
                   <span className="mx-2 text-gray-300">·</span>
                   <span className="text-sm text-gray-500">{r.funcionarios.nome}</span>
                   <p className="text-xs text-gray-400">{formatarDataHora(r.criado_em)}</p>

@@ -12,7 +12,7 @@ export function useRegistros(limite = 20) {
     async function carregar() {
       const { data } = await supabase
         .from('registros')
-        .select('*, alimentos(nome), funcionarios(nome)')
+        .select('*, alimentos(nome, unidade), funcionarios(nome)')
         .order('criado_em', { ascending: false })
         .limit(limite)
 

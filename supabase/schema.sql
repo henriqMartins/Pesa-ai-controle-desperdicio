@@ -9,12 +9,14 @@
 
 -- Alimentos cadastrados pela dona
 create table if not exists alimentos (
-  id          uuid primary key default gen_random_uuid(),
-  nome        text not null,
-  categoria   text,
-  valor_por_kg numeric(10,2) not null check (valor_por_kg >= 0),
-  ativo       boolean not null default true,
-  criado_em   timestamptz not null default now()
+  id               uuid primary key default gen_random_uuid(),
+  nome             text not null,
+  categoria        text,
+  preco_por_unidade numeric(10,2) not null check (preco_por_unidade >= 0),
+  unidade          text not null default 'kg'
+                     check (unidade in ('kg','L','un')),
+  ativo            boolean not null default true,
+  criado_em        timestamptz not null default now()
 );
 
 -- Funcionários (identificação na tela — sem senha nem PIN)
@@ -29,18 +31,21 @@ create table if not exists funcionarios (
 
 -- Registros de desperdício
 create table if not exists registros (
-  id                   uuid primary key default gen_random_uuid(),
-  alimento_id          uuid not null references alimentos(id),
-  funcionario_id       uuid not null references funcionarios(id),
-  peso_g               numeric(10,2) not null check (peso_g > 0),
+  id                       uuid primary key default gen_random_uuid(),
+  alimento_id              uuid not null references alimentos(id),
+  funcionario_id           uuid not null references funcionarios(id),
+  -- quantidade na unidade base do alimento (kg, L ou un) — usada para calcular custo
+  quantidade               numeric(10,4) not null check (quantidade > 0),
+  -- unidade em que a funcionária digitou (g, kg, mL, L, un) — usada para exibição
+  unidade_registro         text not null,
   -- snapshot do preço no momento do registro (preço muda com o tempo)
-  preco_kg_no_momento  numeric(10,2) not null,
+  preco_unitario_no_momento numeric(10,2) not null,
   -- custo calculado automaticamente pelo banco
-  custo                numeric(10,2)
-                         generated always as
-                         (round((peso_g / 1000.0) * preco_kg_no_momento, 2)) stored,
-  motivo               text,
-  criado_em            timestamptz not null default now()
+  custo                    numeric(10,2)
+                             generated always as
+                             (round(quantidade * preco_unitario_no_momento, 2)) stored,
+  motivo                   text,
+  criado_em                timestamptz not null default now()
 );
 
 -- Índice para acelerar consultas por data

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAlimentos } from '../hooks/useAlimentos'
 import { useFuncionarios } from '../hooks/useFuncionarios'
 import type { Alimento, Funcionario } from '../types'
+import { OPCOES_UNIDADE_BASE, type UnidadeBase } from '../lib/unidades'
 
 type Aba = 'alimentos' | 'funcionarios'
 
@@ -12,27 +13,30 @@ function AbaAlimentos() {
 
   const [nome, setNome] = useState('')
   const [categoria, setCategoria] = useState('')
-  const [valorKg, setValorKg] = useState('')
+  const [precoPorUnidade, setPrecoPorUnidade] = useState('')
+  const [unidade, setUnidade] = useState<UnidadeBase>('kg')
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
   const [editando, setEditando] = useState<Alimento | null>(null)
-  const [editValorKg, setEditValorKg] = useState('')
+  const [editPreco, setEditPreco] = useState('')
 
   async function handleAdicionar(e: React.FormEvent) {
     e.preventDefault()
-    if (!nome.trim() || !valorKg) return
+    if (!nome.trim() || !precoPorUnidade) return
     setSalvando(true)
     setErro(null)
     try {
       await adicionar({
         nome: nome.trim(),
         categoria: categoria.trim() || undefined,
-        valor_por_kg: parseFloat(valorKg),
+        preco_por_unidade: parseFloat(precoPorUnidade),
+        unidade,
       })
       setNome('')
       setCategoria('')
-      setValorKg('')
+      setPrecoPorUnidade('')
+      setUnidade('kg')
     } catch (err) {
       setErro(err instanceof Error ? err.message : 'Erro ao adicionar')
     } finally {
@@ -45,8 +49,8 @@ function AbaAlimentos() {
   }
 
   async function handleSalvarEdicao(a: Alimento) {
-    if (!editValorKg) return
-    await atualizar(a.id, { valor_por_kg: parseFloat(editValorKg) })
+    if (!editPreco) return
+    await atualizar(a.id, { preco_por_unidade: parseFloat(editPreco) })
     setEditando(null)
   }
 
@@ -62,20 +66,25 @@ function AbaAlimentos() {
         {alimentos.map((a) => (
           <li key={a.id} className="flex items-center justify-between gap-2 px-4 py-3">
             <div className="min-w-0">
-              <span className={`font-medium ${a.ativo ? 'text-gray-800' : 'text-gray-400 line-through'}`}>
-                {a.nome}
-              </span>
-              {a.categoria && (
-                <span className="ml-2 text-xs text-gray-400">{a.categoria}</span>
-              )}
+              <div className="flex items-center gap-2">
+                <span className={`font-medium ${a.ativo ? 'text-gray-800' : 'text-gray-400 line-through'}`}>
+                  {a.nome}
+                </span>
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                  {a.unidade}
+                </span>
+                {a.categoria && (
+                  <span className="text-xs text-gray-400">{a.categoria}</span>
+                )}
+              </div>
               {editando?.id === a.id ? (
                 <div className="mt-1 flex items-center gap-2">
-                  <span className="text-sm text-gray-500">R$/kg:</span>
+                  <span className="text-sm text-gray-500">R$/{a.unidade}:</span>
                   <input
                     type="number"
                     inputMode="decimal"
-                    value={editValorKg}
-                    onChange={(e) => setEditValorKg(e.target.value)}
+                    value={editPreco}
+                    onChange={(e) => setEditPreco(e.target.value)}
                     className="w-24 rounded border border-gray-300 px-2 py-1 text-sm focus:border-teal-500 focus:outline-none"
                     autoFocus
                   />
@@ -94,14 +103,14 @@ function AbaAlimentos() {
                 </div>
               ) : (
                 <p className="text-sm text-gray-500">
-                  R$ {Number(a.valor_por_kg).toFixed(2).replace('.', ',')}/kg
+                  R$ {Number(a.preco_por_unidade).toFixed(2).replace('.', ',')}/{a.unidade}
                 </p>
               )}
             </div>
             <div className="flex shrink-0 gap-2">
               {editando?.id !== a.id && (
                 <button
-                  onClick={() => { setEditando(a); setEditValorKg(String(a.valor_por_kg)) }}
+                  onClick={() => { setEditando(a); setEditPreco(String(a.preco_por_unidade)) }}
                   className="rounded px-2 py-1 text-xs text-teal-600 ring-1 ring-teal-200 hover:bg-teal-50"
                 >
                   Editar preço
@@ -141,17 +150,29 @@ function AbaAlimentos() {
             onChange={(e) => setCategoria(e.target.value)}
             className="flex-1 min-w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
           />
-          <input
-            type="number"
-            inputMode="decimal"
-            placeholder="R$/kg *"
-            min={0}
-            step="0.01"
-            value={valorKg}
-            onChange={(e) => setValorKg(e.target.value)}
-            required
-            className="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
-          />
+          <select
+            value={unidade}
+            onChange={(e) => setUnidade(e.target.value as UnidadeBase)}
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
+          >
+            {OPCOES_UNIDADE_BASE.map((op) => (
+              <option key={op.valor} value={op.valor}>{op.label}</option>
+            ))}
+          </select>
+          <div className="flex items-center gap-1">
+            <span className="text-sm text-gray-500 whitespace-nowrap">R$/{unidade}</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              placeholder="Preço *"
+              min={0}
+              step="0.01"
+              value={precoPorUnidade}
+              onChange={(e) => setPrecoPorUnidade(e.target.value)}
+              required
+              className="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
+            />
+          </div>
           <button
             type="submit"
             disabled={salvando}

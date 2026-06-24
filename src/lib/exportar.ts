@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx'
 import { jsPDF } from 'jspdf'
 import type { RegistroCompleto } from '../types'
 import type { ItemAlimento, ItemFuncionario } from '../hooks/useRegistrosFiltro'
+import { exibirQuantidade } from './unidades'
 
 interface DadosExport {
   registros: RegistroCompleto[]
@@ -32,7 +33,7 @@ export function exportarExcel(dados: DadosExport) {
         minute: '2-digit',
       }),
       Alimento: r.alimentos.nome,
-      'Peso (g)': Number(r.peso_g),
+      Quantidade: exibirQuantidade(Number(r.quantidade), r.unidade_registro, r.alimentos.unidade),
       'Custo (R$)': Number(r.custo),
       Funcionário: r.funcionarios.nome,
       Motivo: r.motivo ?? '',
@@ -45,7 +46,7 @@ export function exportarExcel(dados: DadosExport) {
       '#': i + 1,
       Alimento: a.nome,
       'Total (R$)': a.total,
-      'Peso total (g)': a.pesoTotal,
+      'Quantidade total': `${a.quantidadeTotal.toFixed(3).replace(/\.?0+$/, '')} ${a.unidade}`,
       Registros: a.quantidade,
     })),
   )
@@ -105,13 +106,14 @@ export function exportarPDF(dados: DadosExport) {
 
   // Top alimentos
   titulo('Top Alimentos Desperdiçados')
-  addLinha([['#', L], ['Alimento', L + 8], ['Total', 120], ['Peso total', 158]])
+  addLinha([['#', L], ['Alimento', L + 8], ['Total', 120], ['Qtd. total', 158]])
   for (const [i, a] of dados.topAlimentos.slice(0, 10).entries()) {
+    const qtdDisplay = `${a.quantidadeTotal.toFixed(3).replace(/\.?0+$/, '')} ${a.unidade}`
     addLinha([
       [`${i + 1}.`, L],
       [a.nome.slice(0, 28), L + 8],
       [brl(a.total), 120],
-      [`${a.pesoTotal.toFixed(0)} g`, 158],
+      [qtdDisplay, 158],
     ])
   }
   y += 5
@@ -131,7 +133,7 @@ export function exportarPDF(dados: DadosExport) {
 
   // Registros
   titulo('Registros')
-  addLinha([['Data/Hora', L], ['Alimento', 48], ['Peso', 108], ['Custo', 128], ['Funcionário', 152]])
+  addLinha([['Data/Hora', L], ['Alimento', 48], ['Qtd.', 108], ['Custo', 130], ['Funcionário', 152]])
   for (const r of dados.registros) {
     const dt = new Date(r.criado_em).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -139,11 +141,12 @@ export function exportarPDF(dados: DadosExport) {
       hour: '2-digit',
       minute: '2-digit',
     })
+    const qtd = exibirQuantidade(Number(r.quantidade), r.unidade_registro, r.alimentos.unidade)
     addLinha([
       [dt, L],
       [r.alimentos.nome.slice(0, 16), 48],
-      [`${Number(r.peso_g).toFixed(0)}g`, 108],
-      [`R$${Number(r.custo).toFixed(2)}`, 128],
+      [qtd, 108],
+      [`R$${Number(r.custo).toFixed(2)}`, 130],
       [r.funcionarios.nome.slice(0, 18), 152],
     ])
   }

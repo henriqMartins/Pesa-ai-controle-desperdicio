@@ -4,6 +4,11 @@ import { useFuncionarios } from '../hooks/useFuncionarios'
 import { useFuncionarioAtual } from '../hooks/useFuncionarioAtual'
 import { useRegistros } from '../hooks/useRegistros'
 import type { Alimento } from '../types'
+import {
+  UNIDADES_ENTRADA,
+  converterParaBase,
+  type UnidadeEntrada,
+} from '../lib/unidades'
 
 export default function Registro() {
   const { alimentos, loading: loadingAlimentos } = useAlimentos()
@@ -12,20 +17,30 @@ export default function Registro() {
   const { inserir } = useRegistros(1)
 
   const [alimentoSelecionado, setAlimentoSelecionado] = useState<Alimento | null>(null)
-  const [pesoTexto, setPesoTexto] = useState('')
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState<UnidadeEntrada>('g')
+  const [quantidadeTexto, setQuantidadeTexto] = useState('')
   const [motivo, setMotivo] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
-  const pesoG = parseFloat(pesoTexto)
+  const quantidadeEntrada = parseFloat(quantidadeTexto)
+
   const custoEstimado =
-    alimentoSelecionado && pesoG > 0
-      ? (pesoG / 1000) * alimentoSelecionado.valor_por_kg
+    alimentoSelecionado && quantidadeEntrada > 0
+      ? converterParaBase(quantidadeEntrada, unidadeSelecionada, alimentoSelecionado.unidade) *
+        alimentoSelecionado.preco_por_unidade
       : null
 
   const podeConfirmar =
-    !!funcionarioId && !!alimentoSelecionado && pesoG > 0 && !enviando
+    !!funcionarioId && !!alimentoSelecionado && quantidadeEntrada > 0 && !enviando
+
+  function selecionarAlimento(a: Alimento) {
+    setAlimentoSelecionado(a)
+    // Reseta para a primeira unidade disponível para esse alimento
+    setUnidadeSelecionada(UNIDADES_ENTRADA[a.unidade][0].valor)
+    setQuantidadeTexto('')
+  }
 
   async function confirmar() {
     if (!podeConfirmar || !alimentoSelecionado) return
@@ -33,15 +48,21 @@ export default function Registro() {
     setErro(null)
 
     try {
+      const quantidadeBase = converterParaBase(
+        quantidadeEntrada,
+        unidadeSelecionada,
+        alimentoSelecionado.unidade,
+      )
       await inserir({
         alimento_id: alimentoSelecionado.id,
         funcionario_id: funcionarioId!,
-        peso_g: pesoG,
-        preco_kg_no_momento: alimentoSelecionado.valor_por_kg,
+        quantidade: quantidadeBase,
+        unidade_registro: unidadeSelecionada,
+        preco_unitario_no_momento: alimentoSelecionado.preco_por_unidade,
         motivo: motivo.trim() || undefined,
       })
       setAlimentoSelecionado(null)
-      setPesoTexto('')
+      setQuantidadeTexto('')
       setMotivo('')
       setSucesso(true)
       setTimeout(() => setSucesso(false), 3000)
@@ -55,6 +76,10 @@ export default function Registro() {
   if (loadingAlimentos || loadingFuncionarios) {
     return <div className="p-6 text-center text-gray-500">Carregando...</div>
   }
+
+  const opcoesUnidade = alimentoSelecionado
+    ? UNIDADES_ENTRADA[alimentoSelecionado.unidade]
+    : []
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4">
@@ -95,7 +120,7 @@ export default function Registro() {
           {alimentos.map((a) => (
             <button
               key={a.id}
-              onClick={() => setAlimentoSelecionado(a)}
+              onClick={() => selecionarAlimento(a)}
               className={`rounded-lg px-4 py-3 text-sm font-medium transition ${
                 alimentoSelecionado?.id === a.id
                   ? 'bg-teal-600 text-white shadow'
@@ -106,6 +131,9 @@ export default function Registro() {
               {a.categoria && (
                 <span className="ml-1 text-xs opacity-70">· {a.categoria}</span>
               )}
+              <span className={`ml-2 text-xs ${alimentoSelecionado?.id === a.id ? 'opacity-70' : 'text-gray-400'}`}>
+                {a.unidade}
+              </span>
             </button>
           ))}
           {alimentos.length === 0 && (
@@ -116,27 +144,44 @@ export default function Registro() {
         </div>
       </section>
 
-      {/* Seção 3 — Peso */}
+      {/* Seção 3 — Quantidade */}
       <section>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
-          Peso desperdiçado (g)
+          Quantidade desperdiçada
         </h2>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <input
             type="number"
             inputMode="decimal"
-            min={1}
+            min={0.001}
+            step="any"
             placeholder="ex: 500"
-            value={pesoTexto}
-            onChange={(e) => setPesoTexto(e.target.value)}
+            value={quantidadeTexto}
+            onChange={(e) => setQuantidadeTexto(e.target.value)}
             className="w-36 rounded-lg border border-gray-300 px-4 py-3 text-lg focus:border-teal-500 focus:outline-none"
           />
+          {opcoesUnidade.length > 0 && (
+            <select
+              value={unidadeSelecionada}
+              onChange={(e) => setUnidadeSelecionada(e.target.value as UnidadeEntrada)}
+              className="rounded-lg border border-gray-300 px-3 py-3 text-base focus:border-teal-500 focus:outline-none"
+            >
+              {opcoesUnidade.map((op) => (
+                <option key={op.valor} value={op.valor}>
+                  {op.label}
+                </option>
+              ))}
+            </select>
+          )}
           {custoEstimado !== null && (
             <span className="text-base font-medium text-teal-700">
               ≈ R$ {custoEstimado.toFixed(2).replace('.', ',')}
             </span>
           )}
         </div>
+        {!alimentoSelecionado && (
+          <p className="mt-1.5 text-xs text-gray-400">Selecione um alimento para escolher a unidade.</p>
+        )}
       </section>
 
       {/* Seção 4 — Motivo (opcional) */}
@@ -162,7 +207,6 @@ export default function Registro() {
         {enviando ? 'Salvando...' : 'Confirmar registro'}
       </button>
 
-      {/* Feedback */}
       {sucesso && (
         <div className="rounded-lg bg-green-50 px-4 py-3 text-center text-green-700 ring-1 ring-green-200">
           Registro salvo com sucesso!

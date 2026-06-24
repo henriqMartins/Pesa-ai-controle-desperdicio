@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import type { UnidadeBase } from '../lib/unidades'
 import type { RegistroCompleto } from '../types'
 
 export interface ItemAlimento {
   nome: string
   total: number
-  pesoTotal: number
+  quantidadeTotal: number
+  unidade: UnidadeBase
   quantidade: number
 }
 
@@ -30,13 +32,19 @@ function agregar(registros: RegistroCompleto[]) {
 
   for (const r of registros) {
     const custo = Number(r.custo)
-    const peso = Number(r.peso_g)
+    const quant = Number(r.quantidade)
     total += custo
 
     const nomeA = r.alimentos.nome
-    const a = alimentos.get(nomeA) ?? { nome: nomeA, total: 0, pesoTotal: 0, quantidade: 0 }
+    const a = alimentos.get(nomeA) ?? {
+      nome: nomeA,
+      total: 0,
+      quantidadeTotal: 0,
+      unidade: r.alimentos.unidade,
+      quantidade: 0,
+    }
     a.total = +(a.total + custo).toFixed(2)
-    a.pesoTotal += peso
+    a.quantidadeTotal = +(a.quantidadeTotal + quant).toFixed(4)
     a.quantidade += 1
     alimentos.set(nomeA, a)
 
@@ -70,7 +78,7 @@ export function useRegistrosFiltro(de: string, ate: string): DadosFiltro {
       setLoading(true)
       const { data } = await supabase
         .from('registros')
-        .select('*, alimentos(nome), funcionarios(nome)')
+        .select('*, alimentos(nome, unidade), funcionarios(nome)')
         .gte('criado_em', de)
         .lte('criado_em', ate)
         .order('criado_em', { ascending: false })
