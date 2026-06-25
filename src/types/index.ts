@@ -5,3 +5,4 @@ export type {
   PapelFuncionario,
 } from './funcionario'
 export type { Registro, NovoRegistro, RegistroCompleto } from './registro'
+export type { Motivo, NovoMotivo } from './motivo'

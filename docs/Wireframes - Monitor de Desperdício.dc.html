@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  a{ color:inherit; }
+</style>
+</helmet>
+
+<div style="min-height:100vh; background-color:#f1ece0; background-image:linear-gradient(#e4dccb 1px,transparent 1px),linear-gradient(90deg,#e4dccb 1px,transparent 1px); background-size:26px 26px; font-family:Kalam,'Comic Sans MS',cursive; color:#33312e; padding-bottom:80px;">
+<div style="max-width:1340px; margin:0 auto; padding:34px 26px 0;">
+
+  <!-- HEADER -->
+  <div style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:18px; border-bottom:2.5px dashed #cbc2ad; padding-bottom:20px;">
+    <div style="display:flex; align-items:flex-start; gap:14px;">
+      <div style="border:2.5px solid #33312e; border-radius:14px 8px 16px 7px/7px 16px 8px 14px; width:54px; height:54px; display:flex; align-items:center; justify-content:center; background:#fffdf7; box-shadow:3px 4px 0 rgba(51,49,46,.12); flex:none;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#d9542b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1.1 13h9.8L18 7M10 11v6M14 11v6"/></svg>
+      </div>
+      <div>
+        <div style="font:700 17px Kalam; color:#d9542b; letter-spacing:.4px;">Petiscaria Aquino</div>
+        <h1 style="margin:1px 0 0; font:700 44px Caveat; color:#33312e; line-height:1;">Monitor de Desperdício <span style="background:linear-gradient(180deg,transparent 56%,#ffe04d 56%); padding:0 5px;">· Decisões Finais</span></h1>
+        <div style="font:400 14.5px Kalam; color:#6f695c; margin-top:6px;">Wireframes das escolhas confirmadas — base para o hi-fi.</div>
+      </div>
+    </div>
+    <div style="border:2px solid #2e8b57; border-radius:14px 8px 16px 7px/7px 16px 8px 14px; background:#d8f0d8; padding:11px 15px; box-shadow:4px 5px 0 rgba(46,139,87,.15); min-width:200px;">
+      <div style="font:700 13px Kalam; color:#1f6b3f; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">✓ escolhas confirmadas</div>
+      <div style="font:400 12px Kalam; color:#2e6b3f; line-height:1.85;">
+        <div>1 · Nav A + mobile</div>
+        <div>2 · Dashboard A</div>
+        <div>3 · Registrar B + mobile</div>
+        <div>4 · Produtos B</div>
+        <div>5 · Equipe A</div>
+        <div style="color:#999; text-decoration:line-through;">6 · Login descartado</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INDEX -->
+  <div style="display:flex; flex-wrap:wrap; gap:9px; margin:18px 0 8px;">
+    <a href="#sec-nav" style="text-decoration:none; font:700 13px Kalam; color:#1f6b3f; border:1.8px solid #2e8b57; border-radius:20px; padding:5px 14px; background:#d8f0d8; box-shadow:2px 3px 0 rgba(46,139,87,.12);">1 · Navegação</a>
+    <a href="#sec-dash" style="text-decoration:none; font:700 13px Kalam; color:#1f6b3f; border:1.8px solid #2e8b57; border-radius:20px; padding:5px 14px; background:#d8f0d8; box-shadow:2px 3px 0 rgba(46,139,87,.12);">2 · Dashboard</a>
+    <a href="#sec-reg" style="text-decoration:none; font:700 13px Kalam; color:#1f6b3f; border:1.8px solid #2e8b57; border-radius:20px; padding:5px 14px; background:#d8f0d8; box-shadow:2px 3px 0 rgba(46,139,87,.12);">3 · Registrar</a>
+    <a href="#sec-prod" style="text-decoration:none; font:700 13px Kalam; color:#1f6b3f; border:1.8px solid #2e8b57; border-radius:20px; padding:5px 14px; background:#d8f0d8; box-shadow:2px 3px 0 rgba(46,139,87,.12);">4 · Produtos</a>
+    <a href="#sec-func" style="text-decoration:none; font:700 13px Kalam; color:#1f6b3f; border:1.8px solid #2e8b57; border-radius:20px; padding:5px 14px; background:#d8f0d8; box-shadow:2px 3px 0 rgba(46,139,87,.12);">5 · Equipe</a>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 1 · NAVEGAÇÃO — A (barra superior) + mobile -->
+  <!-- ================================================================ -->
+  <div id="sec-nav" style="scroll-margin-top:14px; margin-top:44px;">
+    <div style="display:flex; align-items:center; gap:13px; margin-bottom:18px;">
+      <div style="font:700 26px Caveat; color:#fffdf7; background:#2e8b57; width:44px; height:44px; border-radius:52% 48% 50% 50%/50% 52% 48% 50%; display:flex; align-items:center; justify-content:center; flex:none;">1</div>
+      <div>
+        <h2 style="margin:0; font:700 30px Caveat; color:#33312e; line-height:1;">Navegação &amp; shell</h2>
+        <div style="font:400 14px Kalam; color:#6f695c;">Barra superior (desktop/TV) + mobile com FAB</div>
+      </div>
+      <span style="font:700 12px Kalam; background:#ffe04d; border:1.8px solid #33312e; border-radius:20px; padding:4px 12px; margin-left:4px;">✓ ESCOLHA FINAL</span>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start;">
+
+      <!-- A · top bar desktop -->
+      <div style="flex:2 1 480px; min-width:320px;">
+        <div style="font:700 15px Kalam; color:#2e8b57; margin-bottom:8px;">A · Barra superior — desktop / TV</div>
+        <div style="border:2px solid #33312e; border-radius:16px 9px 16px 9px/9px 16px 9px 16px; background:#fffdf7; box-shadow:5px 6px 0 rgba(51,49,46,.10); overflow:hidden;">
+          <!-- top bar -->
+          <div style="display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1.8px solid #33312e; background:#f7f3e9;">
+            <div style="display:flex; align-items:center; gap:8px; flex:none;">
+              <div style="border:1.8px solid #33312e; border-radius:9px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font:700 13px Kalam; background:#f7d9cd; color:#d9542b;">▦</div>
+              <div style="line-height:1.1;"><div style="font:700 13px Kalam; color:#d9542b;">Petiscaria Aquino</div><div style="font:400 10px Kalam; color:#8a8475;">monitor de desperdício</div></div>
+            </div>
+            <div style="display:flex; gap:6px; margin-left:8px;">
+              <span style="font:700 12.5px Kalam; background:#ffe04d; border:1.6px solid #33312e; border-radius:14px; padding:4px 12px;">Monitor</span>
+              <span style="font:400 12.5px Kalam; border:1.6px solid #cbc2ad; color:#6f695c; border-radius:14px; padding:4px 12px;">Produtos</span>
+              <span style="font:400 12.5px Kalam; border:1.6px solid #cbc2ad; color:#6f695c; border-radius:14px; padding:4px 12px;">Equipe</span>
+            </div>
+            <div style="flex:1;"></div>
+            <div style="display:flex; align-items:center; gap:6px; border:1.5px solid #cbc2ad; border-radius:10px; padding:5px 10px; font:700 11px Kalam; color:#2e8b57;"><span style="width:7px; height:7px; border-radius:50%; background:#2e8b57;"></span>AO VIVO 12:55</div>
+            <div style="border:2px solid #d9542b; background:#f7d9cd; color:#b8431f; font:700 12px Kalam; border-radius:10px; padding:6px 12px;">＋ Registrar</div>
+          </div>
+          <!-- content area -->
+          <div style="padding:14px 16px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+            <div style="height:52px; border:1.6px dashed #b9b09c; border-radius:10px; background:#faf7f0;"></div>
+            <div style="height:52px; border:1.6px dashed #b9b09c; border-radius:10px; background:#faf7f0;"></div>
+            <div style="height:52px; border:1.6px dashed #b9b09c; border-radius:10px; background:#faf7f0;"></div>
+            <div style="height:72px; grid-column:span 3; border:1.6px dashed #b9b09c; border-radius:10px; background:#faf7f0;"></div>
+          </div>
+        </div>
+        <div style="display:flex; gap:7px; margin-top:9px;"><span style="color:#d9542b; font:700 14px Kalam;">✱</span><span style="font:400 12.5px Kalam; color:#7a7468;">aba ativa em <span style="background:#ffe04d; padding:0 3px;">amarelo</span>. Relógio AO VIVO à direita pisca a cada segundo. Botão "＋ Registrar" abre modal.</span></div>
+      </div>
+
+      <!-- mobile -->
+      <div style="flex:none; width:220px;">
+        <div style="font:700 15px Kalam; color:#2e8b57; margin-bottom:8px;">Mobile — balcão</div>
+        <div style="border:2.5px solid #33312e; border-radius:30px; background:#fffdf7; box-shadow:5px 6px 0 rgba(51,49,46,.10); overflow:hidden; width:200px; margin:0 auto; position:relative;">
+          <div style="height:18px; display:flex; align-items:center; justify-content:center;"><div style="width:48px; height:5px; background:#33312e; border-radius:5px;"></div></div>
+          <div style="padding:8px 14px 14px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+              <div style="font:700 14px Kalam; color:#d9542b;">Aquino</div>
+              <div style="font:400 10px Kalam; color:#2e8b57; display:flex; align-items:center; gap:4px;"><span style="width:6px; height:6px; border-radius:50%; background:#2e8b57;"></span>ao vivo</div>
+            </div>
+            <div style="height:54px; border:1.6px dashed #b9b09c; border-radius:10px; margin-bottom:8px; background:#faf7f0;"></div>
+            <div style="height:54px; border:1.6px dashed #b9b09c; border-radius:10px; margin-bottom:8px; background:#faf7f0;"></div>
+            <div style="height:54px; border:1.6px dashed #b9b09c; border-radius:10px; background:#faf7f0;"></div>
+          </div>
+          <!-- FAB -->
+          <div style="position:absolute; right:14px; bottom:56px; width:46px; height:46px; border-radius:50%; border:2px solid #d9542b; background:#f7d9cd; color:#b8431f; display:flex; align-items:center; justify-content:center; font:700 26px Kalam; box-shadow:2px 3px 0 rgba(51,49,46,.18);">＋</div>
+          <!-- bottom nav -->
+          <div style="border-top:1.8px solid #33312e; display:flex; justify-content:space-around; padding:9px 0; font:700 17px Kalam;">
+            <span style="color:#d9542b;">▣</span><span style="color:#b9b09c;">▦</span><span style="color:#b9b09c;">☻</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:7px; margin-top:9px;"><span style="color:#d9542b; font:700 14px Kalam;">✱</span><span style="font:400 12.5px Kalam; color:#7a7468;">FAB "＋" registra em 1 toque. Bottom nav p/ Monitor / Produtos / Equipe.</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 2 · DASHBOARD — A -->
+  <!-- ================================================================ -->
+  <div id="sec-dash" style="scroll-margin-top:14px; margin-top:52px;">
+    <div style="display:flex; align-items:center; gap:13px; margin-bottom:18px;">
+      <div style="font:700 26px Caveat; color:#fffdf7; background:#2e8b57; width:44px; height:44px; border-radius:50% 50% 52% 48%/48% 50% 50% 52%; display:flex; align-items:center; justify-content:center; flex:none;">2</div>
+      <div>
+        <h2 style="margin:0; font:700 30px Caveat; color:#33312e; line-height:1;">Dashboard — Monitor ao vivo</h2>
+        <div style="font:400 14px Kalam; color:#6f695c;">3 KPIs + 3 painéis · recalcula a cada lançamento</div>
+      </div>
+      <span style="font:700 12px Kalam; background:#ffe04d; border:1.8px solid #33312e; border-radius:20px; padding:4px 12px; margin-left:4px;">✓ ESCOLHA FINAL</span>
+    </div>
+
+    <div style="border:2px solid #33312e; border-radius:14px 9px 14px 9px/9px 14px 9px 14px; background:#fffdf7; box-shadow:5px 6px 0 rgba(51,49,46,.10); padding:16px; max-width:900px;">
+      <!-- top bar simulada -->
+      <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1.6px dashed #d8d0bd; padding-bottom:10px; margin-bottom:13px;">
+        <div style="font:700 16px Caveat; display:flex; align-items:center; gap:7px;"><span style="color:#d9542b;">▦</span> Petiscaria Aquino · Monitor</div>
+        <div style="font:700 11px Kalam; color:#2e8b57; display:flex; align-items:center; gap:5px;"><span style="width:7px; height:7px; border-radius:50%; background:#2e8b57;"></span>AO VIVO 12:55</div>
+      </div>
+      <!-- KPIs -->
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+        <div style="border:1.8px solid #d9542b; border-radius:12px; padding:11px; background:#f7d9cd;">
+          <div style="font:700 10px Kalam; color:#b8431f; letter-spacing:.4px; text-transform:uppercase;">Desp. do dia</div>
+          <div style="font:700 30px Caveat; color:#b8431f; line-height:1; margin:5px 0 3px;">R$ 26,11</div>
+          <div style="font:400 10px Kalam; color:#9a5238;">4 lançamentos · maior: X-Bacon</div>
+        </div>
+        <div style="border:1.8px solid #3b82f6; border-radius:12px; padding:11px; background:#dbeafe;">
+          <div style="font:700 10px Kalam; color:#1d4ed8; letter-spacing:.4px; text-transform:uppercase;">Desp. do mês</div>
+          <div style="font:700 30px Caveat; color:#1d4ed8; line-height:1; margin:5px 0 3px;">R$ 150,35</div>
+          <div style="font:400 10px Kalam; color:#1e40af;">15 lançamentos</div>
+        </div>
+        <div style="border:1.8px solid #14b8a6; border-radius:12px; padding:11px; background:#ccfbf1;">
+          <div style="font:700 10px Kalam; color:#0e8e87; letter-spacing:.4px; text-transform:uppercase;">Média por dia</div>
+          <div style="font:700 30px Caveat; color:#0e8e87; line-height:1; margin:5px 0 3px;">R$ 6,53</div>
+          <div style="font:400 10px Kalam; color:#0f766e;">projeção mês: R$ 195,90</div>
+        </div>
+      </div>
+      <!-- paineis -->
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+        <!-- ultimos -->
+        <div style="border:1.8px solid #33312e; border-radius:10px; padding:10px;">
+          <div style="font:700 11px Kalam; margin-bottom:7px; text-transform:uppercase; letter-spacing:.4px;">Últimos lançamentos</div>
+          <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #d8d0bd; padding:4px 0;"><span style="font:400 11px Kalam;">Pão mini</span><span style="font:700 11px Kalam; color:#d9542b;">R$3,60</span></div>
+          <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #d8d0bd; padding:4px 0;"><span style="font:400 11px Kalam;">Pão brioche</span><span style="font:700 11px Kalam; color:#d9542b;">R$4,05</span></div>
+          <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #d8d0bd; padding:4px 0;"><span style="font:400 11px Kalam;">X-Bacon</span><span style="font:700 11px Kalam; color:#d9542b;">R$16,00</span></div>
+          <div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="font:400 11px Kalam;">Maionese</span><span style="font:700 11px Kalam; color:#d9542b;">R$2,61</span></div>
+        </div>
+        <!-- produtos ranking -->
+        <div style="border:1.8px solid #7c3aed; border-radius:10px; padding:10px; background:#f5f3ff;">
+          <div style="font:700 11px Kalam; margin-bottom:7px; text-transform:uppercase; letter-spacing:.4px; color:#5a24c0;">+ Desperdiçados</div>
+          <div style="font:700 10.5px Kalam; display:flex; justify-content:space-between; color:#5a24c0;">1º Pão brioche <span>R$32,40</span></div>
+          <div style="height:6px; border:1.3px solid #7c3aed; border-radius:5px; background:linear-gradient(90deg,#7c3aed 100%,transparent 0); margin:3px 0 7px;"></div>
+          <div style="font:700 10.5px Kalam; display:flex; justify-content:space-between; color:#5a24c0;">2º X-Bacon <span>R$26,11</span></div>
+          <div style="height:6px; border:1.3px solid #7c3aed; border-radius:5px; background:linear-gradient(90deg,#7c3aed 80%,transparent 0); margin:3px 0 7px;"></div>
+          <div style="font:700 10.5px Kalam; display:flex; justify-content:space-between; color:#5a24c0;">3º Pão mini <span>R$21,60</span></div>
+          <div style="height:6px; border:1.3px solid #7c3aed; border-radius:5px; background:linear-gradient(90deg,#7c3aed 67%,transparent 0); margin:3px 0 0;"></div>
+        </div>
+        <!-- motivos -->
+        <div style="border:1.8px solid #e0344a; border-radius:10px; padding:10px; background:#fff0f0;">
+          <div style="font:700 11px Kalam; margin-bottom:7px; text-transform:uppercase; letter-spacing:.4px; color:#b8431f;">Principais motivos</div>
+          <div style="font:700 10.5px Kalam; display:flex; justify-content:space-between; color:#b8431f;">1º Erro montagem <span>R$48,60</span></div>
+          <div style="height:6px; border:1.3px solid #e0344a; border-radius:5px; background:linear-gradient(90deg,#e0344a 100%,transparent 0); margin:3px 0 7px;"></div>
+          <div style="font:700 10.5px Kalam; display:flex; justify-content:space-between; color:#b8431f;">2º Sobra <span>R$36,40</span></div>
+          <div style="height:6px; border:1.3px solid #e0344a; border-radius:5px; background:linear-gradient(90deg,#e0344a 75%,transparent 0); margin:3px 0 7px;"></div>
+          <div style="font:700 10.5px Kalam; display:flex; justify-content:space-between; color:#b8431f;">3º Caiu no chão <span>R$14,30</span></div>
+          <div style="height:6px; border:1.3px solid #e0344a; border-radius:5px; background:linear-gradient(90deg,#e0344a 29%,transparent 0); margin:3px 0 0;"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex; gap:7px; margin-top:9px;"><span style="color:#d9542b; font:700 14px Kalam;">✱</span><span style="font:400 12.5px Kalam; color:#7a7468;">cada registro novo: entra no topo de "Últimos", <span style="background:#ffe04d;">números recalculam ao vivo</span>, rankings reordenam.</span></div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 3 · REGISTRAR — B (entrada rápida) + mobile (passo a passo) -->
+  <!-- ================================================================ -->
+  <div id="sec-reg" style="scroll-margin-top:14px; margin-top:52px;">
+    <div style="display:flex; align-items:center; gap:13px; margin-bottom:18px;">
+      <div style="font:700 26px Caveat; color:#fffdf7; background:#d9542b; width:44px; height:44px; border-radius:52% 48% 50% 50%/50% 52% 48% 50%; display:flex; align-items:center; justify-content:center; flex:none;">3</div>
+      <div>
+        <h2 style="margin:0; font:700 30px Caveat; color:#33312e; line-height:1;">Registrar desperdício <span style="font:700 16px Kalam; color:#d9542b;">★ foco</span></h2>
+        <div style="font:400 14px Kalam; color:#6f695c;">campos: produto · quantidade · unidade · motivo · valor calculado pelo sistema</div>
+      </div>
+      <span style="font:700 12px Kalam; background:#ffe04d; border:1.8px solid #33312e; border-radius:20px; padding:4px 12px; margin-left:4px;">✓ ESCOLHA FINAL</span>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start;">
+
+      <!-- B · entrada rápida desktop/tablet -->
+      <div style="flex:1 1 340px; max-width:420px;">
+        <div style="font:700 15px Kalam; color:#2e8b57; margin-bottom:8px;">B · Entrada rápida — desktop / tablet</div>
+        <div style="border:2px solid #33312e; border-radius:9px 15px 9px 15px/15px 9px 15px 9px; background:#fffdf7; box-shadow:5px 6px 0 rgba(51,49,46,.10); padding:15px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.6px dashed #d8d0bd; padding-bottom:9px; margin-bottom:12px;">
+            <div style="font:700 16px Caveat;">Registrar desperdício</div>
+            <div style="border:1.6px solid #33312e; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font:700 12px Kalam;">✕</div>
+          </div>
+
+          <div style="font:700 12px Kalam; color:#5c574d; margin-bottom:6px;">Produtos frequentes — toque p/ selecionar</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:13px;">
+            <span style="font:700 12px Kalam; background:#ffe04d; border:1.6px solid #33312e; border-radius:14px; padding:5px 11px;">Pão mini ✓</span>
+            <span style="font:400 12px Kalam; border:1.6px solid #cbc2ad; color:#6f695c; border-radius:14px; padding:5px 11px;">Pão brioche</span>
+            <span style="font:400 12px Kalam; border:1.6px solid #cbc2ad; color:#6f695c; border-radius:14px; padding:5px 11px;">X-Bacon</span>
+            <span style="font:400 12px Kalam; border:1.6px solid #cbc2ad; color:#6f695c; border-radius:14px; padding:5px 11px;">Maionese</span>
+            <span style="font:400 12px Kalam; border:1.6px dashed #b9b09c; color:#a39c8c; border-radius:14px; padding:5px 11px;">＋ outro</span>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:stretch; margin-bottom:12px;">
+            <div style="flex:1; border:1.8px solid #b9b09c; border-radius:11px; padding:9px 11px; background:#faf7f0;">
+              <div style="font:700 10px Kalam; color:#8a8475; margin-bottom:3px; text-transform:uppercase;">Quantidade</div>
+              <div style="display:flex; gap:7px; align-items:center;">
+                <div style="font:700 26px Caveat; color:#33312e; line-height:1; flex:1; border-bottom:1.5px solid #33312e;">2</div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <span style="font:700 11px Kalam; background:#ffe04d; border:1.4px solid #33312e; border-radius:8px; padding:2px 9px; text-align:center;">un</span>
+                  <span style="font:400 11px Kalam; border:1.4px solid #cbc2ad; color:#6f695c; border-radius:8px; padding:2px 9px; text-align:center;">kg</span>
+                  <span style="font:400 11px Kalam; border:1.4px solid #cbc2ad; color:#6f695c; border-radius:8px; padding:2px 9px; text-align:center;">g · L</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1; border:1.8px solid #d9542b; border-radius:11px; padding:9px 11px; background:#f7d9cd;">
+              <div style="font:700 10px Kalam; color:#b8431f; margin-bottom:3px; text-transform:uppercase;">Valor calculado</div>
+              <div style="font:700 26px Caveat; color:#b8431f; line-height:1;">R$ 7,20</div>
+              <div style="font:400 9.5px Kalam; color:#9a5238; margin-top:2px;">R$3,60 × 2</div>
+            </div>
+          </div>
+
+          <div style="font:700 12px Kalam; color:#5c574d; margin-bottom:6px;">Motivo</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+            <span style="font:400 11.5px Kalam; border:1.5px solid #cbc2ad; color:#6f695c; border-radius:12px; padding:4px 9px;">Erro de montagem</span>
+            <span style="font:700 11.5px Kalam; background:#ffe04d; border:1.5px solid #33312e; border-radius:12px; padding:4px 9px;">Caiu no chão ✓</span>
+            <span style="font:400 11.5px Kalam; border:1.5px solid #cbc2ad; color:#6f695c; border-radius:12px; padding:4px 9px;">Queimou</span>
+            <span style="font:400 11.5px Kalam; border:1.5px solid #cbc2ad; color:#6f695c; border-radius:12px; padding:4px 9px;">Sobra</span>
+            <span style="font:400 11.5px Kalam; border:1.5px dashed #b9b09c; color:#a39c8c; border-radius:12px; padding:4px 9px;">✎ escrever…</span>
+          </div>
+
+          <div style="border:2px solid #d9542b; background:#f7d9cd; color:#b8431f; font:700 15px Kalam; border-radius:12px 8px 14px 7px/7px 14px 8px 12px; padding:11px 0; text-align:center; letter-spacing:.02em;">Registrar → dashboard atualiza ao vivo</div>
+        </div>
+        <div style="display:flex; gap:7px; margin-top:9px;"><span style="color:#d9542b; font:700 14px Kalam;">✱</span><span style="font:400 12.5px Kalam; color:#7a7468;">chips de produto + chips de motivo = poucos cliques. Valor aparece instantâneo ao mudar qty.</span></div>
+      </div>
+
+      <!-- mobile passo a passo -->
+      <div style="flex:1 1 280px; max-width:360px;">
+        <div style="font:700 15px Kalam; color:#2e8b57; margin-bottom:8px;">Mobile — passo a passo (bottom-sheet)</div>
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <!-- step 1 -->
+          <div style="flex:1; border:2px solid #33312e; border-radius:18px 14px 18px 14px/14px 18px 14px 18px; background:#fffdf7; box-shadow:4px 5px 0 rgba(51,49,46,.10); padding:11px 9px;">
+            <div style="display:flex; gap:4px; justify-content:center; margin-bottom:8px;"><span style="width:7px; height:7px; border-radius:50%; background:#d9542b;"></span><span style="width:7px; height:7px; border-radius:50%; border:1.4px solid #b9b09c;"></span><span style="width:7px; height:7px; border-radius:50%; border:1.4px solid #b9b09c;"></span></div>
+            <div style="font:700 12px Kalam; margin-bottom:7px;">1 · Produto</div>
+            <div style="border:1.6px solid #33312e; border-radius:8px; padding:5px 8px; font:400 11px Kalam; color:#a39c8c; margin-bottom:6px;">🔍 buscar…</div>
+            <div style="border:1.5px solid #ffe04d; background:#fffae0; border-radius:7px; padding:5px 7px; font:700 11px Kalam; margin-bottom:4px;">Pão mini ✓</div>
+            <div style="border-bottom:1px dashed #d8d0bd; padding:4px 7px; font:400 11px Kalam; color:#6f695c;">Pão brioche</div>
+            <div style="padding:4px 7px; font:400 11px Kalam; color:#6f695c;">X-Bacon</div>
+          </div>
+          <!-- step 2 -->
+          <div style="flex:1; border:2px solid #33312e; border-radius:14px 18px 14px 18px/18px 14px 18px 14px; background:#fffdf7; box-shadow:4px 5px 0 rgba(51,49,46,.10); padding:11px 9px;">
+            <div style="display:flex; gap:4px; justify-content:center; margin-bottom:8px;"><span style="width:7px; height:7px; border-radius:50%; background:#33312e;"></span><span style="width:7px; height:7px; border-radius:50%; background:#d9542b;"></span><span style="width:7px; height:7px; border-radius:50%; border:1.4px solid #b9b09c;"></span></div>
+            <div style="font:700 12px Kalam; margin-bottom:7px;">2 · Qtd + motivo</div>
+            <div style="font:700 10px Kalam; color:#6f695c; margin-bottom:3px;">Quantidade</div>
+            <div style="display:flex; gap:4px; margin-bottom:8px;"><div style="flex:1; border:1.6px solid #33312e; border-radius:7px; padding:5px; font:700 14px Caveat; text-align:center;">3</div><div style="width:36px; border:1.6px solid #33312e; border-radius:7px; padding:5px; font:700 10px Kalam; text-align:center;">un ▾</div></div>
+            <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">
+              <span style="font:400 10px Kalam; border:1.4px solid #cbc2ad; color:#6f695c; border-radius:10px; padding:3px 7px;">Erro</span>
+              <span style="font:700 10px Kalam; background:#ffe04d; border:1.4px solid #33312e; border-radius:10px; padding:3px 7px;">Sobra ✓</span>
+              <span style="font:400 10px Kalam; border:1.4px solid #cbc2ad; color:#6f695c; border-radius:10px; padding:3px 7px;">Caiu</span>
+              <span style="font:400 10px Kalam; border:1.4px dashed #cbc2ad; color:#a39c8c; border-radius:10px; padding:3px 7px;">✎</span>
+            </div>
+            <div style="border:1.5px solid #d9542b; border-radius:7px; padding:6px; background:#f7d9cd; text-align:center;">
+              <div style="font:700 9px Kalam; color:#b8431f;">CALCULADO</div>
+              <div style="font:700 16px Caveat; color:#b8431f; line-height:1;">R$ 10,80</div>
+            </div>
+          </div>
+          <!-- step 3 confirm -->
+          <div style="flex:1; border:2px solid #33312e; border-radius:18px 14px 18px 14px/14px 18px 14px 18px; background:#fffdf7; box-shadow:4px 5px 0 rgba(51,49,46,.10); padding:11px 9px;">
+            <div style="display:flex; gap:4px; justify-content:center; margin-bottom:8px;"><span style="width:7px; height:7px; border-radius:50%; background:#33312e;"></span><span style="width:7px; height:7px; border-radius:50%; background:#33312e;"></span><span style="width:7px; height:7px; border-radius:50%; background:#d9542b;"></span></div>
+            <div style="font:700 12px Kalam; margin-bottom:7px;">3 · Confirmar</div>
+            <div style="border:1.4px dashed #b9b09c; border-radius:8px; padding:7px; font:400 10px Kalam; color:#5c574d; line-height:1.6; margin-bottom:7px;">
+              <span style="font-weight:700;">Pão mini</span> · 3 un<br/>
+              Motivo: Sobra<br/>
+              <span style="color:#d9542b; font-weight:700;">R$ 10,80</span>
+            </div>
+            <div style="border:2px solid #d9542b; background:#f7d9cd; color:#b8431f; font:700 12px Kalam; border-radius:10px; padding:7px 0; text-align:center; margin-bottom:5px;">✓ Confirmar</div>
+            <div style="text-align:center; font:400 10px Kalam; color:#8a8475;">Cancelar</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:7px; margin-top:9px;"><span style="color:#d9542b; font:700 14px Kalam;">✱</span><span style="font:400 12.5px Kalam; color:#7a7468;">bottom-sheet desliza de baixo. Passos guiam quem usa pouco. Valor calculado aparece no passo 2.</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 4 · PRODUTOS — B (grade de cards) -->
+  <!-- ================================================================ -->
+  <div id="sec-prod" style="scroll-margin-top:14px; margin-top:52px;">
+    <div style="display:flex; align-items:center; gap:13px; margin-bottom:18px;">
+      <div style="font:700 26px Caveat; color:#fffdf7; background:#2e8b57; width:44px; height:44px; border-radius:48% 52% 50% 50%/50% 48% 52% 50%; display:flex; align-items:center; justify-content:center; flex:none;">4</div>
+      <div>
+        <h2 style="margin:0; font:700 30px Caveat; color:#33312e; line-height:1;">Produtos — grade de cards</h2>
+        <div style="font:400 14px Kalam; color:#6f695c;">nome · unidade · preço · categoria · card "＋ novo"</div>
+      </div>
+      <span style="font:700 12px Kalam; background:#ffe04d; border:1.8px solid #33312e; border-radius:20px; padding:4px 12px; margin-left:4px;">✓ ESCOLHA FINAL</span>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start;">
+
+      <!-- grade -->
+      <div style="flex:1 1 360px; max-width:520px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <div style="border:1.6px solid #33312e; border-radius:10px; padding:7px 12px; font:400 12.5px Kalam; color:#a39c8c; flex:1; margin-right:10px;">🔍 buscar produto…</div>
+          <div style="border:2px solid #d9542b; background:#f7d9cd; color:#b8431f; font:700 13px Kalam; border-radius:10px; padding:7px 14px; white-space:nowrap;">＋ Novo</div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:11px;">
+          <div style="border:1.8px solid #33312e; border-radius:13px 8px 13px 8px/8px 13px 8px 13px; background:#fffdf7; padding:11px; box-shadow:3px 4px 0 rgba(51,49,46,.10);">
+            <div style="border:1.4px dashed #b9b09c; border-radius:8px; height:38px; margin-bottom:7px; display:flex; align-items:center; justify-content:center; font:400 10px Kalam; color:#a39c8c; background:#faf7f0;">▦</div>
+            <div style="font:700 12.5px Kalam; margin-bottom:2px;">Pão brioche</div>
+            <div style="font:400 11px Kalam; color:#6f695c;">un · R$4,05</div>
+            <div style="font:400 10px Kalam; color:#a39c8c; margin-top:1px;">Pães</div>
+          </div>
+          <div style="border:1.8px solid #33312e; border-radius:8px 13px 8px 13px/13px 8px 13px 8px; background:#fffdf7; padding:11px; box-shadow:3px 4px 0 rgba(51,49,46,.10);">
+            <div style="border:1.4px dashed #b9b09c; border-radius:8px; height:38px; margin-bottom:7px; display:flex; align-items:center; justify-content:center; font:400 10px Kalam; color:#a39c8c; background:#faf7f0;">▦</div>
+            <div style="font:700 12.5px Kalam; margin-bottom:2px;">Pão mini</div>
+            <div style="font:400 11px Kalam; color:#6f695c;">un · R$3,60</div>
+            <div style="font:400 10px Kalam; color:#a39c8c; margin-top:1px;">Pães</div>
+          </div>
+          <div style="border:1.8px solid #33312e; border-radius:13px 8px 13px 8px/8px 13px 8px 13px; background:#fffdf7; padding:11px; box-shadow:3px 4px 0 rgba(51,49,46,.10);">
+            <div style="border:1.4px dashed #b9b09c; border-radius:8px; height:38px; margin-bottom:7px; display:flex; align-items:center; justify-content:center; font:400 10px Kalam; color:#a39c8c; background:#faf7f0;">▦</div>
+            <div style="font:700 12.5px Kalam; margin-bottom:2px;">Maionese</div>
+            <div style="font:400 11px Kalam; color:#6f695c;">g · R$0,02</div>
+            <div style="font:400 10px Kalam; color:#a39c8c; margin-top:1px;">Molhos</div>
+          </div>
+          <div style="border:1.8px solid #33312e; border-radius:8px 13px 8px 13px/13px 8px 13px 8px; background:#fffdf7; padding:11px; box-shadow:3px 4px 0 rgba(51,49,46,.10);">
+            <div style="border:1.4px dashed #b9b09c; border-radius:8px; height:38px; margin-bottom:7px; display:flex; align-items:center; justify-content:center; font:400 10px Kalam; color:#a39c8c; background:#faf7f0;">▦</div>
+            <div style="font:700 12.5px Kalam; margin-bottom:2px;">Palito muss.</div>
+            <div style="font:400 11px Kalam; color:#6f695c;">un · R$2,95</div>
+            <div style="font:400 10px Kalam; color:#a39c8c; margin-top:1px;">Porções</div>
+          </div>
+          <div style="border:1.8px solid #33312e; border-radius:13px 8px 13px 8px/8px 13px 8px 13px; background:#fffdf7; padding:11px; box-shadow:3px 4px 0 rgba(51,49,46,.10);">
+            <div style="border:1.4px dashed #b9b09c; border-radius:8px; height:38px; margin-bottom:7px; display:flex; align-items:center; justify-content:center; font:400 10px Kalam; color:#a39c8c; background:#faf7f0;">▦</div>
+            <div style="font:700 12.5px Kalam; margin-bottom:2px;">X-Bacon</div>
+            <div style="font:400 11px Kalam; color:#6f695c;">un · R$16,00</div>
+            <div style="font:400 10px Kalam; color:#a39c8c; margin-top:1px;">Lanches</div>
+          </div>
+          <!-- novo card -->
+          <div style="border:2px dashed #d9542b; border-radius:13px; background:#fbeee6; padding:11px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#b8431f; min-height:100px; cursor:pointer;">
+            <div style="font:700 28px Kalam; line-height:1;">＋</div>
+            <div style="font:700 11.5px Kalam; margin-top:3px;">novo produto</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- modal novo produto -->
+      <div style="flex:none; max-width:280px; width:100%;">
+        <div style="font:700 15px Kalam; color:#2e8b57; margin-bottom:8px;">Modal — novo / editar produto</div>
+        <div style="border:2px solid #33312e; border-radius:9px 14px 9px 14px/14px 9px 14px 9px; background:#fffdf7; box-shadow:5px 6px 0 rgba(51,49,46,.10); padding:15px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.6px dashed #d8d0bd; padding-bottom:8px; margin-bottom:11px;"><div style="font:700 15px Caveat;">Novo produto</div><div style="border:1.6px solid #33312e; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font:700 12px Kalam;">✕</div></div>
+          <div style="font:700 11px Kalam; color:#5c574d; margin-bottom:4px;">Nome</div>
+          <div style="border:1.8px solid #33312e; border-radius:9px; padding:8px 11px; background:#fff; color:#a39c8c; font:400 12.5px Kalam; margin-bottom:10px;">ex: Pão brioche</div>
+          <div style="display:flex; gap:7px; margin-bottom:10px;">
+            <div style="flex:1;"><div style="font:700 11px Kalam; color:#5c574d; margin-bottom:4px;">Unidade</div><div style="border:1.8px solid #33312e; border-radius:9px; padding:8px; background:#fff; font:700 12.5px Kalam; display:flex; justify-content:space-between;">un <span>▾</span></div></div>
+            <div style="flex:1;"><div style="font:700 11px Kalam; color:#5c574d; margin-bottom:4px;">Preço</div><div style="border:1.8px solid #33312e; border-radius:9px; padding:8px; background:#fff; color:#a39c8c; font:400 12.5px Kalam;">R$ 0,00</div></div>
+          </div>
+          <div style="font:700 11px Kalam; color:#5c574d; margin-bottom:4px;">Categoria <span style="font-weight:400; color:#a39c8c;">(opcional)</span></div>
+          <div style="border:1.8px solid #33312e; border-radius:9px; padding:8px 11px; background:#fff; font:400 12.5px Kalam; color:#a39c8c; display:flex; justify-content:space-between; margin-bottom:12px;">selecionar <span>▾</span></div>
+          <div style="display:flex; gap:8px;"><div style="flex:1; border:1.8px solid #33312e; background:#fffdf7; font:700 12px Kalam; border-radius:9px; padding:8px 0; text-align:center;">Cancelar</div><div style="flex:1.3; border:2px solid #d9542b; background:#f7d9cd; color:#b8431f; font:700 12px Kalam; border-radius:9px; padding:8px 0; text-align:center;">Salvar</div></div>
+        </div>
+        <div style="display:flex; gap:7px; margin-top:9px;"><span style="color:#d9542b; font:700 14px Kalam;">✱</span><span style="font:400 12.5px Kalam; color:#7a7468;">card "＋" abre este modal. Editar clica no card. Preço alimenta cálculo automático.</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 5 · EQUIPE — A (lista + modal) -->
+  <!-- ================================================================ -->
+  <div id="sec-func" style="scroll-margin-top:14px; margin-top:52px;">
+    <div style="display:flex; align-items:center; gap:13px; margin-bottom:18px;">
+      <div style="font:700 26px Caveat; color:#fffdf7; background:#2e8b57; width:44px; height:44px; border-radius:50% 50% 48% 52%/52% 48% 50% 50%; display:flex; align-items:center; justify-content:center; flex:none;">5</div>
+      <div>
+        <h2 style="margin:0; font:700 30px Caveat; color:#33312e; line-height:1;">Equipe — lista + modal</h2>
+        <div style="font:400 14px Kalam; color:#6f695c;">nome · função · avatar · ativo/inativo</div>
+      </div>
+      <span style="font:700 12px Kalam; background:#ffe04d; border:1.8px solid #33312e; border-radius:20px; padding:4px 12px; margin-left:4px;">✓ ESCOLHA FINAL</span>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start;">
+
+      <!-- lista -->
+      <div style="flex:1.3 1 340px; min-width:300px;">
+        <div style="border:2px solid #33312e; border-radius:14px 9px 14px 9px/9px 14px 9px 14px; background:#fffdf7; box-shadow:5px 6px 0 rgba(51,49,46,.10); padding:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="font:700 18px Caveat;">Equipe · 4 ativos</div>
+            <div style="border:2px solid #d9542b; background:#f7d9cd; color:#b8431f; font:700 12.5px Kalam; border-radius:10px; padding:6px 13px;">＋ Novo</div>
+          </div>
+          <!-- linha 1 -->
+          <div style="display:flex; align-items:center; gap:10px; border-bottom:1px dashed #d8d0bd; padding:9px 0;">
+            <div style="width:36px; height:36px; border-radius:50%; background:#f7d9cd; border:1.6px solid #d9542b; display:flex; align-items:center; justify-content:center; font:700 15px Kalam; color:#b8431f; flex:none;">P</div>
+            <div style="flex:1;"><div style="font:700 13.5px Kalam;">Pamela</div><div style="font:400 11px Kalam; color:#6f695c;">Atendente</div></div>
+            <span style="font:700 10px Kalam; background:#d8f0d8; border:1.4px solid #2e8b57; color:#1f6b3f; border-radius:12px; padding:2px 10px;">ativo</span>
+            <span style="font:700 14px Kalam; color:#8a8475;">✎</span>
+          </div>
+          <!-- linha 2 -->
+          <div style="display:flex; align-items:center; gap:10px; border-bottom:1px dashed #d8d0bd; padding:9px 0;">
+            <div style="width:36px; height:36px; border-radius:50%; background:#dbeafe; border:1.6px solid #3b82f6; display:flex; align-items:center; justify-content:center; font:700 15px Kalam; color:#1d4ed8; flex:none;">C</div>
+            <div style="flex:1;"><div style="font:700 13.5px Kalam;">Carlos</div><div style="font:400 11px Kalam; color:#6f695c;">Cozinha</div></div>
+            <span style="font:700 10px Kalam; background:#d8f0d8; border:1.4px solid #2e8b57; color:#1f6b3f; border-radius:12px; padding:2px 10px;">ativo</span>
+            <span style="font:700 14px Kalam; color:#8a8475;">✎</span>
+          </div>
+          <!-- linha 3 inativo -->
+          <div style="display:flex; align-items:center; gap:10px; padding:9px 0;">
+            <div style="width:36px; height:36px; border-radius:50%; background:#eee; border:1.6px solid #b9b09c; display:flex; align-items:center; justify-content:center; font:700 15px Kalam; color:#8a8475; flex:none;">T</div>
+            <div style="flex:1;"><div style="font:700 13.5px Kalam; color:#8a8475;">Thiago</div><div style="font:400 11px Kalam; color:#a39c8c;">Cozinha</div></div>
+            <span style="font:700 10px Kalam; background:#eee; border:1.4px solid #b9b09c; color:#8a8475; border-radius:12px; padding:2px 10px;">inativo</span>
+            <span style="font:700 14px Kalam; color:#8a8475;">✎</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- modal funcionário -->
+      <div style="flex:1 1 230px; max-width:280px;">
+        <div style="font:700 15px Kalam; color:#2e8b57; margin-bottom:8px;">Modal — novo funcionário</div>
+        <div style="border:2px solid #33312e; border-radius:9px 14px 9px 14px/14px 9px 14px 9px; background:#fffdf7; box-shadow:5px 6px 0 rgba(51,49,46,.10); padding:15px;">
+          <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:11px;"><div style="width:60px; height:60px; border:1.8px dashed #b9b09c; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; font:400 10px Kalam; color:#a39c8c; gap:2px;"><span style="font-size:18px;">＋</span>foto</div></div>
+          <div style="font:700 11px Kalam; color:#5c574d; margin-bottom:4px;">Nome</div>
+          <div style="border:1.8px solid #33312e; border-radius:9px; padding:8px 11px; background:#fff; color:#a39c8c; font:400 12.5px Kalam; margin-bottom:10px;">nome completo</div>
+          <div style="font:700 11px Kalam; color:#5c574d; margin-bottom:4px;">Função</div>
+          <div style="border:1.8px solid #33312e; border-radius:9px; padding:8px 11px; background:#fff; font:400 12.5px Kalam; color:#a39c8c; display:flex; justify-content:space-between; margin-bottom:10px;">selecionar <span>▾</span></div>
+          <!-- toggle ativo -->
+          <div style="display:flex; align-items:center; justify-content:space-between; border:1.5px solid #d8d0bd; border-radius:10px; padding:8px 11px; margin-bottom:12px; background:#faf7f0;">
+            <span style="font:700 12.5px Kalam;">Ativo</span>
+            <div style="width:40px; height:22px; border-radius:14px; background:#ffe04d; border:1.5px solid #33312e; position:relative;"><div style="position:absolute; top:2px; right:2px; width:16px; height:16px; border-radius:50%; background:#fff; border:1.2px solid #33312e;"></div></div>
+          </div>
+          <div style="display:flex; gap:8px;"><div style="flex:1; border:1.8px solid #33312e; font:700 12px Kalam; border-radius:9px; padding:8px 0; text-align:center;">Cancelar</div><div style="flex:1.3; border:2px solid #d9542b; background:#f7d9cd; color:#b8431f; font:700 12px Kalam; border-radius:9px; padding:8px 0; text-align:center;">Salvar</div></div>
+        </div>
+        <div style="display:flex; gap:7px; margin-top:9px;"><span style="color:#d9542b; font:700 14px Kalam;">✱</span><span style="font:400 12.5px Kalam; color:#7a7468;">toggle ativo/inativo controla se a pessoa aparece como opção no sistema.</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- footer -->
+  <div style="margin-top:54px; border-top:2.5px dashed #cbc2ad; padding-top:18px; text-align:center; font:400 13px Kalam; color:#8a8475;">
+    Escolhas finais confirmadas · Petiscaria Aquino · próxima etapa → <span style="background:#ffe04d; padding:0 4px;">alta fidelidade funcional já entregue</span> em Monitor de Desperdício.dc.html
+  </div>
+
+</div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -29,6 +29,16 @@ create table if not exists funcionarios (
   criado_em timestamptz not null default now()
 );
 
+-- Motivos de desperdício (catálogo editável pela dona)
+-- O registro guarda o texto do motivo (não FK) para preservar histórico
+-- mesmo que um motivo seja desativado ou renomeado depois.
+create table if not exists motivos (
+  id        uuid primary key default gen_random_uuid(),
+  texto     text not null,
+  ativo     boolean not null default true,
+  criado_em timestamptz not null default now()
+);
+
 -- Registros de desperdício
 create table if not exists registros (
   id                       uuid primary key default gen_random_uuid(),
@@ -99,18 +109,23 @@ end $$;
 
 alter table alimentos    enable row level security;
 alter table funcionarios enable row level security;
+alter table motivos      enable row level security;
 alter table registros    enable row level security;
 
 -- Políticas permissivas para a anon key (sistema aberto, ambiente interno)
 -- DROP IF EXISTS garante que re-executar o script não gera erro de duplicata
 drop policy if exists "anon_acesso_total" on alimentos;
 drop policy if exists "anon_acesso_total" on funcionarios;
+drop policy if exists "anon_acesso_total" on motivos;
 drop policy if exists "anon_acesso_total" on registros;
 
 create policy "anon_acesso_total" on alimentos
   for all to anon using (true) with check (true);
 
 create policy "anon_acesso_total" on funcionarios
+  for all to anon using (true) with check (true);
+
+create policy "anon_acesso_total" on motivos
   for all to anon using (true) with check (true);
 
 create policy "anon_acesso_total" on registros
@@ -127,4 +142,5 @@ create policy "anon_acesso_total" on registros
 
 grant select, insert, update, delete on public.alimentos    to anon, authenticated;
 grant select, insert, update, delete on public.funcionarios to anon, authenticated;
+grant select, insert, update, delete on public.motivos      to anon, authenticated;
 grant select, insert, update, delete on public.registros    to anon, authenticated;

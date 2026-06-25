@@ -1,13 +1,27 @@
 import * as XLSX from 'xlsx'
 import { jsPDF } from 'jspdf'
 import type { RegistroCompleto } from '../types'
-import type { ItemAlimento, ItemFuncionario } from '../hooks/useRegistrosFiltro'
+import type { UnidadeBase } from './unidades'
 import { exibirQuantidade } from './unidades'
+
+interface ItemAlimentoExport {
+  nome: string
+  total: number
+  quantidadeTotal: number
+  unidade: UnidadeBase
+  quantidade: number
+}
+
+interface ItemFuncionarioExport {
+  nome: string
+  total: number
+  quantidade: number
+}
 
 interface DadosExport {
   registros: RegistroCompleto[]
-  topAlimentos: ItemAlimento[]
-  ranking: ItemFuncionario[]
+  topAlimentos: ItemAlimentoExport[]
+  ranking: ItemFuncionarioExport[]
   total: number
   label: string
 }

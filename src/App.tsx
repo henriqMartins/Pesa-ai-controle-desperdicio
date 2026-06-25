@@ -1,85 +1,181 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom'
-import Registro from './pages/Registro'
-import Painel from './pages/Painel'
-import Configuracao from './pages/Configuracao'
+import Monitor from './pages/Monitor'
+import Produtos from './pages/Produtos'
+import Equipe from './pages/Equipe'
+import Motivos from './pages/Motivos'
+import RegistrarModal from './components/RegistrarModal'
 
 const GRAD = 'linear-gradient(135deg, #ff8a4c, #f0464e)'
 
-function linkClass({ isActive }: { isActive: boolean }) {
-  return [
-    'px-3 py-2 rounded-xl text-sm font-bold transition-colors',
-    isActive
-      ? 'bg-white/[.12] text-white'
-      : 'text-white/60 hover:text-white hover:bg-white/[.07]',
-  ].join(' ')
+// ─── Ícones (inline, sem dependência) ──────────────────────────────────────────
+
+type IconProps = { className?: string }
+const ic = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+
+const IconMonitor = (p: IconProps) => (
+  <svg {...ic} {...p}><path d="M3 3v18h18" /><path d="M7 14l4-4 3 3 5-6" /></svg>
+)
+const IconProdutos = (p: IconProps) => (
+  <svg {...ic} {...p}><path d="M3 9l1-5h16l1 5" /><path d="M4 9v11h16V9" /><path d="M9 13h6" /></svg>
+)
+const IconEquipe = (p: IconProps) => (
+  <svg {...ic} {...p}><circle cx="9" cy="8" r="3" /><path d="M3 20a6 6 0 0 1 12 0" /><path d="M17 7a3 3 0 0 1 0 6M21 20a6 6 0 0 0-4-5.6" /></svg>
+)
+const IconMotivos = (p: IconProps) => (
+  <svg {...ic} {...p}><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 3 12V4a1 1 0 0 1 1-1h8a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.6z" /><circle cx="7.5" cy="7.5" r="1.2" /></svg>
+)
+
+const NAV = [
+  { to: '/monitor', label: 'Monitor', Icon: IconMonitor },
+  { to: '/produtos', label: 'Produtos', Icon: IconProdutos },
+  { to: '/equipe', label: 'Equipe', Icon: IconEquipe },
+  { to: '/motivos', label: 'Motivos', Icon: IconMotivos },
+]
+
+// ─── Relógio AO VIVO ────────────────────────────────────────────────────────────
+
+function RelogioAoVivo() {
+  const [agora, setAgora] = useState(() => new Date())
+  useEffect(() => {
+    const t = setInterval(() => setAgora(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return (
+    <div
+      className="flex items-center gap-2 rounded-xl px-3 py-1.5"
+      style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,220,180,.07)' }}
+    >
+      <span
+        className="h-2 w-2 flex-none rounded-full"
+        style={{ background: '#f0464e', boxShadow: '0 0 8px #f0464e', animation: 'livedot 1.4s ease-in-out infinite' }}
+      />
+      <span className="text-[11px] font-bold tracking-wider" style={{ color: '#f0464e' }}>
+        AO VIVO {hora}
+      </span>
+    </div>
+  )
 }
 
+// ─── Toast ───────────────────────────────────────────────────────────────────────
+
+function Toast({ msg }: { msg: string }) {
+  return (
+    <div
+      className="anim-pop fixed left-1/2 top-4 z-[60] -translate-x-1/2 rounded-xl px-4 py-2.5 text-sm font-bold"
+      style={{ background: 'rgba(52,211,153,.14)', border: '1px solid rgba(52,211,153,.4)', color: '#34d399', backdropFilter: 'blur(8px)' }}
+    >
+      ✓ {msg}
+    </div>
+  )
+}
+
+// ─── Shell ────────────────────────────────────────────────────────────────────────
+
 function Layout({ children }: { children: ReactNode }) {
+  const [registrarAberto, setRegistrarAberto] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  function aoRegistrar() {
+    setToast('Registro salvo!')
+    setTimeout(() => setToast(null), 2600)
+  }
+
   return (
     <div className="min-h-full bg-app">
+      {/* ── Top bar (desktop / tablet) ── */}
       <header
-        className="sticky top-0 z-30 border-b"
-        style={{
-          background: 'rgba(10,8,6,.90)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderColor: 'rgba(255,220,180,.07)',
-        }}
+        className="sticky top-0 z-30 hidden border-b sm:block"
+        style={{ background: 'rgba(10,8,6,.90)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: 'rgba(255,220,180,.07)' }}
       >
         <nav className="mx-auto flex max-w-5xl items-center gap-1 px-5 py-2.5">
-          {/* Logo mark */}
-          <div className="flex items-center gap-3 mr-5 flex-none">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-none"
-              style={{ background: GRAD, boxShadow: '0 6px 18px rgba(240,70,78,.38)' }}
-            >
+          <div className="mr-5 flex flex-none items-center gap-3">
+            <div className="flex h-9 w-9 flex-none items-center justify-center rounded-xl" style={{ background: GRAD, boxShadow: '0 6px 18px rgba(240,70,78,.38)' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="3 6 5 6 21 6" />
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                <path d="M10 11v6M14 11v6" />
-                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
               </svg>
             </div>
-            <div className="hidden sm:block">
-              <div className="text-[13px] font-extrabold leading-none" style={{ color: '#ff8a4c' }}>
-                Petiscaria Aquino
-              </div>
-              <div className="text-[10px] font-semibold leading-none mt-0.5 text-white/40">
-                Monitor de Desperdício
-              </div>
+            <div>
+              <div className="text-[13px] font-extrabold leading-none" style={{ color: '#ff8a4c' }}>Petiscaria Aquino</div>
+              <div className="mt-0.5 text-[10px] font-semibold leading-none text-white/40">Monitor de Desperdício</div>
             </div>
           </div>
 
-          {/* Nav links */}
-          <NavLink to="/registro" className={linkClass}>Registro</NavLink>
-          <NavLink to="/painel"   className={linkClass}>Painel</NavLink>
-          <NavLink to="/configuracao" className={linkClass}>Configuração</NavLink>
+          {NAV.map(({ to, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                ['rounded-xl px-3 py-2 text-sm font-bold transition-colors', isActive ? 'text-white' : 'text-white/55 hover:bg-white/[.06] hover:text-white'].join(' ')
+              }
+              style={({ isActive }) => (isActive ? { background: GRAD, boxShadow: '0 4px 14px rgba(240,70,78,.22)' } : undefined)}
+            >
+              {label}
+            </NavLink>
+          ))}
 
-          {/* AO VIVO */}
-          <div
-            className="ml-auto flex items-center gap-2 rounded-xl px-3 py-1.5"
-            style={{
-              background: 'rgba(255,255,255,.05)',
-              border: '1px solid rgba(255,220,180,.07)',
-            }}
-          >
-            <span
-              className="w-2 h-2 rounded-full flex-none"
-              style={{
-                background: '#f0464e',
-                boxShadow: '0 0 8px #f0464e',
-                animation: 'livedot 1.4s ease-in-out infinite',
-              }}
-            />
-            <span className="text-[11px] font-bold tracking-wider" style={{ color: '#f0464e' }}>
-              AO VIVO
-            </span>
+          <div className="ml-auto flex items-center gap-2">
+            <RelogioAoVivo />
+            <button
+              onClick={() => setRegistrarAberto(true)}
+              className="btn-accent rounded-xl px-4 py-2 text-sm font-bold"
+            >
+              ＋ Registrar
+            </button>
           </div>
         </nav>
       </header>
 
-      <main>{children}</main>
+      {/* ── Top bar enxuta (mobile) ── */}
+      <header
+        className="sticky top-0 z-30 flex items-center justify-between border-b px-4 py-3 sm:hidden"
+        style={{ background: 'rgba(10,8,6,.92)', backdropFilter: 'blur(12px)', borderColor: 'rgba(255,220,180,.07)' }}
+      >
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: GRAD }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" />
+            </svg>
+          </div>
+          <span className="text-sm font-extrabold" style={{ color: '#ff8a4c' }}>Aquino</span>
+        </div>
+        <RelogioAoVivo />
+      </header>
+
+      <main className="pb-24 sm:pb-0">{children}</main>
+
+      {/* ── Bottom nav + FAB (mobile) ── */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t sm:hidden"
+        style={{ background: 'rgba(10,8,6,.95)', backdropFilter: 'blur(12px)', borderColor: 'rgba(255,220,180,.08)' }}
+      >
+        {NAV.map(({ to, label, Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className="flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-bold"
+            style={({ isActive }) => ({ color: isActive ? '#ff8a4c' : 'rgba(255,255,255,.4)' })}
+          >
+            <Icon className="h-5 w-5" />
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+
+      <button
+        onClick={() => setRegistrarAberto(true)}
+        className="fixed bottom-[68px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full text-3xl font-bold text-white sm:hidden"
+        style={{ background: GRAD, boxShadow: '0 8px 24px rgba(240,70,78,.5)' }}
+        aria-label="Registrar desperdício"
+      >
+        ＋
+      </button>
+
+      {registrarAberto && (
+        <RegistrarModal onClose={() => setRegistrarAberto(false)} onRegistrado={aoRegistrar} />
+      )}
+      {toast && <Toast msg={toast} />}
     </div>
   )
 }
@@ -89,11 +185,12 @@ export default function App() {
     <BrowserRouter>
       <Layout>
         <Routes>
-          <Route path="/"            element={<Navigate to="/registro" replace />} />
-          <Route path="/registro"    element={<Registro />} />
-          <Route path="/painel"      element={<Painel />} />
-          <Route path="/configuracao" element={<Configuracao />} />
-          <Route path="*"            element={<Navigate to="/registro" replace />} />
+          <Route path="/" element={<Navigate to="/monitor" replace />} />
+          <Route path="/monitor" element={<Monitor />} />
+          <Route path="/produtos" element={<Produtos />} />
+          <Route path="/equipe" element={<Equipe />} />
+          <Route path="/motivos" element={<Motivos />} />
+          <Route path="*" element={<Navigate to="/monitor" replace />} />
         </Routes>
       </Layout>
     </BrowserRouter>
