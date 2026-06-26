@@ -2,19 +2,123 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg-app:         #0f0d0b;
-  --surface-card:   #1c160f;
-  --surface-modal:  #221a10;
-  --orange:         #ff8a4c;
-  --red:            #f0464e;
-  --live-green:     #34d399;
-  --text-primary:   #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.55);
-  --text-muted:     rgba(255, 255, 255, 0.38);
-  --border-subtle:  rgba(255, 220, 180, 0.07);
-  --border-input:   rgba(255, 220, 180, 0.15);
-  --accent-grad:    linear-gradient(135deg, #ff8a4c, #f0464e);
+/* =====================================================================
+   Tokens de tema — dark (padrão) + light
+   O dark é a paleta já aprovada; o light deriva dela mantendo o calor.
+   ===================================================================== */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* superfícies */
+  --bg-app:      #0f0d0b;
+  --surface:     #1c160f; /* cards */
+  --surface-2:   #15100b; /* modais */
+  --surface-3:   #221a10; /* inputs elevados */
+  --header-bg:   rgba(10, 8, 6, 0.92);
+  --overlay:     rgba(0, 0, 0, 0.6);
+
+  /* bordas quentes (alpha-fiel ao dark) */
+  --bd-05: rgba(255, 220, 180, 0.05);
+  --bd-06: rgba(255, 220, 180, 0.06);
+  --bd-07: rgba(255, 220, 180, 0.07);
+  --bd-08: rgba(255, 220, 180, 0.08);
+  --bd-10: rgba(255, 220, 180, 0.10);
+  --bd-12: rgba(255, 220, 180, 0.12);
+  --bd-13: rgba(255, 220, 180, 0.13);
+  --bd-15: rgba(255, 220, 180, 0.15);
+  --bd-20: rgba(255, 220, 180, 0.20);
+
+  /* texto */
+  --tx:    #ffffff;
+  --tx-85: rgba(255, 255, 255, 0.85);
+  --tx-72: rgba(255, 255, 255, 0.72);
+  --tx-65: rgba(255, 255, 255, 0.65);
+  --tx-60: rgba(255, 255, 255, 0.60);
+  --tx-55: rgba(255, 255, 255, 0.55);
+  --tx-50: rgba(255, 255, 255, 0.50);
+  --tx-45: rgba(255, 255, 255, 0.45);
+  --tx-40: rgba(255, 255, 255, 0.40);
+  --tx-35: rgba(255, 255, 255, 0.35);
+  --tx-30: rgba(255, 255, 255, 0.30);
+  --tx-25: rgba(255, 255, 255, 0.25);
+  --tx-22: rgba(255, 255, 255, 0.22);
+  --tx-20: rgba(255, 255, 255, 0.20);
+
+  /* neutros (overlays/hover/tracks) */
+  --w-05: rgba(255, 255, 255, 0.05);
+  --w-06: rgba(255, 255, 255, 0.06);
+  --w-07: rgba(255, 255, 255, 0.07);
+  --w-12: rgba(255, 255, 255, 0.12);
+  --w-15: rgba(255, 255, 255, 0.15);
+  --w-20: rgba(255, 255, 255, 0.20);
+
+  /* acentos (independentes de tema, mas orange escurece no light) */
+  --orange:      #ff8a4c;
+  --red:         #f0464e;
+  --accent-grad: linear-gradient(135deg, #ff8a4c, #f0464e);
+  --live-green:  #34d399;
+
+  /* chips / badges laranja */
+  --chip-active-bg: rgba(255, 138, 76, 0.22);
+  --chip-active-tx: #ffd9c2;
+  --badge-bg:       rgba(255, 138, 76, 0.15);
+  --badge-bd:       rgba(255, 138, 76, 0.25);
+  --badge-bg-faint: rgba(255, 138, 76, 0.04);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg-app:      #f3eee4;
+  --surface:     #fffdf7;
+  --surface-2:   #fffdf7;
+  --surface-3:   #f5efe3;
+  --header-bg:   rgba(250, 247, 240, 0.9);
+  --overlay:     rgba(40, 28, 16, 0.4);
+
+  --bd-05: rgba(80, 55, 30, 0.07);
+  --bd-06: rgba(80, 55, 30, 0.08);
+  --bd-07: rgba(80, 55, 30, 0.10);
+  --bd-08: rgba(80, 55, 30, 0.11);
+  --bd-10: rgba(80, 55, 30, 0.14);
+  --bd-12: rgba(80, 55, 30, 0.16);
+  --bd-13: rgba(80, 55, 30, 0.18);
+  --bd-15: rgba(80, 55, 30, 0.20);
+  --bd-20: rgba(80, 55, 30, 0.26);
+
+  --tx:    #2a2018;
+  --tx-85: rgba(42, 32, 24, 0.86);
+  --tx-72: rgba(42, 32, 24, 0.74);
+  --tx-65: rgba(42, 32, 24, 0.66);
+  --tx-60: rgba(42, 32, 24, 0.62);
+  --tx-55: rgba(42, 32, 24, 0.58);
+  --tx-50: rgba(42, 32, 24, 0.52);
+  --tx-45: rgba(42, 32, 24, 0.48);
+  --tx-40: rgba(42, 32, 24, 0.44);
+  --tx-35: rgba(42, 32, 24, 0.40);
+  --tx-30: rgba(42, 32, 24, 0.34);
+  --tx-25: rgba(42, 32, 24, 0.30);
+  --tx-22: rgba(42, 32, 24, 0.26);
+  --tx-20: rgba(42, 32, 24, 0.24);
+
+  --w-05: rgba(60, 42, 24, 0.04);
+  --w-06: rgba(60, 42, 24, 0.05);
+  --w-07: rgba(60, 42, 24, 0.06);
+  --w-12: rgba(60, 42, 24, 0.10);
+  --w-15: rgba(60, 42, 24, 0.13);
+  --w-20: rgba(60, 42, 24, 0.18);
+
+  --orange:      #d9542b;
+  --red:         #e0344a;
+  --accent-grad: linear-gradient(135deg, #ff8a4c, #f0464e);
+  --live-green:  #1f9d6b;
+
+  --chip-active-bg: rgba(217, 84, 43, 0.13);
+  --chip-active-tx: #b8431f;
+  --badge-bg:       rgba(217, 84, 43, 0.12);
+  --badge-bd:       rgba(217, 84, 43, 0.28);
+  --badge-bg-faint: rgba(217, 84, 43, 0.05);
 }
 
 html,
@@ -26,10 +130,32 @@ body,
 body {
   margin: 0;
   background-color: var(--bg-app);
-  color: var(--text-primary);
+  color: var(--tx);
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
+
+.bg-app { background-color: var(--bg-app); }
+
+/* ─── Override dos utilitários de texto branco no tema claro ──────────────────
+   Evita reescrever ~70 usos de text-white/* nos componentes. A especificidade
+   (atributo + classe) vence o utilitário do Tailwind. */
+:root[data-theme='light'] .text-white      { color: var(--tx); }
+:root[data-theme='light'] .text-white\/85   { color: var(--tx-85); }
+:root[data-theme='light'] .text-white\/70   { color: var(--tx-72); }
+:root[data-theme='light'] .text-white\/65   { color: var(--tx-65); }
+:root[data-theme='light'] .text-white\/60   { color: var(--tx-60); }
+:root[data-theme='light'] .text-white\/55   { color: var(--tx-55); }
+:root[data-theme='light'] .text-white\/50   { color: var(--tx-50); }
+:root[data-theme='light'] .text-white\/45   { color: var(--tx-45); }
+:root[data-theme='light'] .text-white\/40   { color: var(--tx-40); }
+:root[data-theme='light'] .text-white\/38   { color: var(--tx-40); }
+:root[data-theme='light'] .text-white\/35   { color: var(--tx-35); }
+:root[data-theme='light'] .text-white\/30   { color: var(--tx-30); }
+:root[data-theme='light'] .text-white\/25   { color: var(--tx-25); }
+/* fundo branco translúcido (ex.: handle do bottom-sheet) — knobs sólidos ficam intactos */
+:root[data-theme='light'] .bg-white\/20     { background-color: var(--w-20); }
 
 /* ─── Gradient button ─────────────────────────── */
 .btn-accent {
@@ -62,30 +188,27 @@ input[type='number'] {
 }
 
 /* ─── Selects: aparência consistente com os inputs ─── */
-/* Remove o estilo nativo (que renderiza claro em alguns navegadores) e
-   aplica uma seta própria na paleta do tema. */
 select.field {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-color: var(--surface-card);
+  background-color: var(--surface);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ff8a4c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 34px;
-  color: var(--text-primary);
+  color: var(--tx);
 }
-/* Opções abrem com fundo do SO; força tema escuro onde suportado */
 select.field option {
-  background: var(--surface-modal);
-  color: var(--text-primary);
+  background: var(--surface-2);
+  color: var(--tx);
 }
 
 /* ─── Inputs / selects base reutilizáveis ──────── */
 .field {
-  background: var(--surface-card);
-  border: 1.5px solid var(--border-input);
-  color: var(--text-primary);
+  background: var(--surface);
+  border: 1.5px solid var(--bd-15);
+  color: var(--tx);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 14px;
@@ -94,7 +217,7 @@ select.field option {
   width: 100%;
   transition: border-color 0.15s;
 }
-.field::placeholder { color: rgba(255, 255, 255, 0.25); }
+.field::placeholder { color: var(--tx-25); }
 .field:focus { border-color: var(--orange); }
 
 /* ─── Animações de entrada (modal / bottom-sheet) ─── */
@@ -120,9 +243,9 @@ select.field option {
 
 /* ─── Teclado numérico ─────────────────────────── */
 .keypad-key {
-  background: var(--surface-card);
-  border: 1.5px solid var(--border-input);
-  color: var(--text-primary);
+  background: var(--surface);
+  border: 1.5px solid var(--bd-15);
+  color: var(--tx);
   border-radius: 14px;
   font-size: 22px;
   font-weight: 700;
@@ -134,6 +257,6 @@ select.field option {
 }
 .keypad-key:active {
   transform: scale(0.95);
-  background: rgba(255, 138, 76, 0.16);
+  background: var(--chip-active-bg);
   border-color: var(--orange);
 }

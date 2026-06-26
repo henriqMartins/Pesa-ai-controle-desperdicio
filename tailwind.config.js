@@ -4,9 +4,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        'app':       '#0f0d0b',
-        'card':      '#1c160f',
-        'modal':     '#221a10',
+        'app':       'var(--bg-app)',
+        'card':      'var(--surface)',
+        'modal':     'var(--surface-3)',
         'pa-orange': '#ff8a4c',
         'pa-red':    '#f0464e',
         'pa-live':   '#34d399',

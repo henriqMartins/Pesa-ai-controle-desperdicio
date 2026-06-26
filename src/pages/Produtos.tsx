@@ -3,8 +3,8 @@ import { useAlimentos } from '../hooks/useAlimentos'
 import type { Alimento } from '../types'
 import { OPCOES_UNIDADE_BASE, type UnidadeBase } from '../lib/unidades'
 
-const GRAD = 'linear-gradient(135deg, #ff8a4c, #f0464e)'
-const CARD = { background: '#1c160f', border: '1px solid rgba(255,220,180,.08)' }
+const GRAD = 'var(--accent-grad)'
+const CARD = { background: 'var(--surface)', border: '1px solid var(--bd-08)' }
 
 function brl(valor: number) {
   return `R$ ${valor.toFixed(2).replace('.', ',')}`
@@ -51,17 +51,17 @@ function ModalProduto({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center anim-fade px-4"
-      style={{ background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(3px)' }}
+      style={{ background: 'var(--overlay)', backdropFilter: 'blur(3px)' }}
       onClick={onClose}
     >
       <div
         className="anim-pop w-full max-w-sm rounded-2xl"
-        style={{ background: '#15100b', border: '1px solid rgba(255,220,180,.1)', boxShadow: '0 20px 50px rgba(0,0,0,.5)' }}
+        style={{ background: 'var(--surface-2)', border: '1px solid var(--bd-10)', boxShadow: '0 20px 50px rgba(0,0,0,.5)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: 'rgba(255,220,180,.08)' }}>
+        <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: 'var(--bd-08)' }}>
           <div className="text-lg font-extrabold text-white">{produto ? 'Editar produto' : 'Novo produto'}</div>
-          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:text-white" style={{ border: '1px solid rgba(255,220,180,.15)' }} aria-label="fechar">✕</button>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:text-white" style={{ border: '1px solid var(--bd-15)' }} aria-label="fechar">✕</button>
         </div>
 
         <div className="space-y-4 px-5 py-5">
@@ -95,12 +95,12 @@ function ModalProduto({
               type="button"
               onClick={() => setAtivo((v) => !v)}
               className="flex w-full items-center justify-between rounded-xl px-4 py-3"
-              style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.1)' }}
+              style={{ background: 'var(--surface)', border: '1px solid var(--bd-10)' }}
             >
               <span className="text-sm font-bold text-white/70">Produto ativo</span>
               <span
                 className="relative h-6 w-11 rounded-full transition-colors"
-                style={{ background: ativo ? GRAD : 'rgba(255,255,255,.15)' }}
+                style={{ background: ativo ? GRAD : 'var(--w-15)' }}
               >
                 <span
                   className="absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all"
@@ -110,10 +110,10 @@ function ModalProduto({
             </button>
           )}
 
-          {erro && <p className="text-sm" style={{ color: '#f0464e' }}>{erro}</p>}
+          {erro && <p className="text-sm" style={{ color: 'var(--red)' }}>{erro}</p>}
 
           <div className="flex gap-3 pt-1">
-            <button onClick={onClose} className="rounded-xl px-5 py-3 text-sm font-bold text-white/60" style={{ border: '1px solid rgba(255,220,180,.15)' }}>Cancelar</button>
+            <button onClick={onClose} className="rounded-xl px-5 py-3 text-sm font-bold text-white/60" style={{ border: '1px solid var(--bd-15)' }}>Cancelar</button>
             <button onClick={salvar} disabled={salvando || !nome.trim() || !preco} className="btn-accent flex-1 rounded-xl py-3 text-sm font-extrabold">
               {salvando ? 'Salvando...' : 'Salvar'}
             </button>
@@ -152,7 +152,7 @@ export default function Produtos() {
 
       {loading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {[0, 1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl" style={{ background: '#1c160f' }} />)}
+          {[0, 1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl" style={{ background: 'var(--surface)' }} />)}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -165,9 +165,9 @@ export default function Produtos() {
             >
               <div className="flex items-start justify-between gap-2">
                 <span className={`font-bold ${a.ativo ? 'text-white' : 'text-white/50 line-through'}`}>{a.nome}</span>
-                <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: 'rgba(255,138,76,.15)', color: '#ff8a4c', border: '1px solid rgba(255,138,76,.25)' }}>{a.unidade}</span>
+                <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: 'var(--badge-bg)', color: 'var(--orange)', border: '1px solid var(--badge-bd)' }}>{a.unidade}</span>
               </div>
-              <div className="mt-2 text-lg font-extrabold tabular-nums" style={{ color: '#ff8a4c' }}>{brl(Number(a.preco_por_unidade))}<span className="text-xs font-semibold text-white/40">/{a.unidade}</span></div>
+              <div className="mt-2 text-lg font-extrabold tabular-nums" style={{ color: 'var(--orange)' }}>{brl(Number(a.preco_por_unidade))}<span className="text-xs font-semibold text-white/40">/{a.unidade}</span></div>
               {a.categoria && <div className="mt-1 text-xs text-white/40">{a.categoria}</div>}
               {!a.ativo && <div className="mt-1 text-[11px] font-bold text-white/40">inativo</div>}
             </button>
@@ -177,7 +177,7 @@ export default function Produtos() {
           <button
             onClick={() => setModal({ aberto: true, produto: null })}
             className="flex min-h-[112px] flex-col items-center justify-center rounded-2xl text-sm font-bold"
-            style={{ border: '2px dashed rgba(255,138,76,.4)', color: '#ff8a4c', background: 'rgba(255,138,76,.04)' }}
+            style={{ border: '2px dashed rgba(255,138,76,.4)', color: 'var(--orange)', background: 'var(--badge-bg-faint)' }}
           >
             <span className="text-3xl leading-none">＋</span>
             <span className="mt-1">novo produto</span>

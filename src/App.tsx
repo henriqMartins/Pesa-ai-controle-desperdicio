@@ -5,8 +5,9 @@ import Produtos from './pages/Produtos'
 import Equipe from './pages/Equipe'
 import Motivos from './pages/Motivos'
 import RegistrarModal from './components/RegistrarModal'
+import { useTheme } from './hooks/useTheme'
 
-const GRAD = 'linear-gradient(135deg, #ff8a4c, #f0464e)'
+const GRAD = 'var(--accent-grad)'
 
 // ─── Ícones (inline, sem dependência) ──────────────────────────────────────────
 
@@ -45,16 +46,45 @@ function RelogioAoVivo() {
   return (
     <div
       className="flex items-center gap-2 rounded-xl px-3 py-1.5"
-      style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,220,180,.07)' }}
+      style={{ background: 'var(--w-05)', border: '1px solid var(--bd-07)' }}
     >
       <span
         className="h-2 w-2 flex-none rounded-full"
-        style={{ background: '#f0464e', boxShadow: '0 0 8px #f0464e', animation: 'livedot 1.4s ease-in-out infinite' }}
+        style={{ background: 'var(--red)', boxShadow: '0 0 8px var(--red)', animation: 'livedot 1.4s ease-in-out infinite' }}
       />
-      <span className="text-[11px] font-bold tracking-wider" style={{ color: '#f0464e' }}>
+      <span className="text-[11px] font-bold tracking-wider" style={{ color: 'var(--red)' }}>
         AO VIVO {hora}
       </span>
     </div>
+  )
+}
+
+// ─── Botão de tema (claro / escuro) ──────────────────────────────────────────────
+
+function BotaoTema() {
+  const { tema, alternar } = useTheme()
+  const ehDark = tema === 'dark'
+  return (
+    <button
+      onClick={alternar}
+      className="flex h-9 w-9 flex-none items-center justify-center rounded-xl transition-colors"
+      style={{ background: 'var(--w-05)', border: '1px solid var(--bd-07)', color: 'var(--orange)' }}
+      aria-label={ehDark ? 'Ativar tema claro' : 'Ativar tema escuro'}
+      title={ehDark ? 'Tema claro' : 'Tema escuro'}
+    >
+      {ehDark ? (
+        // sol → trocar para claro
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+        </svg>
+      ) : (
+        // lua → trocar para escuro
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+        </svg>
+      )}
+    </button>
   )
 }
 
@@ -64,7 +94,7 @@ function Toast({ msg }: { msg: string }) {
   return (
     <div
       className="anim-pop fixed left-1/2 top-4 z-[60] -translate-x-1/2 rounded-xl px-4 py-2.5 text-sm font-bold"
-      style={{ background: 'rgba(52,211,153,.14)', border: '1px solid rgba(52,211,153,.4)', color: '#34d399', backdropFilter: 'blur(8px)' }}
+      style={{ background: 'rgba(52,211,153,.14)', border: '1px solid rgba(52,211,153,.4)', color: 'var(--live-green)', backdropFilter: 'blur(8px)' }}
     >
       ✓ {msg}
     </div>
@@ -87,7 +117,7 @@ function Layout({ children }: { children: ReactNode }) {
       {/* ── Top bar (desktop / tablet) ── */}
       <header
         className="sticky top-0 z-30 hidden border-b sm:block"
-        style={{ background: 'rgba(10,8,6,.90)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: 'rgba(255,220,180,.07)' }}
+        style={{ background: 'var(--header-bg)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: 'var(--bd-07)' }}
       >
         <nav className="mx-auto flex max-w-5xl items-center gap-1 px-5 py-2.5">
           <div className="mr-5 flex flex-none items-center gap-3">
@@ -97,7 +127,7 @@ function Layout({ children }: { children: ReactNode }) {
               </svg>
             </div>
             <div>
-              <div className="text-[13px] font-extrabold leading-none" style={{ color: '#ff8a4c' }}>Petiscaria Aquino</div>
+              <div className="text-[13px] font-extrabold leading-none" style={{ color: 'var(--orange)' }}>Petiscaria Aquino</div>
               <div className="mt-0.5 text-[10px] font-semibold leading-none text-white/40">Monitor de Desperdício</div>
             </div>
           </div>
@@ -117,6 +147,7 @@ function Layout({ children }: { children: ReactNode }) {
 
           <div className="ml-auto flex items-center gap-2">
             <RelogioAoVivo />
+            <BotaoTema />
             <button
               onClick={() => setRegistrarAberto(true)}
               className="btn-accent rounded-xl px-4 py-2 text-sm font-bold"
@@ -130,7 +161,7 @@ function Layout({ children }: { children: ReactNode }) {
       {/* ── Top bar enxuta (mobile) ── */}
       <header
         className="sticky top-0 z-30 flex items-center justify-between border-b px-4 py-3 sm:hidden"
-        style={{ background: 'rgba(10,8,6,.92)', backdropFilter: 'blur(12px)', borderColor: 'rgba(255,220,180,.07)' }}
+        style={{ background: 'var(--header-bg)', backdropFilter: 'blur(12px)', borderColor: 'var(--bd-07)' }}
       >
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: GRAD }}>
@@ -138,9 +169,12 @@ function Layout({ children }: { children: ReactNode }) {
               <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" />
             </svg>
           </div>
-          <span className="text-sm font-extrabold" style={{ color: '#ff8a4c' }}>Aquino</span>
+          <span className="text-sm font-extrabold" style={{ color: 'var(--orange)' }}>Aquino</span>
         </div>
-        <RelogioAoVivo />
+        <div className="flex items-center gap-2">
+          <RelogioAoVivo />
+          <BotaoTema />
+        </div>
       </header>
 
       <main className="pb-24 sm:pb-0">{children}</main>
@@ -148,14 +182,14 @@ function Layout({ children }: { children: ReactNode }) {
       {/* ── Bottom nav + FAB (mobile) ── */}
       <nav
         className="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t sm:hidden"
-        style={{ background: 'rgba(10,8,6,.95)', backdropFilter: 'blur(12px)', borderColor: 'rgba(255,220,180,.08)' }}
+        style={{ background: 'var(--header-bg)', backdropFilter: 'blur(12px)', borderColor: 'var(--bd-08)' }}
       >
         {NAV.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
             to={to}
             className="flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-bold"
-            style={({ isActive }) => ({ color: isActive ? '#ff8a4c' : 'rgba(255,255,255,.4)' })}
+            style={({ isActive }) => ({ color: isActive ? 'var(--orange)' : 'var(--tx-40)' })}
           >
             <Icon className="h-5 w-5" />
             {label}

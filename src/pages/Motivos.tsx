@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMotivos } from '../hooks/useMotivos'
 
-const GRAD = 'linear-gradient(135deg, #ff8a4c, #f0464e)'
+const GRAD = 'var(--accent-grad)'
 
 export default function Motivos() {
   const { motivos, loading, adicionar, atualizar } = useMotivos(false)
@@ -34,8 +34,8 @@ export default function Motivos() {
       </p>
 
       {/* Lista */}
-      <div className="overflow-hidden rounded-2xl" style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.07)' }}>
-        <div className="px-4 py-3 text-[11px] font-bold uppercase tracking-widest text-white/40" style={{ borderBottom: '1px solid rgba(255,220,180,.06)' }}>
+      <div className="overflow-hidden rounded-2xl" style={{ background: 'var(--surface)', border: '1px solid var(--bd-07)' }}>
+        <div className="px-4 py-3 text-[11px] font-bold uppercase tracking-widest text-white/40" style={{ borderBottom: '1px solid var(--bd-06)' }}>
           {ativos} motivo{ativos === 1 ? '' : 's'} ativo{ativos === 1 ? '' : 's'}
         </div>
 
@@ -43,14 +43,14 @@ export default function Motivos() {
         {!loading && motivos.length === 0 && <div className="px-4 py-8 text-center text-sm text-white/40">Nenhum motivo cadastrado.</div>}
 
         {!loading && motivos.map((m) => (
-          <div key={m.id} className="flex items-center justify-between gap-3 px-4 py-3.5" style={{ borderBottom: '1px solid rgba(255,220,180,.05)' }}>
+          <div key={m.id} className="flex items-center justify-between gap-3 px-4 py-3.5" style={{ borderBottom: '1px solid var(--bd-05)' }}>
             <span className={`font-semibold ${m.ativo ? 'text-white' : 'text-white/40 line-through'}`}>{m.texto}</span>
             <button
               onClick={() => atualizar(m.id, { ativo: !m.ativo })}
               className="rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors"
               style={m.ativo
-                ? { border: '1px solid rgba(255,220,180,.12)', color: 'rgba(255,255,255,.5)' }
-                : { border: '1px solid rgba(52,211,153,.3)', color: '#34d399', background: 'rgba(52,211,153,.08)' }}
+                ? { border: '1px solid var(--bd-12)', color: 'var(--tx-50)' }
+                : { border: '1px solid rgba(52,211,153,.3)', color: 'var(--live-green)', background: 'rgba(52,211,153,.08)' }}
             >
               {m.ativo ? 'Desativar' : 'Reativar'}
             </button>
@@ -59,7 +59,7 @@ export default function Motivos() {
       </div>
 
       {/* Formulário */}
-      <form onSubmit={handleAdicionar} className="rounded-2xl p-4" style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.07)' }}>
+      <form onSubmit={handleAdicionar} className="rounded-2xl p-4" style={{ background: 'var(--surface)', border: '1px solid var(--bd-07)' }}>
         <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-white/60">Novo motivo</h3>
         <div className="flex gap-2">
           <input type="text" placeholder="ex: Sobrou do balcão" value={texto} required onChange={(e) => setTexto(e.target.value)} className="field" />
@@ -67,7 +67,7 @@ export default function Motivos() {
             {salvando ? '...' : 'Adicionar'}
           </button>
         </div>
-        {erro && <p className="mt-2 text-sm" style={{ color: '#f0464e' }}>{erro}</p>}
+        {erro && <p className="mt-2 text-sm" style={{ color: 'var(--red)' }}>{erro}</p>}
       </form>
     </div>
   )

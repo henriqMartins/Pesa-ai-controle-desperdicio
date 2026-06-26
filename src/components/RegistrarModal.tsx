@@ -13,16 +13,16 @@ import {
 } from '../lib/unidades'
 import type { Alimento } from '../types'
 
-const GRAD = 'linear-gradient(135deg, #ff8a4c, #f0464e)'
+const GRAD = 'var(--accent-grad)'
 const CHIP_ACTIVE: React.CSSProperties = {
-  background: 'rgba(255,138,76,.22)',
-  border: '1.5px solid #ff8a4c',
-  color: '#ffd9c2',
+  background: 'var(--chip-active-bg)',
+  border: '1.5px solid var(--orange)',
+  color: 'var(--chip-active-tx)',
 }
 const CHIP_IDLE: React.CSSProperties = {
-  background: '#1c160f',
-  border: '1.5px solid rgba(255,220,180,.13)',
-  color: 'rgba(255,255,255,.72)',
+  background: 'var(--surface)',
+  border: '1.5px solid var(--bd-13)',
+  color: 'var(--tx-72)',
 }
 
 function brl(valor: number) {
@@ -200,15 +200,15 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
   const displayQuantidade = (
     <div
       className="flex items-center justify-between rounded-xl px-4 py-3"
-      style={{ background: '#1c160f', border: '1.5px solid rgba(255,220,180,.15)' }}
+      style={{ background: 'var(--surface)', border: '1.5px solid var(--bd-15)' }}
     >
       <span
         className="text-3xl font-extrabold tabular-nums"
-        style={{ color: quantidadeTexto ? '#fff' : 'rgba(255,255,255,.2)' }}
+        style={{ color: quantidadeTexto ? 'var(--tx)' : 'var(--tx-20)' }}
       >
         {quantidadeTexto ? exibirNumero(quantidadeTexto) : '0'}
       </span>
-      <span className="text-lg font-bold" style={{ color: '#ff8a4c' }}>
+      <span className="text-lg font-bold" style={{ color: 'var(--orange)' }}>
         {unidadeSelecionada}
       </span>
     </div>
@@ -232,14 +232,14 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
   const cardValor = (
     <div
       className="rounded-xl px-4 py-3"
-      style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.08)' }}
+      style={{ background: 'var(--surface)', border: '1px solid var(--bd-08)' }}
     >
       <div className="text-[10px] font-bold uppercase tracking-widest text-white/38">
         Valor calculado
       </div>
       <div
         className="mt-1 text-2xl font-extrabold"
-        style={{ color: custoEstimado !== null ? '#ff8a4c' : 'rgba(255,255,255,.22)' }}
+        style={{ color: custoEstimado !== null ? 'var(--orange)' : 'var(--tx-22)' }}
       >
         {custoEstimado !== null ? brl(custoEstimado) : 'R$ —'}
       </div>
@@ -285,7 +285,7 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
           <button
             onClick={salvarMotivoCustom}
             className="shrink-0 rounded-xl px-3 text-xs font-bold text-white/70"
-            style={{ border: '1px solid rgba(255,220,180,.2)' }}
+            style={{ border: '1px solid var(--bd-20)' }}
             title="Salvar para reutilizar"
           >
             + salvar
@@ -300,13 +300,13 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
   const cabecalho = (
     <div
       className="flex items-center justify-between border-b px-5 py-4"
-      style={{ borderColor: 'rgba(255,220,180,.08)' }}
+      style={{ borderColor: 'var(--bd-08)' }}
     >
       <div className="text-lg font-extrabold text-white">Registrar desperdício</div>
       <button
         onClick={onClose}
         className="flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:text-white"
-        style={{ border: '1px solid rgba(255,220,180,.15)' }}
+        style={{ border: '1px solid var(--bd-15)' }}
         aria-label="fechar"
       >
         ✕
@@ -338,7 +338,7 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
 
       {alimentoSelecionado && blocoMotivo}
 
-      {erro && <p className="text-sm" style={{ color: '#f0464e' }}>{erro}</p>}
+      {erro && <p className="text-sm" style={{ color: 'var(--red)' }}>{erro}</p>}
 
       <button
         onClick={confirmar}
@@ -357,7 +357,7 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
         <span
           key={p}
           className="h-2 w-2 rounded-full"
-          style={{ background: passo === p ? '#ff8a4c' : 'rgba(255,255,255,.2)' }}
+          style={{ background: passo === p ? 'var(--orange)' : 'var(--tx-20)' }}
         />
       ))}
     </div>
@@ -395,7 +395,7 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
             <button
               onClick={() => setPasso(1)}
               className="rounded-xl px-5 py-3.5 text-sm font-bold text-white/55"
-              style={{ border: '1px solid rgba(255,220,180,.15)' }}
+              style={{ border: '1px solid var(--bd-15)' }}
             >
               Voltar
             </button>
@@ -415,7 +415,7 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
           {tituloSecao('Confirmar registro')}
           <div
             className="rounded-xl px-4 py-4 text-sm leading-relaxed"
-            style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.1)' }}
+            style={{ background: 'var(--surface)', border: '1px solid var(--bd-10)' }}
           >
             <div>
               <span className="font-bold text-white">{alimentoSelecionado?.nome}</span>
@@ -428,11 +428,11 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
             <div className="mt-1 text-white/55">
               Por: {funcionarioAtual?.nome ?? '—'}
             </div>
-            <div className="mt-2 text-2xl font-extrabold" style={{ color: '#ff8a4c' }}>
+            <div className="mt-2 text-2xl font-extrabold" style={{ color: 'var(--orange)' }}>
               {custoEstimado !== null ? brl(custoEstimado) : 'R$ —'}
             </div>
           </div>
-          {erro && <p className="text-sm" style={{ color: '#f0464e' }}>{erro}</p>}
+          {erro && <p className="text-sm" style={{ color: 'var(--red)' }}>{erro}</p>}
           <button
             onClick={confirmar}
             disabled={!podeConfirmar}
@@ -455,7 +455,7 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
     <div
       className="fixed inset-0 z-50 flex anim-fade"
       style={{
-        background: 'rgba(0,0,0,.65)',
+        background: 'var(--overlay)',
         alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',
         backdropFilter: 'blur(3px)',
@@ -465,8 +465,8 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
       <div
         className={isMobile ? 'anim-sheet w-full' : 'anim-pop w-full'}
         style={{
-          background: '#15100b',
-          border: '1px solid rgba(255,220,180,.1)',
+          background: 'var(--surface-2)',
+          border: '1px solid var(--bd-10)',
           maxWidth: isMobile ? '100%' : 480,
           maxHeight: isMobile ? '92vh' : '90vh',
           overflowY: 'auto',

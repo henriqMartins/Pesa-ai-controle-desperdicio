@@ -1,7 +1,7 @@
 import { useMonitor, type ItemRanking } from '../hooks/useMonitor'
 import { exportarExcel, exportarPDF } from '../lib/exportar'
 
-const CARD = { background: '#1c160f', border: '1px solid rgba(255,220,180,.07)' }
+const CARD = { background: 'var(--surface)', border: '1px solid var(--bd-07)' }
 
 function brl(valor: number) {
   return `R$ ${valor.toFixed(2).replace('.', ',')}`
@@ -23,7 +23,7 @@ function Kpi({ rotulo, valor, sub }: { rotulo: string; valor: string; sub?: stri
   return (
     <div className="rounded-2xl px-5 py-4" style={CARD}>
       <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">{rotulo}</p>
-      <p className="mt-2 text-3xl font-extrabold tabular-nums" style={{ color: '#ff8a4c' }}>{valor}</p>
+      <p className="mt-2 text-3xl font-extrabold tabular-nums" style={{ color: 'var(--orange)' }}>{valor}</p>
       {sub && <p className="mt-0.5 text-xs text-white/35">{sub}</p>}
     </div>
   )
@@ -44,12 +44,12 @@ function PainelRanking({ titulo, itens, vazio }: { titulo: string; itens: ItemRa
               <span className="font-semibold text-white/85">
                 <span className="text-white/35">{i + 1}º</span> {it.nome}
               </span>
-              <span className="font-bold tabular-nums" style={{ color: '#ff8a4c' }}>{brl(it.total)}</span>
+              <span className="font-bold tabular-nums" style={{ color: 'var(--orange)' }}>{brl(it.total)}</span>
             </div>
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,.06)' }}>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full" style={{ background: 'var(--w-06)' }}>
               <div
                 className="h-full rounded-full"
-                style={{ width: `${Math.max(6, (it.total / max) * 100)}%`, background: 'linear-gradient(90deg, #ff8a4c, #f0464e)' }}
+                style={{ width: `${Math.max(6, (it.total / max) * 100)}%`, background: 'linear-gradient(90deg, var(--orange), var(--red))' }}
               />
             </div>
           </div>
@@ -85,7 +85,7 @@ export default function Monitor() {
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl" style={{ background: '#1c160f' }} />
+            <div key={i} className="h-28 animate-pulse rounded-2xl" style={{ background: 'var(--surface)' }} />
           ))}
         </div>
       </div>
@@ -116,7 +116,7 @@ export default function Monitor() {
               key={label}
               onClick={fn}
               className="rounded-xl px-3 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
-              style={{ background: '#1c160f', border: '1px solid rgba(255,220,180,.1)', color: 'rgba(255,255,255,.65)' }}
+              style={{ background: 'var(--surface)', border: '1px solid var(--bd-10)', color: 'var(--tx-65)' }}
             >
               {label}
             </button>
@@ -135,13 +135,13 @@ export default function Monitor() {
               <div
                 key={r.id}
                 className="flex items-center justify-between py-2"
-                style={{ borderBottom: '1px solid rgba(255,220,180,.05)' }}
+                style={{ borderBottom: '1px solid var(--bd-05)' }}
               >
                 <div className="min-w-0">
                   <div className="truncate text-sm font-semibold text-white/85">{r.alimentos.nome}</div>
                   <div className="text-[11px] text-white/35">{r.funcionarios.nome} · {formatarDataHora(r.criado_em)}</div>
                 </div>
-                <span className="ml-3 shrink-0 text-sm font-bold tabular-nums" style={{ color: '#ff8a4c' }}>
+                <span className="ml-3 shrink-0 text-sm font-bold tabular-nums" style={{ color: 'var(--orange)' }}>
                   {brl(Number(r.custo))}
                 </span>
               </div>
