@@ -15,11 +15,17 @@ jobs:
     steps:
       - name: Ping Supabase REST API
         run: |
-          status=$(curl -s -o /dev/null -w "%{http_code}" \
+          # Diagnóstico: confirma que os secrets chegaram preenchidos
+          # (mostra só o tamanho, nunca o valor).
+          echo "URL definida? len=${#SUPABASE_URL}"
+          echo "ANON_KEY definida? len=${#SUPABASE_ANON_KEY}"
+
+          body=$(curl -s -w "\n%{http_code}" \
             "${SUPABASE_URL}/rest/v1/funcionarios?select=id&limit=1" \
-            -H "apikey: ${SUPABASE_ANON_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+            -H "apikey: ${SUPABASE_ANON_KEY}")
+          status=$(echo "$body" | tail -n1)
           echo "HTTP status: $status"
+          echo "Resposta: $(echo "$body" | sed '$d')"
           if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
             echo "::error::Ping falhou com status $status"
             exit 1
