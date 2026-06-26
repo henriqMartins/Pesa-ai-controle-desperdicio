@@ -1,10 +1,11 @@
-import { useEffect, useState, type ReactNode } from 'react'
+                                                                                                                                                                                                                                                          import { useEffect, useState, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom'
 import Monitor from './pages/Monitor'
 import Produtos from './pages/Produtos'
 import Equipe from './pages/Equipe'
 import Motivos from './pages/Motivos'
 import RegistrarModal from './components/RegistrarModal'
+import ModoExibicao from './components/ModoExibicao'
 import { useTheme } from './hooks/useTheme'
 
 const GRAD = 'var(--accent-grad)'
@@ -44,7 +45,7 @@ function RelogioAoVivo() {
   }, [])
   const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
   return (
-    <div
+    <div                                            
       className="flex items-center gap-2 rounded-xl px-3 py-1.5"
       style={{ background: 'var(--w-05)', border: '1px solid var(--bd-07)' }}
     >
@@ -88,6 +89,28 @@ function BotaoTema() {
   )
 }
 
+// ─── Botão "Modo de exibição" (tela cheia p/ TV) ─────────────────────────────────
+
+function BotaoExibicao({ onClick, compacto = false }: { onClick: () => void; compacto?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      className={[
+        'flex flex-none items-center gap-2 rounded-xl transition-colors',
+        compacto ? 'h-9 w-9 justify-center' : 'px-3 py-2 text-sm font-bold',
+      ].join(' ')}
+      style={{ background: 'var(--w-05)', border: '1px solid var(--bd-07)', color: 'var(--tx-72)' }}
+      aria-label="Modo de exibição"
+      title="Modo de exibição (tela cheia)"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" />
+      </svg>
+      {!compacto && 'Exibição'}
+    </button>
+  )
+}
+
 // ─── Toast ───────────────────────────────────────────────────────────────────────
 
 function Toast({ msg }: { msg: string }) {
@@ -105,6 +128,7 @@ function Toast({ msg }: { msg: string }) {
 
 function Layout({ children }: { children: ReactNode }) {
   const [registrarAberto, setRegistrarAberto] = useState(false)
+  const [exibicaoAberta, setExibicaoAberta] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   function aoRegistrar() {
@@ -147,6 +171,7 @@ function Layout({ children }: { children: ReactNode }) {
 
           <div className="ml-auto flex items-center gap-2">
             <RelogioAoVivo />
+            <BotaoExibicao onClick={() => setExibicaoAberta(true)} />
             <BotaoTema />
             <button
               onClick={() => setRegistrarAberto(true)}
@@ -173,6 +198,7 @@ function Layout({ children }: { children: ReactNode }) {
         </div>
         <div className="flex items-center gap-2">
           <RelogioAoVivo />
+          <BotaoExibicao compacto onClick={() => setExibicaoAberta(true)} />
           <BotaoTema />
         </div>
       </header>
@@ -209,6 +235,7 @@ function Layout({ children }: { children: ReactNode }) {
       {registrarAberto && (
         <RegistrarModal onClose={() => setRegistrarAberto(false)} onRegistrado={aoRegistrar} />
       )}
+      {exibicaoAberta && <ModoExibicao onClose={() => setExibicaoAberta(false)} />}
       {toast && <Toast msg={toast} />}
     </div>
   )

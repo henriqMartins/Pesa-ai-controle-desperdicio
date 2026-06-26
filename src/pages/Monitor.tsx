@@ -1,8 +1,6 @@
 import { useMonitor, type ItemRanking } from '../hooks/useMonitor'
 import { exportarExcel, exportarPDF } from '../lib/exportar'
 
-const CARD = { background: 'var(--surface)', border: '1px solid var(--bd-07)' }
-
 function brl(valor: number) {
   return `R$ ${valor.toFixed(2).replace('.', ',')}`
 }
@@ -21,7 +19,7 @@ function formatarDataHora(iso: string) {
 
 function Kpi({ rotulo, valor, sub }: { rotulo: string; valor: string; sub?: string }) {
   return (
-    <div className="rounded-2xl px-5 py-4" style={CARD}>
+    <div className="panel rounded-2xl px-5 py-4">
       <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">{rotulo}</p>
       <p className="mt-2 text-3xl font-extrabold tabular-nums" style={{ color: 'var(--orange)' }}>{valor}</p>
       {sub && <p className="mt-0.5 text-xs text-white/35">{sub}</p>}
@@ -34,7 +32,7 @@ function Kpi({ rotulo, valor, sub }: { rotulo: string; valor: string; sub?: stri
 function PainelRanking({ titulo, itens, vazio }: { titulo: string; itens: ItemRanking[]; vazio: string }) {
   const max = itens[0]?.total ?? 1
   return (
-    <div className="rounded-2xl p-4" style={CARD}>
+    <div className="panel rounded-2xl p-4">
       <h3 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-white/40">{titulo}</h3>
       {itens.length === 0 && <p className="text-sm text-white/30">{vazio}</p>}
       <div className="space-y-3">
@@ -49,7 +47,7 @@ function PainelRanking({ titulo, itens, vazio }: { titulo: string; itens: ItemRa
             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full" style={{ background: 'var(--w-06)' }}>
               <div
                 className="h-full rounded-full"
-                style={{ width: `${Math.max(6, (it.total / max) * 100)}%`, background: 'linear-gradient(90deg, var(--orange), var(--red))' }}
+                style={{ width: `${Math.max(6, (it.total / max) * 100)}%`, background: 'var(--bar-grad)' }}
               />
             </div>
           </div>
@@ -127,7 +125,7 @@ export default function Monitor() {
       {/* ── 3 painéis ── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Últimos lançamentos */}
-        <div className="rounded-2xl p-4" style={CARD}>
+        <div className="panel rounded-2xl p-4">
           <h3 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-white/40">Últimos lançamentos</h3>
           {d.ultimos.length === 0 && <p className="text-sm text-white/30">Nenhum registro ainda.</p>}
           <div>

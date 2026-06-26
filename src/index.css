@@ -57,6 +57,8 @@
   --orange:      #ff8a4c;
   --red:         #f0464e;
   --accent-grad: linear-gradient(135deg, #ff8a4c, #f0464e);
+  --accent-strip: var(--accent-grad);
+  --bar-grad:    linear-gradient(90deg, var(--orange), var(--red));
   --live-green:  #34d399;
 
   /* chips / badges laranja */
@@ -112,6 +114,8 @@
   --orange:      #d9542b;
   --red:         #e0344a;
   --accent-grad: linear-gradient(135deg, #ff8a4c, #f0464e);
+  --accent-strip: var(--accent-grad);
+  --bar-grad:    linear-gradient(90deg, var(--orange), var(--red));
   --live-green:  #1f9d6b;
 
   --chip-active-bg: rgba(217, 84, 43, 0.13);
@@ -137,6 +141,52 @@ body {
 }
 
 .bg-app { background-color: var(--bg-app); }
+
+/* ─── Painel / card do dashboard ──────────────────────────────────────────────
+   No dark é a superfície escura padrão. No light, o card vira laranja "cheio" e
+   redefine os tokens de cor escopados aos descendentes — assim todo texto que usa
+   var(--tx*) / var(--orange) (e os utilitários .text-white já remapeados) passa a
+   ler claro sobre o laranja, sem tocar em cada componente. */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--bd-07);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+:root[data-theme='light'] .panel {
+  background: #c96428;
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 30px rgba(150, 60, 15, 0.18);
+
+  /* texto sobre laranja → claro */
+  --tx:    #ffffff;
+  --tx-85: rgba(255, 255, 255, 0.94);
+  --tx-72: rgba(255, 255, 255, 0.86);
+  --tx-65: rgba(255, 255, 255, 0.80);
+  --tx-60: rgba(255, 255, 255, 0.76);
+  --tx-55: rgba(255, 255, 255, 0.72);
+  --tx-50: rgba(255, 255, 255, 0.68);
+  --tx-45: rgba(255, 255, 255, 0.64);
+  --tx-40: rgba(255, 255, 255, 0.74);
+  --tx-35: rgba(255, 255, 255, 0.64);
+  --tx-30: rgba(255, 255, 255, 0.56);
+  --tx-25: rgba(255, 255, 255, 0.50);
+  --tx-22: rgba(255, 255, 255, 0.46);
+  --tx-20: rgba(255, 255, 255, 0.42);
+
+  /* acento laranja sobre laranja não funciona → vira branco */
+  --orange: #ffffff;
+
+  /* trilhos / divisórias / barra */
+  --w-05: rgba(255, 255, 255, 0.10);
+  --w-06: rgba(255, 255, 255, 0.20);
+  --w-07: rgba(255, 255, 255, 0.22);
+  --bd-05: rgba(255, 255, 255, 0.14);
+  --bd-07: rgba(255, 255, 255, 0.18);
+  --bd-10: rgba(255, 255, 255, 0.22);
+  --bar-grad: linear-gradient(90deg, rgba(255, 255, 255, 0.55), #ffffff);
+  --accent-strip: rgba(255, 255, 255, 0.92);
+}
 
 /* ─── Override dos utilitários de texto branco no tema claro ──────────────────
    Evita reescrever ~70 usos de text-white/* nos componentes. A especificidade
