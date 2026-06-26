@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { UnidadeBase } from '../lib/unidades'
 import type { RegistroCompleto } from '../types'
@@ -131,6 +131,9 @@ function agregar(registros: RegistroCompleto[]): Omit<DadosMonitor, 'loading'> {
 /** Carrega os registros do mês corrente e deriva os KPIs do Monitor ao vivo. */
 export function useMonitor(): DadosMonitor {
   const [dados, setDados] = useState<DadosMonitor>(VAZIO)
+  // Nome de canal único por instância: evita colisão de tópico quando dois
+  // consumidores (ex.: Monitor + Modo de exibição) montam o hook ao mesmo tempo.
+  const id = useId()
 
   useEffect(() => {
     let cancelado = false
@@ -152,7 +155,7 @@ export function useMonitor(): DadosMonitor {
     carregar()
 
     const channel = supabase
-      .channel('monitor-realtime')
+      .channel(`monitor-realtime-${id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'registros' }, () =>
         carregar(),
       )
@@ -162,7 +165,7 @@ export function useMonitor(): DadosMonitor {
       cancelado = true
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [id])
 
   return dados
 }
