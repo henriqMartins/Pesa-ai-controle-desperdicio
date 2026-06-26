@@ -1,21 +1,24 @@
 # Pesa Aí — Documentação técnica
 
-PWA de controle de desperdício para petiscaria. Funcionários registram o peso
-descartado; a dona acompanha o custo em tempo real e exporta relatórios.
+PWA de controle de desperdício para petiscaria. Funcionários registram a
+quantidade descartada; a dona acompanha o custo em tempo real e exporta relatórios.
 
-> Documentos relacionados: [setup](setup.md) · [modelo de dados](modelo-dados.md) · [infraestrutura](infraestrutura.md) · [plano de testes](plano-testes.md)
+> Documentos relacionados: [atualizações](atualizacoes.md) · [arquitetura](arquitetura.md) · [setup](setup.md) · [modelo de dados](modelo-dados.md) · [infraestrutura](infraestrutura.md) · [plano de testes](plano-testes.md)
 
 ---
 
 ## Visão geral
 
-**Quem usa:** funcionários (registram desperdício) e a dona (painel + configuração).
+**Quem usa:** funcionários (registram desperdício) e a dona (monitor + cadastros).
 
 **O que faz:**
-- Cadastro de alimentos com preço por kg e funcionários com papel (funcionário/gestor)
-- Registro de desperdício: seleciona funcionário + alimento + peso → custo calculado automaticamente pelo banco
-- Painel com filtros por período, top alimentos, ranking de funcionários e atualização em tempo real
+- Cadastro de **alimentos** (preço por unidade base: kg, L ou un) e **funcionários** (papel funcionário/gestor)
+- Catálogo de **motivos** editável (chips reutilizáveis no registro)
+- **Registro** de desperdício via modal: funcionário + alimento + quantidade + unidade + motivo → custo calculado pelo banco
+- **Monitor** ao vivo: 3 KPIs (dia/mês/média) + 3 painéis (últimos, + desperdiçados, motivos) com atualização em tempo real
 - Exportação de relatórios em Excel (3 abas) e PDF
+- **Tema claro/escuro** com botão na barra superior
+- **Teclado numérico** próprio para digitar quantidade/preço em tablet
 
 **Decisão de negócio:** sistema aberto, sem login nem PIN. O acesso físico ao
 tablet do estabelecimento é o controle suficiente para uma equipe de 1–5 pessoas.
@@ -27,29 +30,40 @@ tablet do estabelecimento é o controle suficiente para uma equipe de 1–5 pess
 ```
 .
 ├── supabase/
-│   └── schema.sql          # definição completa do banco (tabelas, RLS, Realtime)
+│   ├── schema.sql            # banco completo (tabelas, RLS, grants, Realtime)
+│   ├── migrate_v1_to_v2.sql  # migração do schema antigo + tabela motivos
+│   ├── seed.sql              # dados de exemplo
+│   └── reset_e_recriar.sql   # apaga tabelas (dev)
 ├── src/
 │   ├── lib/
 │   │   ├── supabase.ts     # cliente único do Supabase (singleton)
-│   │   ├── filtros.ts      # cálculo de períodos de data
+│   │   ├── unidades.ts     # conversão e exibição de unidades (kg/L/un)
 │   │   └── exportar.ts     # geração de Excel e PDF
 │   ├── types/
 │   │   ├── alimento.ts     # tipos de Alimento
 │   │   ├── funcionario.ts  # tipos de Funcionário e papel
+│   │   ├── motivo.ts       # tipos de Motivo
 │   │   ├── registro.ts     # tipos de Registro e RegistroCompleto
 │   │   └── index.ts        # re-exporta tudo
 │   ├── hooks/
 │   │   ├── useAlimentos.ts         # CRUD de alimentos + estado
 │   │   ├── useFuncionarios.ts      # CRUD de funcionários + estado
+│   │   ├── useMotivos.ts           # CRUD de motivos + estado
 │   │   ├── useFuncionarioAtual.ts  # funcionário selecionado (localStorage)
 │   │   ├── useRegistros.ts         # últimos N registros + inserir + Realtime
-│   │   ├── useTotais.ts            # totais do dia e do mês
-│   │   └── useRegistrosFiltro.ts   # registros por período + agregações + Realtime
+│   │   ├── useMonitor.ts           # KPIs e rankings do dashboard + Realtime
+│   │   ├── useIsMobile.ts          # breakpoint de viewport
+│   │   └── useTheme.ts             # tema claro/escuro (localStorage)
+│   ├── components/
+│   │   ├── RegistrarModal.tsx  # modal de registro (desktop) / bottom-sheet (mobile)
+│   │   └── TecladoNumerico.tsx # teclado numérico na paleta do tema
 │   ├── pages/
-│   │   ├── Registro.tsx      # tela principal de lançamento
-│   │   ├── Painel.tsx        # dashboard com filtros e export
-│   │   └── Configuracao.tsx  # gestão de alimentos e funcionários
-│   ├── App.tsx               # roteamento e layout
+│   │   ├── Monitor.tsx       # dashboard ao vivo
+│   │   ├── Produtos.tsx      # grade de cards + modal novo/editar
+│   │   ├── Equipe.tsx        # lista + modal de funcionários
+│   │   └── Motivos.tsx       # lista + cadastro de motivos
+│   ├── App.tsx               # navegação, layout, modal, tema
+│   ├── index.css             # tokens de tema (dark + light) e componentes base
 │   └── main.tsx              # ponto de entrada React
 ├── .env.local                # credenciais locais (não vai para o git)
 └── vite.config.ts            # Vite + PWA
@@ -61,204 +75,163 @@ tablet do estabelecimento é o controle suficiente para uma equipe de 1–5 pess
 
 ### Camada 1 — Banco de dados (`supabase/schema.sql`)
 
-O banco vive no Supabase Cloud (PostgreSQL). Três tabelas cobrem tudo:
+O banco vive no Supabase Cloud (PostgreSQL). Quatro tabelas cobrem tudo:
 
 | Tabela | Papel |
 |---|---|
-| `alimentos` | Cadastro de itens com preço por kg |
-| `funcionarios` | Cadastro de quem usa o sistema |
-| `registros` | Cada evento de desperdício (imutável, append-only) |
+| `alimentos` | Itens com preço por unidade base (kg/L/un) |
+| `funcionarios` | Quem usa o sistema |
+| `motivos` | Catálogo de motivos editável (chips do registro) |
+| `registros` | Cada evento de desperdício (append-only) |
 
 **Coluna gerada:** `registros.custo` é calculada pelo próprio banco:
 ```sql
-custo = round((peso_g / 1000.0) * preco_kg_no_momento, 2)
+custo = round(quantidade * preco_unitario_no_momento, 2)
 ```
-O front nunca envia `custo` — o banco sempre calcula. Isso garante que nenhum
-bug no JavaScript produz um custo errado.
+O front nunca envia `custo` — o banco sempre calcula.
 
-**Snapshot de preço:** `preco_kg_no_momento` congela o valor do kg no instante
-do registro. Se o preço do frango mudar amanhã, os registros antigos continuam
-mostrando o custo original.
+**Snapshot de preço:** `preco_unitario_no_momento` congela o preço no instante do
+registro, para relatórios antigos não serem recalculados com o preço de hoje.
 
-**RLS (Row Level Security):** ativo nas três tabelas, com policy permissiva para
-qualquer role (sistema aberto). Sem policy, o RLS bloquearia tudo por padrão.
+**Unidades:** `quantidade` é gravada na unidade base do alimento;
+`unidade_registro` guarda como foi digitado (g, kg, mL, L, un) para reexibir.
 
-**Realtime:** a publicação `supabase_realtime` inclui a tabela `registros`. É o
-que permite o Painel atualizar ao vivo sem polling.
+**RLS + grants:** RLS **ativo** nas quatro tabelas com policy permissiva para
+`anon`, e `GRANT` explícito por tabela — ambos necessários para acesso e Realtime.
+
+**Realtime:** a publicação `supabase_realtime` inclui `registros` — é o que mantém
+o Monitor ao vivo. Veja [modelo de dados](modelo-dados.md) para o detalhe das colunas.
 
 ---
 
 ### Camada 2 — Cliente Supabase (`src/lib/supabase.ts`)
 
-```
-.env.local  →  supabase.ts  →  todas as outras camadas
-```
+Cria **um único cliente** para toda a aplicação, lendo `VITE_SUPABASE_URL` e
+`VITE_SUPABASE_ANON_KEY`. Se faltarem, o app falha com mensagem clara. A URL é só
+o domínio base (`https://xxx.supabase.co`).
 
-Cria **um único cliente** para toda a aplicação. É aqui que as variáveis de
-ambiente são lidas. Se `VITE_SUPABASE_URL` ou `VITE_SUPABASE_ANON_KEY` estiverem
-ausentes, o app falha imediatamente com mensagem clara — melhor do que falhar
-silenciosamente na primeira query.
-
-A URL deve ser apenas o domínio base (`https://xxx.supabase.co`), sem nenhum
-caminho. O cliente adiciona `/rest/v1/`, `/realtime/v1/` etc. conforme a
-operação.
+> A `service_role key` **nunca** vai ao front — ela ignora o RLS. Só a `anon key`
+> (protegida pelo RLS) é usada no cliente.
 
 ---
 
 ### Camada 3 — Tipos TypeScript (`src/types/`)
 
-Define a forma de cada objeto que trafega entre front e banco.
-
 ```typescript
-// O que o banco devolve num SELECT simples
-interface Alimento { id, nome, categoria, valor_por_kg, ativo, criado_em }
-
-// O que o front envia num INSERT (sem id, sem criado_em — o banco gera)
-type NovoAlimento = Pick<Alimento, 'nome' | 'valor_por_kg'> & Partial<...>
+interface Alimento { id, nome, categoria, preco_por_unidade, unidade, ativo, criado_em }
+interface Motivo   { id, texto, ativo, criado_em }
+interface Registro { id, alimento_id, funcionario_id, quantidade,
+                      unidade_registro, preco_unitario_no_momento, custo, motivo, criado_em }
 
 // SELECT com JOIN (alimentos + funcionários embutidos)
 interface RegistroCompleto extends Registro {
-  alimentos: { nome: string }
+  alimentos: { nome: string; unidade: UnidadeBase }
   funcionarios: { nome: string }
 }
 ```
 
-A separação entre `Alimento` (completo, vindo do banco) e `NovoAlimento` (o que
-o front envia) evita que campos gerados pelo banco — como `id`, `criado_em` e
-`custo` — sejam enviados por engano.
+Os tipos `Novo*` (ex.: `NovoAlimento`) omitem campos gerados pelo banco (`id`,
+`criado_em`, `custo`), evitando que sejam enviados por engano.
 
 ---
 
 ### Camada 4 — Libs utilitárias (`src/lib/`)
 
-**`filtros.ts`** — Calcula os limites de data para cada período:
+**`unidades.ts`** — Dicionário de conversão de unidades:
+- `converterParaBase(qtd, unidadeEntrada, unidadeBase)` → quantidade na base
+- `exibirQuantidade(qtdBase, unidadeRegistro, unidadeBase)` → string para exibir
 
-```
-'hoje' | 'semana' | 'mes' | 'personalizado'
-        ↓
-{ de: ISO string, ate: ISO string, label: string }
-```
-
-O `ate` é sempre `23:59:59` do dia final (não o horário atual). Isso garante
-que um registro feito às 14h apareça no filtro "hoje" mesmo que o usuário
-tenha aberto o Painel às 10h.
-
-**`exportar.ts`** — Gera arquivos para download no navegador:
+**`exportar.ts`** — Gera arquivos no navegador:
 - `exportarExcel()` → workbook com 3 abas (Registros, Top Alimentos, Ranking)
-- `exportarPDF()` → documento com cabeçalho, tabelas e lista de registros
+- `exportarPDF()` → documento com cabeçalho, tabelas e lista
 
-Ambas recebem os dados já carregados pelo hook — não fazem nenhuma query ao banco.
+Recebem os dados já carregados pelo hook — não fazem query.
 
 ---
 
 ### Camada 5 — Hooks (`src/hooks/`)
 
-É onde os dados vivem dentro do React. Cada hook gerencia um pedaço do estado
-global e expõe funções para mutação.
+**`useAlimentos(apenasAtivos)` / `useFuncionarios(apenasAtivos)` / `useMotivos(apenasAtivos)`**
+- Carregam a lista no mount; expõem `adicionar()` e `atualizar()`
+- `apenasAtivos` controla se itens desativados aparecem
 
-**`useAlimentos(apenasAtivos)` / `useFuncionarios(apenasAtivos)`**
-- Carregam a lista no mount
-- Expõem `adicionar()` e `atualizar()` que chamam o banco e recarregam a lista
-- O parâmetro `apenasAtivos` controla se itens desativados aparecem
+**`useFuncionarioAtual()`** — persiste o funcionário selecionado no `localStorage`.
 
-**`useFuncionarioAtual()`**
-- Persiste o funcionário selecionado no `localStorage`
-- Sobrevive a F5 — a funcionária não precisa se identificar de novo
-- Expõe `selecionar(id)` e o objeto `funcionarioAtual`
+**`useRegistros(limite)`** — últimos N registros com JOIN + Realtime; expõe
+`inserir(novo)` (usado pelo modal de registro).
 
-**`useRegistros(limite)`**
-- Busca os últimos N registros com JOIN (`alimentos.nome`, `funcionarios.nome`)
-- Inscreve no Realtime: quando qualquer INSERT ocorre na tabela `registros`,
-  recarrega automaticamente
-- Expõe `inserir(novo)` para a tela de Registro
+**`useMonitor()`** — carrega os registros do mês e agrega **em memória**: totais
+do dia/mês, média por dia, projeção, últimos lançamentos, top alimentos, top
+motivos e ranking de funcionários. Recalcula ao vivo via Realtime.
 
-**`useTotais()`**
-- Busca em paralelo o total do dia e o total do mês
-- Também escuta Realtime para atualizar os cards ao vivo
+**`useIsMobile(breakpoint)`** — reage ao tamanho da viewport (modal × bottom-sheet).
 
-**`useRegistrosFiltro(de, ate)`**
-- Busca todos os registros no período (limite de 5000)
-- Roda `agregar()` em memória para calcular `topAlimentos` e `ranking` sem
-  queries extras ao banco
-- Inscreve no Realtime com um canal nomeado pelo período para evitar duplicatas
-- Retorna `{ registros, total, topAlimentos, ranking, loading }`
+**`useTheme()`** — lê/grava o tema em `data-theme` + `localStorage`.
 
-**Por que agregar no cliente?**
-Fazer `GROUP BY` no banco geraria queries adicionais. Com no máximo alguns
-milhares de registros por mês, ordenar e somar no JavaScript é instantâneo e
-economiza round-trips.
+> **Por que agregar no cliente?** Com alguns milhares de registros por mês,
+> somar/ordenar em JavaScript é instantâneo e economiza round-trips.
 
 ---
 
-### Camada 6 — Páginas (`src/pages/`)
+### Camada 6 — Componentes e páginas
 
-Cada página consome hooks e renderiza a UI. Nenhuma página faz query direta
-ao banco — tudo passa pelos hooks.
+**Componentes (`src/components/`)**
+- `RegistrarModal` — entrada rápida (desktop) ou bottom-sheet em 3 passos (mobile):
+  funcionário → alimento → quantidade (teclado) + unidade + motivo → confirmar.
+  Calcula o custo em tempo real; permite salvar um motivo novo na hora.
+- `TecladoNumerico` — teclado próprio na paleta do tema, sem o teclado do SO.
 
-**`Registro.tsx`**
-- Carrega alimentos ativos e funcionários ativos
-- Persiste o funcionário selecionado via `useFuncionarioAtual`
-- Calcula o custo preview em tempo real (`peso_g / 1000 * valor_por_kg`)
-- Ao confirmar: chama `inserir()`, exibe feedback por 3s, limpa alimento e peso
-  mas mantém o funcionário selecionado
-
-**`Painel.tsx`**
-- Barra de filtros (hoje / 7 dias / mês / personalizado)
-- Chama `useRegistrosFiltro` com os limites calculados por `calcularPeriodo`
-- Exibe cards de resumo, top alimentos, ranking e lista de registros
-- Botões de export aparecem apenas quando há dados no período
-- Passa os dados prontos para `exportarExcel` / `exportarPDF`
-
-**`Configuracao.tsx`**
-- Duas abas: Alimentos e Funcionários
-- Cada aba tem lista (com edição/toggle ativo) e formulário de adição
-- `useAlimentos(false)` e `useFuncionarios(false)` com `apenasAtivos=false`
-  para mostrar também os itens desativados
+**Páginas (`src/pages/`)** — consomem hooks; nenhuma faz query direta.
+- `Monitor` — 3 KPIs + 3 painéis (barras), ao vivo; export Excel/PDF.
+- `Produtos` — grade de cards; modal de novo/editar com unidade, preço e toggle ativo.
+- `Equipe` — lista com avatar/papel/status; modal de novo/editar.
+- `Motivos` — lista com ativar/desativar; formulário de cadastro.
 
 ---
 
-### Camada 7 — Roteamento e layout (`src/App.tsx`)
-
-Três rotas:
+### Camada 7 — Navegação, layout e tema (`src/App.tsx`, `src/index.css`)
 
 ```
-/           → redireciona para /registro
-/registro   → Registro.tsx
-/painel     → Painel.tsx
-/configuracao → Configuracao.tsx
-*           → redireciona para /registro
+/           → redireciona para /monitor
+/monitor    → Monitor.tsx
+/produtos   → Produtos.tsx
+/equipe     → Equipe.tsx
+/motivos    → Motivos.tsx
+*           → redireciona para /monitor
 ```
 
-O componente `Layout` envolve todas as páginas com o header de navegação.
-O `NavLink` do React Router aplica automaticamente a classe `bg-teal-600`
-na rota ativa.
+"Registrar" não é rota: é um **modal** aberto pelo botão `＋ Registrar` (desktop)
+ou pelo **FAB** (mobile). O `Layout` traz a top bar (com relógio AO VIVO e botão
+de tema) no desktop e top bar enxuta + **bottom-nav** + FAB no mobile.
+
+**Tema:** `src/index.css` define tokens em `:root[data-theme='dark']` (padrão) e
+`:root[data-theme='light']`. Componentes usam `var(--…)`. O tema é aplicado no
+`<html>`, persistido em `localStorage` e inicializado sem flash por um script
+inline em `index.html`.
 
 ---
 
 ## Como os dados fluem
 
 ```
-Funcionária toca "Confirmar"
-        │
-        ▼
-  Registro.tsx chama inserir()
+Pessoa toca "Confirmar" no RegistrarModal
         │
         ▼
   useRegistros → supabase.from('registros').insert()
         │
         ▼
-  Supabase (RLS policy) → PostgreSQL executa INSERT
-  banco calcula coluna `custo` automaticamente
+  Supabase (RLS) → PostgreSQL executa INSERT
+  banco calcula a coluna `custo` automaticamente
         │
-        ├─── resposta HTTP 201 → tela mostra "Registro salvo"
+        ├─── resposta HTTP → modal fecha, toast "Registro salvo"
         │
-        └─── Realtime broadcast via WebSocket
+        └─── Realtime broadcast (WebSocket)
                   │
                   ▼
-        useRegistrosFiltro (Painel) recebe o evento
+        useMonitor recebe o evento e recarrega
                   │
                   ▼
-        Painel recarrega e atualiza sem F5
+        Monitor recalcula KPIs e rankings sem F5
 ```
 
 ---
@@ -266,17 +239,10 @@ Funcionária toca "Confirmar"
 ## Como rodar
 
 ```bash
-# Instalar dependências
-npm install
-
-# Configurar .env.local com URL e anon key do Supabase
-# (veja .env.example)
-
-# Desenvolvimento
-npm run dev
-
-# Build de produção
-npm run build
+npm install                 # dependências
+# configurar .env.local com URL e anon key do Supabase (veja .env.example)
+npm run dev                 # desenvolvimento (porta 5173)
+npm run build               # typecheck + build de produção
 ```
 
 | Script | O que faz |
@@ -291,9 +257,10 @@ npm run build
 
 ## Estado atual
 
-Implementação completa das Fases 1 e 2. Pendente apenas a infraestrutura:
+Implementação funcional completa (redesign + motivos + teclado + tema). Pendente
+a infraestrutura:
 
-- [ ] Rodar `schema.sql` + SQL de RLS no Supabase
+- [ ] Rodar `schema.sql` (ou `migrate_v1_to_v2.sql`) + `seed.sql` no Supabase
 - [ ] Deploy na Vercel com as variáveis de ambiente
 - [ ] Instalar como PWA no tablet do estabelecimento
 - [ ] Rodar o [plano de testes](plano-testes.md) com a cliente
