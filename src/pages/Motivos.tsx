@@ -121,15 +121,6 @@ export default function Motivos() {
                     Editar
                   </button>
                   <button
-                    onClick={() => atualizar(m.id, { ativo: !m.ativo })}
-                    className="rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors"
-                    style={m.ativo
-                      ? { border: '1px solid var(--bd-12)', color: 'var(--tx-50)' }
-                      : { border: '1px solid rgba(52,211,153,.3)', color: 'var(--live-green)', background: 'rgba(52,211,153,.08)' }}
-                  >
-                    {m.ativo ? 'Desativar' : 'Reativar'}
-                  </button>
-                  <button
                     onClick={() => handleExcluir(m.id)}
                     className="rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors"
                     style={{ border: '1px solid rgba(248,113,113,.3)', color: 'var(--red)', background: 'rgba(248,113,113,.08)' }}
