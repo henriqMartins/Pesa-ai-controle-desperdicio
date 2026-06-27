@@ -3,7 +3,7 @@
 -- Schema do banco (Postgres / Supabase)
 --
 -- Como usar: cole este arquivo no SQL Editor do projeto Supabase e execute.
--- Três tabelas resolvem quase tudo. Totais e rankings são CONSULTAS sobre a
+-- Quatro tabelas resolvem o sistema. Totais e rankings são CONSULTAS sobre a
 -- tabela de registros — não precisam de tabela própria.
 -- =====================================================================
 
@@ -84,7 +84,7 @@ end $$;
 -- where criado_em >= date_trunc('day', now());
 
 -- Top alimentos mais desperdiçados (por valor)
--- select a.nome, sum(r.custo) as total, sum(r.peso_g) as peso_total
+-- select a.nome, sum(r.custo) as total, sum(r.quantidade) as qtd_total
 -- from registros r join alimentos a on a.id = r.alimento_id
 -- group by a.nome
 -- order by total desc;
