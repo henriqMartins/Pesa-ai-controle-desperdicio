@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import { useMonitor, type ItemRanking } from '../hooks/useMonitor'
+import { useAlimentos } from '../hooks/useAlimentos'
 import { exportarExcel, exportarPDF } from '../lib/exportar'
+import RegistrarModal from '../components/RegistrarModal'
 import type { RegistroCompleto } from '../types'
 
 function brl(valor: number) {
@@ -62,6 +65,8 @@ function PainelRanking({ titulo, itens, vazio }: { titulo: string; itens: ItemRa
 
 export default function Monitor() {
   const d = useMonitor()
+  const { alimentos } = useAlimentos()
+  const [editando, setEditando] = useState<RegistroCompleto | null>(null)
 
   async function apagar(r: RegistroCompleto) {
     const ok = window.confirm(
@@ -104,6 +109,7 @@ export default function Monitor() {
   }
 
   return (
+    <>
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       {/* ── 3 KPIs ── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -157,6 +163,17 @@ export default function Monitor() {
                     {brl(Number(r.custo))}
                   </span>
                   <button
+                    onClick={() => setEditando(r)}
+                    aria-label="Editar lançamento"
+                    title="Editar"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-white/30 transition-colors hover:text-[var(--orange)]"
+                    style={{ border: '1px solid var(--bd-08)' }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
+                    </svg>
+                  </button>
+                  <button
                     onClick={() => apagar(r)}
                     aria-label="Excluir lançamento"
                     title="Excluir"
@@ -177,5 +194,18 @@ export default function Monitor() {
         <PainelRanking titulo="Principais motivos" itens={d.topMotivos} vazio="Sem dados no mês." />
       </div>
     </div>
+
+      {editando && (
+        <RegistrarModal
+          registro={editando}
+          alimentoInicial={alimentos.find((a) => a.id === editando.alimento_id) ?? null}
+          onClose={() => setEditando(null)}
+          onRegistrado={() => {
+            setEditando(null)
+            d.recarregar()
+          }}
+        />
+      )}
+    </>
   )
 }

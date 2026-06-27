@@ -12,7 +12,7 @@ import {
   converterParaBase,
   type UnidadeEntrada,
 } from '../lib/unidades'
-import type { Alimento } from '../types'
+import type { Alimento, RegistroCompleto } from '../types'
 
 const GRAD = 'var(--accent-grad)'
 const CHIP_ACTIVE: React.CSSProperties = {
@@ -30,24 +30,44 @@ function brl(valor: number) {
   return `R$ ${valor.toFixed(2).replace('.', ',')}`
 }
 
+/** Converte a quantidade salva (unidade base) de volta para o texto digitado. */
+function quantidadeParaTexto(r: RegistroCompleto, a: Alimento): string {
+  const fator = UNIDADES_ENTRADA[a.unidade].find((o) => o.valor === r.unidade_registro)?.fator ?? 1
+  const entrada = Number(r.quantidade) / fator
+  return Number.isInteger(entrada) ? String(entrada) : String(parseFloat(entrada.toFixed(4)))
+}
+
 interface Props {
   onClose: () => void
   /** Chamado após salvar com sucesso (ex.: feedback no shell). */
   onRegistrado?: () => void
+  /** Quando presente, o modal abre em modo edição (campos pré-preenchidos). */
+  registro?: RegistroCompleto
+  /** Alimento do registro em edição, já resolvido pelo chamador. */
+  alimentoInicial?: Alimento | null
 }
 
-export default function RegistrarModal({ onClose, onRegistrado }: Props) {
+export default function RegistrarModal({ onClose, onRegistrado, registro, alimentoInicial }: Props) {
+  const editando = !!registro
   const isMobile = useIsMobile()
   const { alimentos } = useAlimentos()
   const { funcionarios } = useFuncionarios()
-  const { funcionarioId, selecionar } = useFuncionarioAtual()
-  const { inserir } = useRegistros(1)
+  const { funcionarioId: funcionarioSalvo, selecionar } = useFuncionarioAtual()
+  const { inserir, atualizar } = useRegistros(1)
   const { motivos, adicionar: adicionarMotivo } = useMotivos()
 
-  const [alimentoSelecionado, setAlimentoSelecionado] = useState<Alimento | null>(null)
-  const [unidadeSelecionada, setUnidadeSelecionada] = useState<UnidadeEntrada>('g')
-  const [quantidadeTexto, setQuantidadeTexto] = useState('')
-  const [motivoSel, setMotivoSel] = useState('')
+  // Em modo edição os campos começam preenchidos a partir do registro.
+  const [funcId, setFuncId] = useState<string | null>(() => registro?.funcionario_id ?? funcionarioSalvo)
+  const [alimentoSelecionado, setAlimentoSelecionado] = useState<Alimento | null>(
+    () => alimentoInicial ?? null,
+  )
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState<UnidadeEntrada>(
+    () => (registro?.unidade_registro as UnidadeEntrada) ?? 'g',
+  )
+  const [quantidadeTexto, setQuantidadeTexto] = useState(() =>
+    registro && alimentoInicial ? quantidadeParaTexto(registro, alimentoInicial) : '',
+  )
+  const [motivoSel, setMotivoSel] = useState(() => registro?.motivo ?? '')
   const [motivoCustom, setMotivoCustom] = useState('')
   const [busca, setBusca] = useState('')
   const [passo, setPasso] = useState(1)
@@ -56,7 +76,7 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
   const [trocandoFunc, setTrocandoFunc] = useState(false)
 
   const quantidadeEntrada = parseFloat(quantidadeTexto || '0')
-  const funcionarioAtual = funcionarios.find((f) => f.id === funcionarioId) ?? null
+  const funcionarioAtual = funcionarios.find((f) => f.id === funcId) ?? null
 
   const custoEstimado =
     alimentoSelecionado && quantidadeEntrada > 0
@@ -74,12 +94,18 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
   }, [alimentos, busca])
 
   const podeConfirmar =
-    !!funcionarioId && !!alimentoSelecionado && quantidadeEntrada > 0 && !enviando
+    !!funcId && !!alimentoSelecionado && quantidadeEntrada > 0 && !enviando
 
   function selecionarAlimento(a: Alimento) {
     setAlimentoSelecionado(a)
     setUnidadeSelecionada(UNIDADES_ENTRADA[a.unidade][0].valor)
     setQuantidadeTexto('')
+  }
+
+  function escolherFuncionario(idFunc: string) {
+    setFuncId(idFunc)
+    if (!editando) selecionar(idFunc) // só persiste a seleção no fluxo de novo registro
+    setTrocandoFunc(false)
   }
 
   async function salvarMotivoCustom() {
@@ -104,14 +130,27 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
         unidadeSelecionada,
         alimentoSelecionado.unidade,
       )
-      await inserir({
+      // Snapshot de preço: mantém o preço congelado original quando o alimento
+      // não mudou (editar quantidade não recalcula com o preço de hoje); se o
+      // alimento foi trocado, adota o preço atual do novo alimento.
+      const precoSnapshot =
+        registro && registro.alimento_id === alimentoSelecionado.id
+          ? registro.preco_unitario_no_momento
+          : alimentoSelecionado.preco_por_unidade
+
+      const base = {
         alimento_id: alimentoSelecionado.id,
-        funcionario_id: funcionarioId!,
+        funcionario_id: funcId!,
         quantidade: quantidadeBase,
         unidade_registro: unidadeSelecionada,
-        preco_unitario_no_momento: alimentoSelecionado.preco_por_unidade,
-        motivo: motivo || undefined,
-      })
+        preco_unitario_no_momento: precoSnapshot,
+      }
+
+      if (registro) {
+        await atualizar(registro.id, { ...base, motivo: motivo || null })
+      } else {
+        await inserir({ ...base, motivo: motivo || undefined })
+      }
       onRegistrado?.()
       onClose()
     } catch (e) {
@@ -148,12 +187,9 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
             {funcionarios.map((f) => (
               <button
                 key={f.id}
-                onClick={() => {
-                  selecionar(f.id)
-                  setTrocandoFunc(false)
-                }}
+                onClick={() => escolherFuncionario(f.id)}
                 className="rounded-full px-4 py-2 text-sm font-semibold"
-                style={funcionarioId === f.id
+                style={funcId === f.id
                   ? { background: GRAD, color: '#fff', boxShadow: '0 4px 14px rgba(240,70,78,.28)' }
                   : CHIP_IDLE}
               >
@@ -303,7 +339,9 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
       className="flex items-center justify-between border-b px-5 py-4"
       style={{ borderColor: 'var(--bd-08)' }}
     >
-      <div className="text-lg font-extrabold text-white">Registrar desperdício</div>
+      <div className="text-lg font-extrabold text-white">
+        {editando ? 'Editar lançamento' : 'Registrar desperdício'}
+      </div>
       <button
         onClick={onClose}
         className="flex h-8 w-8 items-center justify-center rounded-full text-white/50 hover:text-white"
@@ -346,7 +384,7 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
         disabled={!podeConfirmar}
         className="btn-accent w-full rounded-xl py-4 text-base font-extrabold"
       >
-        {enviando ? 'Salvando...' : 'Registrar → atualiza ao vivo'}
+        {enviando ? 'Salvando...' : editando ? 'Salvar alterações' : 'Registrar → atualiza ao vivo'}
       </button>
     </div>
   )
@@ -364,7 +402,7 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
     </div>
   )
 
-  const podeAvancar1 = !!funcionarioId && !!alimentoSelecionado
+  const podeAvancar1 = !!funcId && !!alimentoSelecionado
   const podeAvancar2 = quantidadeEntrada > 0
 
   const conteudoMobile = (
@@ -439,7 +477,7 @@ export default function RegistrarModal({ onClose, onRegistrado }: Props) {
             disabled={!podeConfirmar}
             className="btn-accent w-full rounded-xl py-4 text-base font-extrabold"
           >
-            {enviando ? 'Salvando...' : '✓ Confirmar'}
+            {enviando ? 'Salvando...' : editando ? 'Salvar alterações' : '✓ Confirmar'}
           </button>
           <button
             onClick={() => setPasso(2)}

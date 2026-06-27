@@ -26,7 +26,7 @@ export function useRegistros(limite = 20) {
 
     const channel = supabase
       .channel('registros-realtime')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'registros' }, () => carregar())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'registros' }, () => carregar())
       .subscribe()
 
     return () => {
@@ -40,5 +40,10 @@ export function useRegistros(limite = 20) {
     if (error) throw new Error(error.message)
   }
 
-  return { registros, loading, inserir }
+  async function atualizar(id: string, dados: Partial<NovoRegistro>) {
+    const { error } = await supabase.from('registros').update(dados).eq('id', id)
+    if (error) throw new Error(error.message)
+  }
+
+  return { registros, loading, inserir, atualizar }
 }
