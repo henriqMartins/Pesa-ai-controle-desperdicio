@@ -30,6 +30,12 @@ export function useMotivos(apenasAtivos = true) {
     await carregar()
   }
 
+  async function excluir(id: string) {
+    const { error: err } = await supabase.from('motivos').delete().eq('id', id)
+    if (err) throw new Error(err.message)
+    await carregar()
+  }
+
   // Carga inicial (e quando o filtro muda). Como o fetch é assíncrono, os
   // setState ocorrem após o await — fora do corpo síncrono do efeito.
   useEffect(() => {
@@ -48,5 +54,5 @@ export function useMotivos(apenasAtivos = true) {
     }
   }, [apenasAtivos])
 
-  return { motivos, loading, error, adicionar, atualizar, recarregar: carregar }
+  return { motivos, loading, error, adicionar, atualizar, excluir, recarregar: carregar }
 }
