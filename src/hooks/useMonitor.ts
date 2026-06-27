@@ -52,7 +52,13 @@ function inicioDoMes(): string {
   return new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString()
 }
 
-function agregar(registros: RegistroCompleto[]): Omit<DadosMonitor, 'loading'> {
+/**
+ * Deriva todos os KPIs e rankings do Monitor a partir da lista de registros do
+ * mês. Função **pura** (não lê banco nem estado) — recebe a lista e devolve os
+ * números agregados. Exportada para ser testada diretamente (ver
+ * `useMonitor.test.ts`). Assume que `registros` já vem filtrado ao mês corrente.
+ */
+export function agregar(registros: RegistroCompleto[]): Omit<DadosMonitor, 'loading'> {
   const agora = new Date()
   const inicioDia = new Date(agora)
   inicioDia.setHours(0, 0, 0, 0)
