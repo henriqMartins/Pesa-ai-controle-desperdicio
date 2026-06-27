@@ -11,8 +11,6 @@ export default function Motivos() {
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [textoEdicao, setTextoEdicao] = useState('')
 
-  const ativos = motivos.filter((m) => m.ativo).length
-
   function iniciarEdicao(id: string, textoAtual: string) {
     setEditandoId(id)
     setTextoEdicao(textoAtual)
@@ -70,7 +68,7 @@ export default function Motivos() {
       {/* Lista */}
       <div className="overflow-hidden rounded-2xl" style={{ background: 'var(--surface)', border: '1px solid var(--bd-07)' }}>
         <div className="px-4 py-3 text-[11px] font-bold uppercase tracking-widest text-white/40" style={{ borderBottom: '1px solid var(--bd-06)' }}>
-          {ativos} motivo{ativos === 1 ? '' : 's'} ativo{ativos === 1 ? '' : 's'}
+          {motivos.length} motivo{motivos.length === 1 ? '' : 's'}
         </div>
 
         {loading && <div className="px-4 py-8 text-center text-sm text-white/40">Carregando...</div>}
@@ -111,7 +109,7 @@ export default function Motivos() {
               </>
             ) : (
               <>
-                <span className={`font-semibold ${m.ativo ? 'text-white' : 'text-white/40 line-through'}`}>{m.texto}</span>
+                <span className="font-semibold text-white">{m.texto}</span>
                 <div className="flex flex-none gap-2">
                   <button
                     onClick={() => iniciarEdicao(m.id, m.texto)}
