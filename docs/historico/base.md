@@ -1,7 +1,12 @@
 # Sistema de Controle de Desperdício — Petiscaria
 
-> Documentação base do projeto. Serve como referência para o desenvolvimento
-> e como ponto de partida (handoff) para o Claude Code.
+> ⚠️ **DOCUMENTO HISTÓRICO — CONGELADO.** Este é o documento de *planejamento
+> original* (handoff inicial). Ele descreve o projeto que foi **planejado**, não
+> o que foi **construído** — partes estão desatualizadas de propósito (ex.: telas
+> Login/Registro/Painel/Config e o schema antigo com `valor_por_kg`/`peso_g`).
+> **Não use como fonte de verdade.** O estado real do sistema vive em:
+> [produto.md](../produto.md) · [arquitetura.md](../arquitetura.md) ·
+> [modelo-dados.md](../modelo-dados.md). Mantido apenas como registro de decisão.
 
 ---
 

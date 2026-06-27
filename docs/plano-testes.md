@@ -1,203 +1,201 @@
-# Plano de Testes — Pesa Aí
+# Plano de testes manual — Pesa Aí
 
-> Testes funcionais, de regressão, UX, dados e infraestrutura que devem ser
-> executados manualmente antes de entregar o sistema à cliente.
-> Testes unitários automatizados são responsabilidade do desenvolvedor e não
-> constam aqui.
+> Checklist de testes **manuais** (funcionais, UX, dados, infra e aceite) a
+> executar antes de entregar/atualizar o sistema. Os testes **automatizados**
+> (lógica de cálculo, agregação e exportação) estão em [testes.md](testes.md) e
+> rodam com `npm test` — não se repetem aqui.
 
----
+## Como usar
 
-## Como usar este documento
-
-- Execute cada teste e marque **✅ passou** ou **❌ falhou**
-- Em caso de falha, anote o comportamento observado vs. esperado
-- Recomendado: rodar na ordem apresentada (do básico ao avançado)
-
----
-
-## 1. Testes de Configuração (pré-requisito)
-
-> Valida que o ambiente está corretamente configurado.
-
-| # | Teste | Passos | Esperado |
-|---|---|---|---|
-| C1 | App carrega sem erros | Abrir a URL no navegador | Tela de Registro aparece, sem erros no console |
-| C2 | Conexão com Supabase | Abrir DevTools → Console | Sem erros de `VITE_SUPABASE_URL` ausente |
-| C3 | Variáveis de ambiente | Verificar se a URL da Supabase responde | Status 200 na URL do projeto Supabase |
-| C4 | Realtime habilitado | Abrir 2 abas do app | Registro feito em uma aba aparece na outra sem recarregar |
+- Execute cada teste e marque **✅ passou** ou **❌ falhou**.
+- Em caso de falha, anote o comportamento observado vs. esperado.
+- Rode na ordem (do básico ao avançado). As telas são: **Monitor**, **Produtos**,
+  **Equipe**, **Motivos**, e o **modal Registrar** (botão `＋ Registrar` no
+  desktop / **FAB** no celular).
 
 ---
 
-## 2. Testes da Tela de Configuração
-
-### 2.1 Cadastro de Alimentos
+## 1. Configuração do ambiente (pré-requisito)
 
 | # | Teste | Passos | Esperado |
 |---|---|---|---|
-| A1 | Adicionar alimento completo | Preencher nome + categoria + R$/kg → Adicionar | Item aparece na lista com os dados corretos |
-| A2 | Adicionar alimento sem categoria | Preencher só nome + R$/kg → Adicionar | Funciona; categoria fica em branco |
-| A3 | Bloquear alimento sem nome | Deixar nome vazio → Adicionar | Botão fica desabilitado / não submete |
-| A4 | Bloquear R$/kg sem valor | Deixar R$/kg vazio → Adicionar | Botão fica desabilitado / não submete |
-| A5 | Editar preço de alimento | Clicar "Editar preço" → novo valor → Salvar | Preço atualizado na lista |
-| A6 | Desativar alimento | Clicar "Desativar" | Alimento aparece riscado na lista |
-| A7 | Reativar alimento | Clicar "Reativar" em item desativado | Alimento volta ao normal |
-| A8 | Alimento desativado some do Registro | Desativar um alimento → ir para Registro | Alimento não aparece mais na tela de Registro |
-| A9 | Preço zero é válido | Cadastrar alimento com R$/kg = 0 | Aceita e salva |
-
-### 2.2 Cadastro de Funcionários
-
-| # | Teste | Passos | Esperado |
-|---|---|---|---|
-| F1 | Adicionar funcionário | Preencher nome → Adicionar | Aparece na lista |
-| F2 | Adicionar gestor | Selecionar papel "Gestor" → Adicionar | Aparece com label "Gestor" |
-| F3 | Bloquear sem nome | Deixar nome vazio → Adicionar | Botão desabilitado |
-| F4 | Desativar funcionário | Clicar "Desativar" | Nome riscado na lista |
-| F5 | Funcionário desativado some do Registro | Desativar → ir para Registro | Não aparece mais nos botões de funcionário |
+| C1 | App carrega sem erros | Abrir a URL | Monitor aparece; sem erros no console |
+| C2 | Conexão com Supabase | DevTools → Console | Sem erro de `VITE_SUPABASE_URL` ausente |
+| C3 | Variáveis de ambiente | Conferir URL do projeto Supabase | Status 200 |
+| C4 | Realtime habilitado | Abrir 2 abas | Registro feito numa aba aparece na outra sem recarregar |
 
 ---
 
-## 3. Testes da Tela de Registro
-
-### 3.1 Fluxo feliz (caminho principal)
+## 2. Produtos (alimentos)
 
 | # | Teste | Passos | Esperado |
 |---|---|---|---|
-| R1 | Registrar desperdício completo | Selecionar funcionário + alimento + peso → Confirmar | Mensagem "Registro salvo com sucesso!" por 3 segundos |
-| R2 | Formulário reseta após confirmação | Após sucesso do R1 | Alimento e peso limpos; funcionário mantido |
-| R3 | Funcionário persiste após recarregar | Selecionar funcionário → F5 na página | Mesmo funcionário já selecionado |
-| R4 | Preview de custo calcula corretamente | Selecionar Frango (R$ 22/kg) + digitar 500g | Exibe "≈ R$ 11,00" em tempo real |
-| R5 | Registrar com motivo | Preencher campo motivo → Confirmar | Registro salvo; motivo aparece no banco |
-| R6 | Registrar sem motivo | Deixar motivo em branco → Confirmar | Funciona normalmente |
-
-### 3.2 Validações
-
-| # | Teste | Passos | Esperado |
-|---|---|---|---|
-| R7 | Sem funcionário selecionado | Selecionar alimento + peso, sem funcionário | Botão "Confirmar" desabilitado |
-| R8 | Sem alimento selecionado | Selecionar funcionário + peso, sem alimento | Botão "Confirmar" desabilitado |
-| R9 | Sem peso | Selecionar funcionário + alimento, peso vazio | Botão "Confirmar" desabilitado |
-| R10 | Peso zero | Digitar 0 no campo peso | Botão "Confirmar" desabilitado |
-| R11 | Peso negativo | Digitar -100 | Botão desabilitado (campo min=1) |
-
-### 3.3 Estados especiais
-
-| # | Teste | Passos | Esperado |
-|---|---|---|---|
-| R12 | Sem alimentos cadastrados | Banco sem nenhum alimento ativo | Mensagem "Nenhum alimento cadastrado. Vá em Configuração." |
-| R13 | Sem funcionários cadastrados | Banco sem nenhum funcionário ativo | Mensagem "Nenhum funcionário cadastrado. Vá em Configuração." |
-| R14 | Snapshot do preço | Registrar frango a R$ 22/kg → alterar preço para R$ 30/kg → ver registro no Painel | Registro antigo continua mostrando o custo calculado com R$ 22/kg |
+| A1 | Adicionar produto completo | `＋ Novo` → nome + categoria + unidade + preço → salvar | Card aparece na grade |
+| A2 | Adicionar sem categoria | Só nome + unidade + preço | Funciona; categoria em branco |
+| A3 | Unidades base | Cadastrar um item em `kg`, um em `L` e um em `un` | Cada um exibe a unidade certa |
+| A4 | Bloquear sem nome | Nome vazio → salvar | Botão desabilitado / não submete |
+| A5 | Editar preço | Clicar no card → mudar preço → salvar | Preço atualizado no card |
+| A6 | Desativar produto | Toggle ativo → inativo | Card marcado como inativo |
+| A7 | Produto inativo some do Registrar | Desativar → abrir Registrar | Não aparece entre os alimentos |
+| A8 | Preço zero é válido | Cadastrar com preço 0 | Aceita e salva |
+| A9 | Busca filtra a grade | Digitar parte do nome na busca | Mostra só os correspondentes |
 
 ---
 
-## 4. Testes do Painel
-
-### 4.1 Totais e dados
+## 3. Equipe (funcionários)
 
 | # | Teste | Passos | Esperado |
 |---|---|---|---|
-| P1 | Total no período calcula corretamente | Fazer 2 registros conhecidos → ver Painel | Soma dos custos bate com o total exibido |
-| P2 | Lista de registros aparece | Após registros feitos | Lista exibe alimento, peso, funcionário, custo e data |
-| P3 | Top alimentos ordenado por custo | Registrar vários alimentos diferentes | Top alimentos mostra o mais caro primeiro |
-| P4 | Ranking ordenado por total | Registros de diferentes funcionários | Funcionário com maior total aparece primeiro |
-
-### 4.2 Filtros
-
-| # | Teste | Passos | Esperado |
-|---|---|---|---|
-| P5 | Filtro "Hoje" | Clicar "Hoje" | Só registros do dia atual aparecem |
-| P6 | Filtro "Últimos 7 dias" | Clicar "Últimos 7 dias" | Registros dos últimos 7 dias (inclusive hoje) |
-| P7 | Filtro "Este mês" | Clicar "Este mês" | Registros desde o dia 1 do mês atual |
-| P8 | Filtro personalizado | Selecionar "Personalizado" → datas → Aplicar | Apenas registros no intervalo selecionado |
-| P9 | Filtro sem resultado | Selecionar período sem registros | Mensagem "Nenhum registro no período selecionado." |
-| P10 | Total vira zero com filtro vazio | Filtrar período sem dados | Total exibe "R$ 0,00" e lista de registros vazia |
-| P11 | Botões de export somem com período vazio | Filtrar período sem registros | Botões "Exportar Excel" e "Exportar PDF" não aparecem |
-
-### 4.3 Realtime
-
-| # | Teste | Passos | Esperado |
-|---|---|---|---|
-| P12 | Novo registro aparece ao vivo | Abrir Painel em uma aba → registrar em outra | Registro aparece na lista sem recarregar a página |
-| P13 | Total atualiza ao vivo | Mesmas abas do P12 | Total do Painel aumenta automaticamente |
-| P14 | Realtime funciona no mesmo dispositivo | Abrir Painel → registrar na mesma aba (navegar de volta) | Painel atualiza ao retornar |
+| F1 | Adicionar funcionário | `＋ Novo` → nome → salvar | Aparece na lista |
+| F2 | Adicionar gestor | Papel "Gestor" → salvar | Aparece com label de gestor |
+| F3 | Bloquear sem nome | Nome vazio | Botão desabilitado |
+| F4 | Desativar funcionário | Toggle ativo → inativo | Marcado como inativo |
+| F5 | Inativo some do Registrar | Desativar → abrir Registrar | Não aparece entre os funcionários |
 
 ---
 
-## 5. Testes de Exportação
+## 4. Motivos
 
 | # | Teste | Passos | Esperado |
 |---|---|---|---|
-| E1 | Exportar Excel com dados | Painel com registros → Exportar Excel | Arquivo `.xlsx` baixado com 3 abas: Registros, Top Alimentos, Ranking |
-| E2 | Conteúdo do Excel correto | Abrir o arquivo baixado | Dados batem com o que está na tela; data/hora em formato brasileiro |
-| E3 | Exportar PDF com dados | Painel com registros → Exportar PDF | Arquivo `.pdf` baixado com cabeçalho, tabelas e lista de registros |
-| E4 | Nome do arquivo inclui período | Exportar com filtro "Este mês" ativo | Nome do arquivo contém o mês/período |
-| E5 | Export respeita filtro ativo | Filtrar "Hoje" → exportar | Excel/PDF contém apenas os registros do dia |
-| E6 | PDF com muitos registros | Mais de 50 registros no período | PDF gera novas páginas automaticamente, sem cortar conteúdo |
+| M1 | Cadastrar motivo | Digitar texto → adicionar | Aparece na lista |
+| M2 | Motivo vira chip no Registrar | Cadastrar → abrir Registrar | Aparece como chip clicável |
+| M3 | Desativar motivo | Desativar na aba Motivos | Some dos chips do Registrar, sem apagar histórico |
+| M4 | Salvar motivo na hora | No Registrar, digitar motivo novo → `＋ salvar` | Vira chip reutilizável |
 
 ---
 
-## 6. Testes de UX e Desempenho
+## 5. Registrar desperdício (modal)
+
+### 5.1 Fluxo feliz
 
 | # | Teste | Passos | Esperado |
 |---|---|---|---|
-| U1 | Tempo de registro | Medir do toque no nome até "Registro salvo" | Menos de 30 segundos para um usuário treinado |
-| U2 | Responsividade no tablet | Abrir app no tablet (7–10 polegadas) | Botões grandes, sem texto cortado, sem scroll horizontal |
-| U3 | Responsividade no celular | Abrir app em smartphone | Layout se adapta, usável mesmo sem ser o foco principal |
-| U4 | Carregamento inicial | Abrir o app pela primeira vez | Tela aparece em menos de 3 segundos (rede normal) |
-| U5 | Botões têm tamanho adequado para toque | Testar no tablet | Nenhum botão menor que ~44px de altura |
-| U6 | Feedback visual no botão Confirmar | Clicar em Confirmar | Botão muda para "Salvando..." durante o envio |
-| U7 | Nenhuma ação duplicada | Clicar rapidamente duas vezes em Confirmar | Apenas um registro é criado |
+| R1 | Registro completo | Funcionário + alimento + quantidade + unidade + motivo → Confirmar | Toast "Registro salvo!"; modal fecha |
+| R2 | Custo calculado ao vivo | Frango (R$ 22/kg) + digitar `500 g` | Mostra "≈ R$ 11,00" antes de confirmar |
+| R3 | Funcionário persiste | Selecionar funcionário → fechar e reabrir o app (F5) | Mesmo funcionário pré-selecionado (localStorage) |
+| R4 | Registrar sem motivo | Deixar motivo vazio → Confirmar | Funciona; entra como "Sem motivo" no Monitor |
+| R5 | Teclado numérico | Digitar quantidade pelo teclado próprio | Aceita dígitos e vírgula; sem teclado do SO no tablet |
+| R6 | Unidade pré-preenchida | Selecionar um alimento em `kg` | Unidade padrão do alimento já vem selecionada |
 
----
-
-## 7. Testes de Dados e Integridade
+### 5.2 Validações
 
 | # | Teste | Passos | Esperado |
 |---|---|---|---|
-| D1 | Custo calculado corretamente | Registrar 300g de frango a R$ 22/kg | Custo = R$ 6,60 no Painel |
-| D2 | Custo gerado pelo banco | Ver registro no Supabase (Table Editor) | Coluna `custo` preenchida pelo banco, não pelo front |
-| D3 | Snapshot de preço preservado | Ver `preco_kg_no_momento` no banco | Valor registrado no momento, não o atual |
-| D4 | Registro com peso decimal | Registrar 1500.5g | Aceita e exibe corretamente |
-| D5 | Consistência total vs soma manual | Somar manualmente os custos no Excel | Igual ao total exibido no Painel |
-| D6 | IDs únicos | Registrar dois desperdícios iguais | Dois registros separados, com IDs diferentes |
+| R7 | Sem funcionário | Faltando o funcionário | Confirmar desabilitado |
+| R8 | Sem alimento | Faltando o alimento | Confirmar desabilitado |
+| R9 | Sem quantidade / zero | Quantidade vazia ou 0 | Confirmar desabilitado |
+| R10 | Sem alimentos cadastrados | Banco sem alimento ativo | Mensagem orientando cadastrar em Produtos |
+| R11 | Sem funcionários cadastrados | Banco sem funcionário ativo | Mensagem orientando cadastrar em Equipe |
+| R12 | Sem duplo registro | Tocar Confirmar duas vezes rápido | Cria **apenas um** registro |
 
----
-
-## 8. Testes de Infraestrutura
+### 5.3 Mobile (bottom-sheet)
 
 | # | Teste | Passos | Esperado |
 |---|---|---|---|
-| I1 | Deploy automático | Fazer um push para `main` | Vercel reconstrói e publica em ~1 minuto |
-| I2 | Variáveis de ambiente na Vercel | Abrir app na URL da Vercel (não localhost) | Funciona igual ao local; sem erros de Supabase |
-| I3 | HTTPS na Vercel | Verificar URL | Cadeado verde no navegador (certificado SSL válido) |
-| I4 | PWA instalável no tablet Android | Acessar no Chrome → instalar | Ícone aparece na tela inicial; abre sem barra de endereços |
-| I5 | PWA instalável no iPad | Acessar no Safari → Adicionar à Tela de Início | Idem ao I4 |
-| I6 | App funciona após instalar PWA | Abrir pelo ícone na tela inicial | Carrega normalmente, todas as telas funcionam |
+| R13 | 3 passos no celular | Abrir pelo FAB | Alimento → quantidade/motivo → confirmar, com indicador de progresso |
+| R14 | Snapshot do preço | Registrar Frango a R$ 22 → mudar preço p/ R$ 30 → ver no Monitor | Registro antigo mantém o custo com R$ 22 |
 
 ---
 
-## 9. Testes de Regressão
+## 6. Monitor (dashboard ao vivo)
 
-> Executar sempre que uma mudança for feita no código.
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| P1 | KPI do dia | Fazer 2 registros hoje | "Desperdício do dia" = soma dos custos |
+| P2 | KPI do mês | Ver card do mês | Total do mês e contagem corretos |
+| P3 | Média e projeção | Ver card de média | `média = total do mês ÷ dias decorridos`; projeção coerente |
+| P4 | Últimos lançamentos | Após registros | Lista mostra alimento, funcionário, hora e custo |
+| P5 | Mais desperdiçados | Registrar alimentos diferentes | Painel ordena o de maior valor primeiro, com barra proporcional |
+| P6 | Principais motivos | Registros com motivos variados | Painel agrupa por motivo e ordena por valor |
+| P7 | Maior do dia | Ver subtexto do card do dia | Mostra o alimento de maior custo do dia |
+| P8 | Estado vazio | Mês sem registros | Painéis mostram "Sem dados no mês"; botões de exportar **não** aparecem |
+
+### 6.1 Realtime
+
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| P9 | Novo registro ao vivo | Monitor numa aba → registrar em outra | KPIs e listas atualizam sem F5 |
+| P10 | Modo de exibição (TV) | Abrir "Exibição" → registrar em outra aba | Tela cheia atualiza ao vivo |
+
+---
+
+## 7. Exportação (mês corrente)
+
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| E1 | Exportar Excel | Monitor com registros → "Exportar Excel" | `.xlsx` com 3 abas: Registros, Top Alimentos, Ranking |
+| E2 | Conteúdo do Excel | Abrir o arquivo | Dados batem com a tela; data/hora em formato BR |
+| E3 | Exportar PDF | "Exportar PDF" | `.pdf` com cabeçalho, tabelas e lista |
+| E4 | Nome do arquivo | Ver o arquivo baixado | Nome contém o mês/ano (ex.: `desperdicio-junho-de-2026`) |
+| E5 | PDF longo | Mais de ~50 registros no mês | Quebra em páginas sem cortar conteúdo |
+
+> A lógica de montagem do Excel/PDF tem **teste automatizado** ([testes.md](testes.md));
+> aqui validamos o arquivo real aberto.
+
+---
+
+## 8. UX e desempenho
+
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| U1 | Tempo de registro | Do toque até o toast | Menos de ~30 s para usuário treinado |
+| U2 | Tablet (7–10") | Abrir no tablet | Botões grandes, sem corte, sem scroll horizontal |
+| U3 | Celular | Abrir no smartphone | Bottom-nav + FAB usáveis |
+| U4 | Carregamento | Primeira abertura | Tela em < 3 s (rede normal) |
+| U5 | Alvo de toque | Botões no tablet | Nenhum menor que ~44px |
+| U6 | Feedback ao salvar | Tocar Confirmar | Botão indica "Salvando…" durante o envio |
+| U7 | Tema claro/escuro | Alternar sol/lua | Troca aplicada e persiste após F5, sem flash |
+
+---
+
+## 9. Dados e integridade
+
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| D1 | Custo correto | Registrar 300 g de frango a R$ 22/kg | Custo = R$ 6,60 |
+| D2 | Custo vem do banco | Ver registro no Supabase (Table Editor) | Coluna `custo` preenchida pelo banco, não pelo front |
+| D3 | Snapshot preservado | Ver `preco_unitario_no_momento` | Valor do momento do registro, não o atual |
+| D4 | Quantidade decimal | Registrar `1,5 kg` | Aceita e exibe corretamente |
+| D5 | Total vs soma | Somar custos do Excel à mão | Igual ao total do Monitor |
+| D6 | IDs únicos | Dois registros iguais | Dois registros, IDs diferentes |
+
+---
+
+## 10. Infraestrutura
+
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| I1 | Deploy automático | Push para `main` | Vercel reconstrói e publica em ~1 min |
+| I2 | Variáveis na Vercel | Abrir a URL da Vercel | Funciona igual ao local; sem erro de Supabase |
+| I3 | HTTPS | Conferir a URL | Cadeado válido (SSL) |
+| I4 | PWA Android | Chrome → instalar | Ícone na tela inicial; abre sem barra de endereços |
+| I5 | PWA iPad | Safari → Adicionar à Tela de Início | Idem ao I4 |
+| I6 | Funciona instalado | Abrir pelo ícone | Todas as telas funcionam |
+
+---
+
+## 11. Regressão rápida (após qualquer mudança)
+
+> Antes de commitar, rode também os testes automatizados: `npm test`.
 
 | # | Teste rápido | O que verifica |
 |---|---|---|
-| REG1 | Registrar um desperdício e ver no Painel | Fluxo principal inteiro não quebrou |
-| REG2 | Adicionar alimento e usá-lo no Registro | Configuração → Registro integração |
-| REG3 | Exportar Excel após registros | Export ainda funciona |
-| REG4 | Filtro "Este mês" mostra dados corretos | Hook de filtro funcionando |
-| REG5 | Funcionário selecionado persiste no F5 | localStorage ainda funciona |
+| REG1 | Registrar e ver no Monitor | Fluxo principal inteiro |
+| REG2 | Cadastrar produto e usá-lo no Registrar | Integração Produtos → Registrar |
+| REG3 | Exportar Excel | Exportação ainda funciona |
+| REG4 | Abrir 2 abas e registrar | Realtime funcionando |
+| REG5 | Trocar tema e dar F5 | Tema persiste (localStorage) |
 
 ---
 
-## 10. Testes de Aceite (com a cliente)
-
-> Executar junto com a dona da petiscaria antes da entrega final.
+## 12. Aceite (com a cliente)
 
 | # | Cenário real | O que verificar |
 |---|---|---|
-| AC1 | Funcionária registra o desperdício do almoço | Fluxo é intuitivo? Menos de 1 minuto? |
-| AC2 | Dona vê o total do dia à noite | Número bate com o que ela acompanhou presencialmente? |
-| AC3 | Dona filtra o mês anterior e exporta | Excel abre corretamente no celular/computador dela? |
-| AC4 | Cadastrar os alimentos reais da petiscaria | Todos os itens do cardápio cabem? Nomes estão corretos? |
-| AC5 | Instalar o app no tablet usado no estabelecimento | Ícone aparece? Abre rápido? |
-| AC6 | Registrar em horário de pico (funcionárias com pressa) | O fluxo é rápido o suficiente para não atrapalhar o serviço? |
+| AC1 | Funcionária registra o desperdício do almoço | Fluxo intuitivo? Menos de 1 min? |
+| AC2 | Dona vê o total do dia à noite | Número bate com o que ela acompanhou? |
+| AC3 | Dona exporta o mês | Excel/PDF abrem no aparelho dela? |
+| AC4 | Cadastrar os alimentos reais | Todos os itens do cardápio cabem? |
+| AC5 | Instalar no tablet do estabelecimento | Ícone aparece? Abre rápido? |
+| AC6 | Registrar em horário de pico | Rápido o bastante para não atrapalhar o serviço? |

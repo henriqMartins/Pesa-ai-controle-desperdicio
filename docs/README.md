@@ -3,25 +3,33 @@
 PWA de controle de desperdício para petiscaria. Funcionários registram a
 quantidade descartada; a dona acompanha o custo em tempo real e exporta relatórios.
 
-> Documentos relacionados: [atualizações](atualizacoes.md) · [arquitetura](arquitetura.md) · [setup](setup.md) · [modelo de dados](modelo-dados.md) · [infraestrutura](infraestrutura.md) · [plano de testes](plano-testes.md)
+Este é o **índice da documentação**. Cada documento tem um único propósito —
+comece pelo que precisa.
 
----
+## Índice
 
-## Visão geral
+**Produto**
+- [produto.md](produto.md) — o que o sistema faz, para quem e por quê; escopo e backlog.
 
-**Quem usa:** funcionários (registram desperdício) e a dona (monitor + cadastros).
+**Técnico** (como é construído)
+- [arquitetura.md](arquitetura.md) — stack, decisões técnicas e o Supabase como backend.
+- [modelo-dados.md](modelo-dados.md) — tabelas, colunas, RLS e consultas.
+- Este arquivo (abaixo) — estrutura de pastas, camadas do código e fluxo de dados.
 
-**O que faz:**
-- Cadastro de **alimentos** (preço por unidade base: kg, L ou un) e **funcionários** (papel funcionário/gestor)
-- Catálogo de **motivos** editável (chips reutilizáveis no registro)
-- **Registro** de desperdício via modal: funcionário + alimento + quantidade + unidade + motivo → custo calculado pelo banco
-- **Monitor** ao vivo: 3 KPIs (dia/mês/média) + 3 painéis (últimos, + desperdiçados, motivos) com atualização em tempo real
-- Exportação de relatórios em Excel (3 abas) e PDF
-- **Tema claro/escuro** com botão na barra superior
-- **Teclado numérico** próprio para digitar quantidade/preço em tablet
+**Operação** (rodar e publicar)
+- [setup.md](setup.md) — preparar o ambiente local.
+- [infraestrutura.md](infraestrutura.md) — Supabase, deploy na Vercel e PWA no tablet.
 
-**Decisão de negócio:** sistema aberto, sem login nem PIN. O acesso físico ao
-tablet do estabelecimento é o controle suficiente para uma equipe de 1–5 pessoas.
+**Qualidade**
+- [testes.md](testes.md) — estratégia de testes e **como rodar os testes automatizados**.
+- [plano-testes.md](plano-testes.md) — checklist de testes manuais e de aceite.
+
+**Planos de evolução**
+- [registro-correcao.md](registro-correcao.md) — explicação + plano para corrigir/excluir um registro.
+
+**Outros**
+- [atualizacoes.md](atualizacoes.md) — changelog (redesign, motivos, teclado, tema).
+- [historico/](historico/) — documentos **congelados**: planejamento e design original.
 
 ---
 
@@ -252,6 +260,11 @@ npm run build               # typecheck + build de produção
 | `npm run preview` | Serve o build localmente para testar |
 | `npm run typecheck` | Verifica tipos sem gerar build |
 | `npm run lint` | ESLint |
+| `npm test` | Roda os testes automatizados uma vez (Vitest) |
+| `npm run test:watch` | Testes em modo observação (re-roda ao salvar) |
+| `npm run test:coverage` | Testes + relatório de cobertura |
+
+> Detalhes da estratégia de testes em [testes.md](testes.md).
 
 ---
 
@@ -263,4 +276,6 @@ a infraestrutura:
 - [ ] Rodar `schema.sql` (ou `migrate_v1_to_v2.sql`) + `seed.sql` no Supabase
 - [ ] Deploy na Vercel com as variáveis de ambiente
 - [ ] Instalar como PWA no tablet do estabelecimento
-- [ ] Rodar o [plano de testes](plano-testes.md) com a cliente
+- [ ] Rodar o [plano de testes manual](plano-testes.md) com a cliente
+
+Backlog técnico mapeado: [correção de registro](registro-correcao.md).

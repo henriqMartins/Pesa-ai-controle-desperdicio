@@ -1,7 +1,7 @@
 # Setup do ambiente — passo a passo
 
-> Derivado de [base.md](base.md) (seções 6 e 8). Veja também a
-> [arquitetura](arquitetura.md) e o [modelo de dados](modelo-dados.md).
+> Veja também a [arquitetura](arquitetura.md) e o [modelo de dados](modelo-dados.md).
+> Para publicar em produção, siga a [infraestrutura](infraestrutura.md).
 
 ## Pré-requisitos
 

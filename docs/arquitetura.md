@@ -1,7 +1,8 @@
 # Arquitetura
 
-> Derivado de [base.md](base.md) (seções 3 e 4). Veja também
-> [modelo de dados](modelo-dados.md) e [setup](setup.md).
+> Veja também [produto](produto.md), [modelo de dados](modelo-dados.md) e
+> [setup](setup.md). Planejamento original (congelado):
+> [historico/base.md](historico/base.md).
 
 ## Stack e decisões técnicas
 

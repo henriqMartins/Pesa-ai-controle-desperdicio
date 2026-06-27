@@ -1,8 +1,8 @@
 # Modelo de dados
 
-> Derivado de [base.md](base.md) (seção 5). O SQL canônico vive em
-> [`supabase/schema.sql`](../supabase/schema.sql) e os tipos correspondentes em
-> [`src/types/`](../src/types/).
+> O SQL canônico vive em [`supabase/schema.sql`](../supabase/schema.sql) e os
+> tipos correspondentes em [`src/types/`](../src/types/). Planejamento original
+> (congelado, schema antigo): [historico/base.md](historico/base.md).
 
 Quatro tabelas resolvem o sistema. Totais e rankings são **consultas** sobre a
 tabela de registros — não precisam de tabela própria.

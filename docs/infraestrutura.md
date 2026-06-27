@@ -24,7 +24,8 @@ Antes de começar, confirme que você tem:
 1. Acesse o painel do seu projeto Supabase
 2. Vá em **SQL Editor → New query**
 3. Cole o conteúdo de `supabase/schema.sql` e clique **Run**
-4. Verifique em **Table Editor** que as tabelas `alimentos`, `funcionarios` e `registros` existem
+4. Verifique em **Table Editor** que as tabelas `alimentos`, `funcionarios`,
+   `motivos` e `registros` existem
 
 ### 1.2 Habilitar Realtime para a tabela `registros`
 
@@ -42,23 +43,23 @@ alter publication supabase_realtime add table registros;
 
 ### 1.3 Popular com dados iniciais
 
-Via a tela de Configuração do app (após o deploy) **ou** pelo SQL Editor:
+A forma recomendada é rodar [`supabase/seed.sql`](../supabase/seed.sql) no SQL
+Editor — ele já popula alimentos, funcionários, motivos e alguns registros de
+exemplo no schema atual. Você também pode cadastrar tudo pelas telas **Produtos**,
+**Equipe** e **Motivos** depois do deploy.
 
-```sql
--- Alimentos de exemplo (adapte para os da petiscaria)
-insert into alimentos (nome, categoria, valor_por_kg) values
-  ('Arroz', 'Grãos', 8.50),
-  ('Frango', 'Proteína', 22.00),
-  ('Batata Frita', 'Frituras', 12.00),
-  ('Feijão', 'Grãos', 9.00),
-  ('Camarão', 'Frutos do mar', 65.00);
-
--- Funcionários (adapte os nomes reais)
-insert into funcionarios (nome, papel) values
-  ('Maria', 'gestor'),
-  ('João', 'funcionario'),
-  ('Ana', 'funcionario');
-```
+> **Atenção ao schema atual:** o preço fica em `preco_por_unidade` (com a coluna
+> `unidade` = `kg`/`L`/`un`), e **não** no antigo `valor_por_kg`. Exemplo mínimo:
+>
+> ```sql
+> insert into alimentos (nome, categoria, preco_por_unidade, unidade) values
+>   ('Frango', 'Proteína', 22.00, 'kg'),
+>   ('Camarão', 'Frutos do mar', 65.00, 'kg'),
+>   ('Refrigerante', 'Bebidas', 8.00, 'L');
+>
+> insert into funcionarios (nome, papel) values
+>   ('Maria', 'gestor'), ('João', 'funcionario');
+> ```
 
 ### 1.4 Copiar as credenciais
 

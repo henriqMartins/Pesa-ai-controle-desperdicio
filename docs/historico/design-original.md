@@ -1,5 +1,11 @@
 # Handoff: Monitor de Desperdício — Petiscaria Aquino
 
+> ⚠️ **DOCUMENTO HISTÓRICO — CONGELADO.** Handoff de *design* original (protótipos
+> hi-fi). Útil como referência visual (tokens, espaçamentos, intenção de UI), mas
+> descreve 3 abas (sem **Motivos**) e pode divergir do código. A fonte de verdade
+> do design system implementado são os tokens em [`src/index.css`](../../src/index.css)
+> e a [arquitetura.md](../arquitetura.md). Mantido como referência de design.
+
 ## Visão Geral
 
 Sistema web de controle de desperdício de alimentos para a **Petiscaria Aquino**. O sistema funciona como um **dashboard ao vivo** que atualiza automaticamente os indicadores a cada novo lançamento registrado. Não há login — o sistema é aberto.
