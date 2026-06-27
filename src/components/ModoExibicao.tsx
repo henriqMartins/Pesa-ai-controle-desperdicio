@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMonitor, type ItemRanking } from '../hooks/useMonitor'
+import { useIsMobile } from '../hooks/useIsMobile'
+import { useOrientation } from '../hooks/useOrientation'
 
 const GRAD = 'var(--accent-grad)'
 
@@ -45,7 +47,7 @@ function KpiGrande({
   destaque?: boolean
 }) {
   return (
-    <div className="panel relative overflow-hidden rounded-3xl px-7 py-6">
+    <div className="panel relative overflow-hidden rounded-2xl px-5 py-5 sm:rounded-3xl sm:px-7 sm:py-6">
       {destaque && (
         <span className="absolute inset-y-5 right-0 w-1 rounded-full" style={{ background: 'var(--accent-strip)' }} />
       )}
@@ -78,9 +80,9 @@ function KpiGrande({
 function PainelRanking({ titulo, itens, vazio }: { titulo: string; itens: ItemRanking[]; vazio: string }) {
   const max = itens[0]?.total ?? 1
   return (
-    <div className="panel flex flex-col rounded-3xl p-7">
+    <div className="panel flex flex-col rounded-2xl p-5 sm:rounded-3xl sm:p-7">
       <h3
-        className="mb-6 text-[clamp(11px,0.9vw,15px)] font-bold uppercase tracking-[0.18em]"
+        className="mb-4 text-[clamp(11px,0.9vw,15px)] font-bold uppercase tracking-[0.18em] sm:mb-6"
         style={{ color: 'var(--orange)' }}
       >
         {titulo}
@@ -88,7 +90,7 @@ function PainelRanking({ titulo, itens, vazio }: { titulo: string; itens: ItemRa
       {itens.length === 0 ? (
         <p className="text-[clamp(13px,1vw,18px)]" style={{ color: 'var(--tx-30)' }}>{vazio}</p>
       ) : (
-        <div className="flex flex-1 flex-col justify-between gap-5">
+        <div className="flex flex-1 flex-col justify-between gap-4 sm:gap-5">
           {itens.map((it, i) => (
             <div key={it.nome}>
               <div className="flex items-baseline justify-between">
@@ -124,6 +126,11 @@ function PainelRanking({ titulo, itens, vazio }: { titulo: string; itens: ItemRa
 
 export default function ModoExibicao({ onClose }: { onClose: () => void }) {
   const d = useMonitor()
+  const isMobile = useIsMobile()
+  // No celular o painel rende melhor em paisagem: tenta travar nessa orientação
+  // (quando o navegador permite) e observa a orientação atual para adaptar a UI.
+  const orientacao = useOrientation(isMobile ? 'landscape' : undefined)
+  const sugerirRotacao = isMobile && orientacao === 'portrait'
 
   // Entra em fullscreen real ao abrir; sai ao fechar.
   useEffect(() => {
@@ -150,10 +157,10 @@ export default function ModoExibicao({ onClose }: { onClose: () => void }) {
   return (
     <div className="anim-fade fixed inset-0 z-[70] flex flex-col bg-app" style={{ background: 'var(--bg-app)' }}>
       {/* ── Cabeçalho ── */}
-      <header className="flex items-center justify-between px-8 py-5">
-        <div className="flex items-center gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-8 sm:py-5">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div
-            className="flex h-12 w-12 flex-none items-center justify-center rounded-2xl"
+            className="flex h-10 w-10 flex-none items-center justify-center rounded-xl sm:h-12 sm:w-12 sm:rounded-2xl"
             style={{ background: GRAD, boxShadow: '0 8px 22px rgba(240,70,78,.4)' }}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -185,10 +192,27 @@ export default function ModoExibicao({ onClose }: { onClose: () => void }) {
         </div>
       </header>
 
+      {/* Dica de rotação: o painel ganha muito mais em paisagem no celular. */}
+      {sugerirRotacao && (
+        <div
+          className="mx-4 mb-1 flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold"
+          style={{ background: 'var(--w-05)', border: '1px solid var(--bd-07)', color: 'var(--tx-72)' }}
+        >
+          <svg
+            width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)"
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-none"
+            style={{ animation: 'livedot 1.8s ease-in-out infinite' }}
+          >
+            <rect x="2" y="7" width="20" height="10" rx="2" /><path d="M7 3l2 2-2 2M17 21l-2-2 2-2" />
+          </svg>
+          Gire o aparelho para a horizontal para a melhor visualização.
+        </div>
+      )}
+
       {/* ── Conteúdo ── */}
-      <div className="flex min-h-0 flex-1 flex-col gap-5 px-8 pb-8">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 sm:gap-5 sm:overflow-visible sm:px-8 sm:pb-8">
         {/* KPIs */}
-        <div className="grid flex-none gap-5" style={{ gridTemplateColumns: '1.5fr 1fr 1fr' }}>
+        <div className="grid flex-none grid-cols-1 gap-4 sm:gap-5 sm:[grid-template-columns:1.5fr_1fr_1fr]">
           <KpiGrande
             rotulo="Desperdício do dia"
             valor={brl(d.totalDia)}
@@ -208,7 +232,7 @@ export default function ModoExibicao({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Rankings */}
-        <div className="grid min-h-0 flex-1 grid-cols-2 gap-5">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
           <PainelRanking titulo="Produtos desperdiçados" itens={d.topAlimentos} vazio="Sem dados no mês." />
           <PainelRanking titulo="Principais motivos" itens={d.topMotivos} vazio="Sem dados no mês." />
         </div>
