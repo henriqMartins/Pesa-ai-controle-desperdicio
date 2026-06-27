@@ -5,7 +5,8 @@ import { useFuncionarioAtual } from '../hooks/useFuncionarioAtual'
 import { useRegistros } from '../hooks/useRegistros'
 import { useMotivos } from '../hooks/useMotivos'
 import { useIsMobile } from '../hooks/useIsMobile'
-import TecladoNumerico, { exibirNumero } from './TecladoNumerico'
+import TecladoNumerico from './TecladoNumerico'
+import { exibirNumero } from '../lib/numero'
 import {
   UNIDADES_ENTRADA,
   converterParaBase,

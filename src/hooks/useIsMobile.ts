@@ -7,9 +7,10 @@ export function useIsMobile(breakpoint = 640) {
   )
 
   useEffect(() => {
+    // Estado inicial já vem do inicializador acima; aqui só assinamos mudanças
+    // (setState fica no callback da subscription, não no corpo síncrono do efeito).
     const mql = window.matchMedia(`(max-width: ${breakpoint - 1}px)`)
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    setIsMobile(mql.matches)
     mql.addEventListener('change', handler)
     return () => mql.removeEventListener('change', handler)
   }, [breakpoint])

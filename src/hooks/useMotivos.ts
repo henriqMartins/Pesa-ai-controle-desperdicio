@@ -30,7 +30,23 @@ export function useMotivos(apenasAtivos = true) {
     await carregar()
   }
 
-  useEffect(() => { carregar() }, [apenasAtivos]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Carga inicial (e quando o filtro muda). Como o fetch é assíncrono, os
+  // setState ocorrem após o await — fora do corpo síncrono do efeito.
+  useEffect(() => {
+    let ativo = true
+    void (async () => {
+      let query = supabase.from('motivos').select('*').order('criado_em')
+      if (apenasAtivos) query = query.eq('ativo', true)
+      const { data, error: err } = await query
+      if (!ativo) return
+      if (err) setError(err.message)
+      else setMotivos(data ?? [])
+      setLoading(false)
+    })()
+    return () => {
+      ativo = false
+    }
+  }, [apenasAtivos])
 
   return { motivos, loading, error, adicionar, atualizar, recarregar: carregar }
 }
