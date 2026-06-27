@@ -32,11 +32,11 @@ A simplicidade vale mais que o controle de acesso neste cenário.
   tempo real a cada novo registro.
 - **Relatórios** — exportação em Excel (3 abas) e PDF do mês.
 - **Tema** claro/escuro e **teclado numérico** próprio para tablet.
+- **Correção de lançamento** — excluir (com confirmação) ou editar um registro
+  errado pelo próprio Monitor. Detalhes em [registro-correcao.md](registro-correcao.md).
 
 ## Próximos passos (backlog)
 
-- **Correção de registro** — apagar/ajustar um lançamento errado pela própria
-  interface. Plano detalhado em [registro-correcao.md](registro-correcao.md).
 - **Filtros por período** no Monitor (hoje / 7 dias / mês / personalizado).
 - **Modo offline** — segurar o registro local e sincronizar quando a internet
   voltar (só se houver necessidade real).

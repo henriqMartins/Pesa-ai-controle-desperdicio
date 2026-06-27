@@ -118,6 +118,18 @@
 | P9 | Novo registro ao vivo | Monitor numa aba → registrar em outra | KPIs e listas atualizam sem F5 |
 | P10 | Modo de exibição (TV) | Abrir "Exibição" → registrar em outra aba | Tela cheia atualiza ao vivo |
 
+### 6.2 Correção de lançamentos
+
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| CL1 | Excluir um lançamento | Em "Últimos lançamentos", tocar 🗑 → confirmar | Some da lista; total do dia/mês cai |
+| CL2 | Cancelar a exclusão | Tocar 🗑 → cancelar na confirmação | Nada muda |
+| CL3 | Exclusão reflete ao vivo | Monitor em 2 abas → excluir numa | Some na outra sem F5 |
+| CL4 | Editar quantidade | Tocar ✎ → mudar quantidade → Salvar | Custo recalculado com o **preço original** (snapshot mantido) |
+| CL5 | Editar motivo | Tocar ✎ → trocar/limpar motivo → Salvar | Motivo atualizado; painel de motivos reflete |
+| CL6 | Trocar o alimento na edição | Tocar ✎ → escolher outro alimento → Salvar | Usa o **preço atual** do novo alimento |
+| CL7 | Edição reflete ao vivo | Monitor em 2 abas → editar numa | Atualiza na outra sem F5 |
+
 ---
 
 ## 7. Exportação (mês corrente)

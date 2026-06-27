@@ -3,6 +3,15 @@
 > Resumo das mudanças mais recentes. Referências canônicas:
 > [arquitetura](arquitetura.md) · [modelo de dados](modelo-dados.md).
 
+## 0. Correção de lançamento (exclusão e edição)
+
+- No Monitor, cada lançamento de "Últimos lançamentos" agora tem botões de
+  **editar** (✎) e **excluir** (🗑, com confirmação).
+- `useMonitor` expõe `excluir`/`recarregar`; `useRegistros` ganhou `atualizar`.
+- Realtime passou a escutar `*` (INSERT/UPDATE/DELETE) — correções refletem ao
+  vivo entre abas/aparelhos. Sem migração de banco. Detalhes:
+  [registro-correcao.md](registro-correcao.md).
+
 ## 1. Nova navegação (IA do wireframe)
 
 - Abas **Monitor / Produtos / Equipe / Motivos**. "Registrar" virou **modal**
