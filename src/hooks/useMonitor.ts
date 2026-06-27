@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { UnidadeBase } from '../lib/unidades'
 import type { RegistroCompleto } from '../types'
@@ -50,6 +50,17 @@ const VAZIO: DadosMonitor = {
 function inicioDoMes(): string {
   const agora = new Date()
   return new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString()
+}
+
+/** Busca os registros do mês corrente com os joins de alimento e funcionário. */
+async function buscarRegistrosDoMes(): Promise<RegistroCompleto[]> {
+  const { data } = await supabase
+    .from('registros')
+    .select('*, alimentos(nome, unidade), funcionarios(nome)')
+    .gte('criado_em', inicioDoMes())
+    .order('criado_em', { ascending: false })
+    .limit(5000)
+  return (data as RegistroCompleto[]) ?? []
 }
 
 /**
@@ -134,44 +145,55 @@ export function agregar(registros: RegistroCompleto[]): Omit<DadosMonitor, 'load
   }
 }
 
+export interface MonitorAPI extends DadosMonitor {
+  /** Apaga um registro e recarrega os KPIs. */
+  excluir: (registroId: string) => Promise<void>
+  /** Recarrega os dados do mês manualmente (ex.: após editar um registro). */
+  recarregar: () => Promise<void>
+}
+
 /** Carrega os registros do mês corrente e deriva os KPIs do Monitor ao vivo. */
-export function useMonitor(): DadosMonitor {
+export function useMonitor(): MonitorAPI {
   const [dados, setDados] = useState<DadosMonitor>(VAZIO)
   // Nome de canal único por instância: evita colisão de tópico quando dois
   // consumidores (ex.: Monitor + Modo de exibição) montam o hook ao mesmo tempo.
   const id = useId()
 
+  const carregar = useCallback(async () => {
+    setDados({ loading: false, ...agregar(await buscarRegistrosDoMes()) })
+  }, [])
+
   useEffect(() => {
-    let cancelado = false
+    let ativo = true
+    // Carga inicial: setState após o await (fora do corpo síncrono do efeito).
+    void (async () => {
+      const lista = await buscarRegistrosDoMes()
+      if (ativo) setDados({ loading: false, ...agregar(lista) })
+    })()
 
-    async function carregar() {
-      const { data } = await supabase
-        .from('registros')
-        .select('*, alimentos(nome, unidade), funcionarios(nome)')
-        .gte('criado_em', inicioDoMes())
-        .order('criado_em', { ascending: false })
-        .limit(5000)
-
-      if (!cancelado) {
-        const lista = (data as RegistroCompleto[]) ?? []
-        setDados({ loading: false, ...agregar(lista) })
-      }
-    }
-
-    carregar()
-
+    // '*' cobre INSERT/UPDATE/DELETE: inserir, editar ou excluir em qualquer
+    // aparelho/aba reflete ao vivo no Monitor.
     const channel = supabase
       .channel(`monitor-realtime-${id}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'registros' }, () =>
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'registros' }, () =>
         carregar(),
       )
       .subscribe()
 
     return () => {
-      cancelado = true
+      ativo = false
       supabase.removeChannel(channel)
     }
-  }, [id])
+  }, [id, carregar])
 
-  return dados
+  const excluir = useCallback(
+    async (registroId: string) => {
+      const { error } = await supabase.from('registros').delete().eq('id', registroId)
+      if (error) throw new Error(error.message)
+      await carregar()
+    },
+    [carregar],
+  )
+
+  return { ...dados, excluir, recarregar: carregar }
 }

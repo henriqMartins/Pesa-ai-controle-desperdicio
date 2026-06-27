@@ -1,5 +1,6 @@
 import { useMonitor, type ItemRanking } from '../hooks/useMonitor'
 import { exportarExcel, exportarPDF } from '../lib/exportar'
+import type { RegistroCompleto } from '../types'
 
 function brl(valor: number) {
   return `R$ ${valor.toFixed(2).replace('.', ',')}`
@@ -61,6 +62,18 @@ function PainelRanking({ titulo, itens, vazio }: { titulo: string; itens: ItemRa
 
 export default function Monitor() {
   const d = useMonitor()
+
+  async function apagar(r: RegistroCompleto) {
+    const ok = window.confirm(
+      `Excluir o lançamento de ${r.alimentos.nome} (${brl(Number(r.custo))}) de ${r.funcionarios.nome}?`,
+    )
+    if (!ok) return
+    try {
+      await d.excluir(r.id)
+    } catch (e) {
+      window.alert('Não foi possível excluir: ' + (e instanceof Error ? e.message : 'erro'))
+    }
+  }
 
   const labelMes = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 
@@ -132,16 +145,29 @@ export default function Monitor() {
             {d.ultimos.map((r) => (
               <div
                 key={r.id}
-                className="flex items-center justify-between py-2"
+                className="flex items-center justify-between gap-2 py-2"
                 style={{ borderBottom: '1px solid var(--bd-05)' }}
               >
                 <div className="min-w-0">
                   <div className="truncate text-sm font-semibold text-white/85">{r.alimentos.nome}</div>
                   <div className="text-[11px] text-white/35">{r.funcionarios.nome} · {formatarDataHora(r.criado_em)}</div>
                 </div>
-                <span className="ml-3 shrink-0 text-sm font-bold tabular-nums" style={{ color: 'var(--orange)' }}>
-                  {brl(Number(r.custo))}
-                </span>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--orange)' }}>
+                    {brl(Number(r.custo))}
+                  </span>
+                  <button
+                    onClick={() => apagar(r)}
+                    aria-label="Excluir lançamento"
+                    title="Excluir"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-white/30 transition-colors hover:text-[var(--red)]"
+                    style={{ border: '1px solid var(--bd-08)' }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
