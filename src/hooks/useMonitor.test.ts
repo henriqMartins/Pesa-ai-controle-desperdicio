@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { agregar } from './useMonitor'
+import { diaDoMesSP } from '../lib/fuso'
 import type { RegistroCompleto } from '../types'
 
 // `agregar` calcula todos os números do Monitor (totais do dia/mês, média,
@@ -97,7 +98,7 @@ describe('agregar', () => {
       reg({ custo: 10, alimentoNome: 'Frango', funcionarioNome: 'Maria' }),
       reg({ custo: 30, alimentoNome: 'Camarão', funcionarioNome: 'João' }),
     ])
-    const diasDecorridos = new Date().getDate()
+    const diasDecorridos = diaDoMesSP()
     expect(d.mediaPorDia).toBeCloseTo(40 / diasDecorridos, 2)
   })
 })

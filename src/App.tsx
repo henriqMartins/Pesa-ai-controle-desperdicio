@@ -7,6 +7,7 @@ import Motivos from './pages/Motivos'
 import RegistrarModal from './components/RegistrarModal'
 import ModoExibicao from './components/ModoExibicao'
 import { useTheme } from './hooks/useTheme'
+import { FUSO } from './lib/fuso'
 
 const GRAD = 'var(--accent-grad)'
 
@@ -43,7 +44,7 @@ function RelogioAoVivo() {
     const t = setInterval(() => setAgora(new Date()), 1000)
     return () => clearInterval(t)
   }, [])
-  const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const hora = agora.toLocaleTimeString('pt-BR', { timeZone: FUSO, hour: '2-digit', minute: '2-digit' })
   return (
     <div                                            
       className="flex items-center gap-2 rounded-xl px-3 py-1.5"

@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf'
 import type { RegistroCompleto } from '../types'
 import type { UnidadeBase } from './unidades'
 import { exibirQuantidade } from './unidades'
+import { FUSO } from './fuso'
 
 interface ItemAlimentoExport {
   nome: string
@@ -41,8 +42,9 @@ export function exportarExcel(dados: DadosExport) {
 
   const ws1 = XLSX.utils.json_to_sheet(
     dados.registros.map((r) => ({
-      Data: new Date(r.criado_em).toLocaleDateString('pt-BR'),
+      Data: new Date(r.criado_em).toLocaleDateString('pt-BR', { timeZone: FUSO }),
       Hora: new Date(r.criado_em).toLocaleTimeString('pt-BR', {
+        timeZone: FUSO,
         hour: '2-digit',
         minute: '2-digit',
       }),
@@ -150,6 +152,7 @@ export function exportarPDF(dados: DadosExport) {
   addLinha([['Data/Hora', L], ['Alimento', 48], ['Qtd.', 108], ['Custo', 130], ['Funcionário', 152]])
   for (const r of dados.registros) {
     const dt = new Date(r.criado_em).toLocaleDateString('pt-BR', {
+      timeZone: FUSO,
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',

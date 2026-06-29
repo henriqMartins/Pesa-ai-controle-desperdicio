@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMonitor, type ItemRanking } from '../hooks/useMonitor'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useOrientation } from '../hooks/useOrientation'
+import { FUSO } from '../lib/fuso'
 
 const GRAD = 'var(--accent-grad)'
 
@@ -17,7 +18,7 @@ function RelogioVivo() {
     const t = setInterval(() => setAgora(new Date()), 1000)
     return () => clearInterval(t)
   }, [])
-  const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  const hora = agora.toLocaleTimeString('pt-BR', { timeZone: FUSO, hour: '2-digit', minute: '2-digit', second: '2-digit' })
   return (
     <div
       className="flex items-center gap-3 rounded-xl px-4 py-2"
