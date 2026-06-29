@@ -20,23 +20,28 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Controle de Desperdício — Petiscaria',
-        short_name: 'Desperdício',
+        name: 'Monitor de Desperdício — Petiscaria Aquino',
+        short_name: 'Aquino',
         description:
-          'Registro e acompanhamento do desperdício de alimentos da petiscaria.',
-        theme_color: '#0f766e',
-        background_color: '#ffffff',
+          'Registro e acompanhamento do desperdício de alimentos da Petiscaria Aquino.',
+        lang: 'pt-BR',
+        // Cores da marca (laranja→vermelho) e fundo escuro do tema padrão —
+        // dão a cor da barra de status e da splash ao instalar.
+        theme_color: '#f0464e',
+        background_color: '#0f0d0b',
         display: 'standalone',
+        orientation: 'any',
         start_url: '/',
         icons: [
-          {
-            src: 'favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any',
-          },
+          // SVG escalável: nitidez em qualquer tamanho (navegador/desktop).
+          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          // PNGs: exigidos por Android/Chrome para o ícone instalado.
+          { src: 'pwa-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          // Maskable: o SO recorta no formato dele (círculo, squircle) sem cortar o logo.
+          { src: 'pwa-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),
