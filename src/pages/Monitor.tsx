@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useMonitor, type ItemRanking } from '../hooks/useMonitor'
 import { useAlimentos } from '../hooks/useAlimentos'
 import { exportarExcel, exportarPDF } from '../lib/exportar'
+import { FUSO, diaEmSP, inicioDoDiaSP } from '../lib/fuso'
 import RegistrarModal from '../components/RegistrarModal'
 import type { RegistroCompleto } from '../types'
 
@@ -11,12 +12,14 @@ function brl(valor: number) {
 
 function formatarDataHora(iso: string) {
   const d = new Date(iso)
-  const hoje = new Date()
-  const ontem = new Date(); ontem.setDate(hoje.getDate() - 1)
-  const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-  if (d.toDateString() === hoje.toDateString()) return `hoje ${hora}`
-  if (d.toDateString() === ontem.toDateString()) return `ontem ${hora}`
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ` ${hora}`
+  const dia = diaEmSP(d)
+  const hoje = diaEmSP()
+  // Ontem em SP: 1ms antes da meia-noite de hoje (robusto a virada de mês).
+  const ontem = diaEmSP(new Date(inicioDoDiaSP().getTime() - 1))
+  const hora = d.toLocaleTimeString('pt-BR', { timeZone: FUSO, hour: '2-digit', minute: '2-digit' })
+  if (dia === hoje) return `hoje ${hora}`
+  if (dia === ontem) return `ontem ${hora}`
+  return d.toLocaleDateString('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit' }) + ` ${hora}`
 }
 
 // ─── KPI ────────────────────────────────────────────────────────────────────────
@@ -67,6 +70,16 @@ export default function Monitor() {
   const d = useMonitor()
   const { alimentos } = useAlimentos()
   const [editando, setEditando] = useState<RegistroCompleto | null>(null)
+  const [tentando, setTentando] = useState(false)
+
+  async function tentarDeNovo() {
+    setTentando(true)
+    try {
+      await d.recarregar()
+    } finally {
+      setTentando(false)
+    }
+  }
 
   async function apagar(r: RegistroCompleto) {
     const ok = window.confirm(
@@ -80,7 +93,11 @@ export default function Monitor() {
     }
   }
 
-  const labelMes = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  const labelMes = new Date().toLocaleDateString('pt-BR', { timeZone: FUSO, month: 'long', year: 'numeric' })
+
+  // Falha na carga inicial (erro e nenhum dado carregado): esconde os KPIs/painéis
+  // zerados — "R$ 0,00" pareceria "sem desperdício" em vez de "não carregou".
+  const semDados = Boolean(d.erro) && d.registrosMesLista.length === 0
 
   const dadosExport = {
     registros: d.registrosMesLista,
@@ -111,6 +128,36 @@ export default function Monitor() {
   return (
     <>
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
+      {/* ── Erro de carregamento + retry ── */}
+      {d.erro && (
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3"
+          style={{ background: 'var(--w-05)', border: '1px solid var(--red)' }}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <svg
+              width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-none"
+            >
+              <circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" />
+            </svg>
+            <span className="text-sm font-semibold" style={{ color: 'var(--tx-72)' }}>
+              Não foi possível carregar os dados. {d.erro}
+            </span>
+          </div>
+          <button
+            onClick={tentarDeNovo}
+            disabled={tentando}
+            className="rounded-xl px-3 py-2 text-sm font-bold transition-opacity hover:opacity-80 disabled:opacity-50"
+            style={{ background: 'var(--red)', color: '#fff' }}
+          >
+            {tentando ? 'Tentando…' : 'Tentar de novo'}
+          </button>
+        </div>
+      )}
+
+      {!semDados && (
+      <>
       {/* ── 3 KPIs ── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Kpi
@@ -193,6 +240,8 @@ export default function Monitor() {
         <PainelRanking titulo="+ Desperdiçados" itens={d.topAlimentos} vazio="Sem dados no mês." />
         <PainelRanking titulo="Principais motivos" itens={d.topMotivos} vazio="Sem dados no mês." />
       </div>
+      </>
+      )}
     </div>
 
       {editando && (

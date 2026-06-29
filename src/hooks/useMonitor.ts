@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { diaDoMesSP, diasNoMesSP, inicioDoDiaSP, inicioDoMesSP } from '../lib/fuso'
 import type { UnidadeBase } from '../lib/unidades'
 import type { RegistroCompleto } from '../types'
 
@@ -48,18 +49,18 @@ const VAZIO: DadosMonitor = {
 }
 
 function inicioDoMes(): string {
-  const agora = new Date()
-  return new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString()
+  return inicioDoMesSP().toISOString()
 }
 
 /** Busca os registros do mês corrente com os joins de alimento e funcionário. */
 async function buscarRegistrosDoMes(): Promise<RegistroCompleto[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('registros')
     .select('*, alimentos(nome, unidade), funcionarios(nome)')
     .gte('criado_em', inicioDoMes())
     .order('criado_em', { ascending: false })
     .limit(5000)
+  if (error) throw new Error(error.message)
   return (data as RegistroCompleto[]) ?? []
 }
 
@@ -69,13 +70,14 @@ async function buscarRegistrosDoMes(): Promise<RegistroCompleto[]> {
  * números agregados. Exportada para ser testada diretamente (ver
  * `useMonitor.test.ts`). Assume que `registros` já vem filtrado ao mês corrente.
  */
-export function agregar(registros: RegistroCompleto[]): Omit<DadosMonitor, 'loading'> {
-  const agora = new Date()
-  const inicioDia = new Date(agora)
-  inicioDia.setHours(0, 0, 0, 0)
-
-  const diasDecorridos = agora.getDate()
-  const diasNoMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0).getDate()
+export function agregar(
+  registros: RegistroCompleto[],
+  agora: Date = new Date(),
+): Omit<DadosMonitor, 'loading'> {
+  // Tudo ancorado no fuso de SP (não no relógio local do tablet) — ver lib/fuso.
+  const inicioDia = inicioDoDiaSP(agora)
+  const diasDecorridos = diaDoMesSP(agora)
+  const diasNoMes = diasNoMesSP(agora)
 
   let totalDia = 0
   let totalMes = 0
@@ -146,29 +148,48 @@ export function agregar(registros: RegistroCompleto[]): Omit<DadosMonitor, 'load
 }
 
 export interface MonitorAPI extends DadosMonitor {
+  /** Mensagem de erro da última carga, ou `null` se carregou bem. */
+  erro: string | null
   /** Apaga um registro e recarrega os KPIs. */
   excluir: (registroId: string) => Promise<void>
-  /** Recarrega os dados do mês manualmente (ex.: após editar um registro). */
+  /** Recarrega os dados do mês manualmente (ex.: após editar ou em retry). */
   recarregar: () => Promise<void>
 }
 
 /** Carrega os registros do mês corrente e deriva os KPIs do Monitor ao vivo. */
 export function useMonitor(): MonitorAPI {
   const [dados, setDados] = useState<DadosMonitor>(VAZIO)
+  const [erro, setErro] = useState<string | null>(null)
   // Nome de canal único por instância: evita colisão de tópico quando dois
   // consumidores (ex.: Monitor + Modo de exibição) montam o hook ao mesmo tempo.
   const id = useId()
 
   const carregar = useCallback(async () => {
-    setDados({ loading: false, ...agregar(await buscarRegistrosDoMes()) })
+    try {
+      const lista = await buscarRegistrosDoMes()
+      setErro(null)
+      setDados({ loading: false, ...agregar(lista) })
+    } catch (e) {
+      // Mantém os dados já exibidos (se houver) e marca o erro para o retry.
+      setErro(e instanceof Error ? e.message : 'Falha ao carregar os dados.')
+      setDados((d) => ({ ...d, loading: false }))
+    }
   }, [])
 
   useEffect(() => {
     let ativo = true
     // Carga inicial: setState após o await (fora do corpo síncrono do efeito).
     void (async () => {
-      const lista = await buscarRegistrosDoMes()
-      if (ativo) setDados({ loading: false, ...agregar(lista) })
+      try {
+        const lista = await buscarRegistrosDoMes()
+        if (!ativo) return
+        setErro(null)
+        setDados({ loading: false, ...agregar(lista) })
+      } catch (e) {
+        if (!ativo) return
+        setErro(e instanceof Error ? e.message : 'Falha ao carregar os dados.')
+        setDados((d) => ({ ...d, loading: false }))
+      }
     })()
 
     // '*' cobre INSERT/UPDATE/DELETE: inserir, editar ou excluir em qualquer
@@ -195,5 +216,5 @@ export function useMonitor(): MonitorAPI {
     [carregar],
   )
 
-  return { ...dados, excluir, recarregar: carregar }
+  return { ...dados, erro, excluir, recarregar: carregar }
 }
