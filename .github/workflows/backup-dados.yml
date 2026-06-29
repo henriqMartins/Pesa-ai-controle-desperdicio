@@ -1,0 +1,69 @@
+name: Backup dos dados
+
+# Backup periódico das tabelas do Supabase, publicado como artefato baixável.
+# Perder o histórico de lançamentos da petiscaria seria grave, e o free tier não
+# garante backups acessíveis — então guardamos uma cópia semanal por conta própria.
+#
+# Não grava dados no repositório (apenas artefato, com retenção), evitando expor
+# o histórico no Git. Usa os mesmos secrets do keep-alive (anon key + RLS aberto
+# já permitem leitura de tudo) — nenhum segredo novo é necessário.
+
+on:
+  schedule:
+    - cron: '0 6 * * 0' # domingos 06:00 UTC (≈ 03:00 em São Paulo)
+  workflow_dispatch: # permite rodar manualmente pela aba Actions
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Exporta as tabelas via REST API
+        run: |
+          set -euo pipefail
+          mkdir -p backup
+
+          baixar_tabela() {
+            tabela="$1"
+            offset=0
+            pagina=1000
+            i=0
+            rm -rf paginas && mkdir -p paginas
+            while :; do
+              fim=$((offset + pagina - 1))
+              resp=$(curl -s \
+                "${SUPABASE_URL}/rest/v1/${tabela}?select=*&order=criado_em.asc" \
+                -H "apikey: ${SUPABASE_ANON_KEY}" \
+                -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+                -H "Range-Unit: items" \
+                -H "Range: ${offset}-${fim}")
+              # Falha cedo se a resposta não for um array (ex.: erro de auth).
+              if ! echo "$resp" | jq -e 'type == "array"' >/dev/null 2>&1; then
+                echo "::error::Resposta inesperada para '${tabela}': $resp"
+                exit 1
+              fi
+              echo "$resp" > "paginas/$(printf '%04d' "$i").json"
+              n=$(echo "$resp" | jq 'length')
+              echo "  ${tabela}: +${n} linhas (offset ${offset})"
+              if [ "$n" -lt "$pagina" ]; then break; fi
+              offset=$((offset + pagina))
+              i=$((i + 1))
+            done
+            jq -s 'add' paginas/*.json > "backup/${tabela}.json"
+            echo "${tabela}: $(jq 'length' "backup/${tabela}.json") linhas no total"
+          }
+
+          for t in alimentos funcionarios motivos registros; do
+            baixar_tabela "$t"
+          done
+
+          ls -la backup
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+      - name: Publica o backup como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-supabase-${{ github.run_id }}
+          path: backup/
+          retention-days: 90
