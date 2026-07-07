@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  doc-page:not(:defined){ visibility:hidden; }
+  body{ margin:0; }
+  h1,h2,h3,p,ul,ol,li{ margin:0; }
+  code{ font-family:'JetBrains Mono',monospace; }
+</style>
+</helmet>
+
+<x-import component-from-global-scope="doc-page" from="./doc-page.js" size="a4" margin="0.85in" hint-size="100%,100%">
+
+  <!-- CAPA -->
+  <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#1c0800;">
+
+    <div style="display:flex; align-items:center; gap:9px; margin-bottom:22px;">
+      <div style="width:34px; height:34px; border-radius:9px; background:linear-gradient(140deg,#f5a020,#c42208); display:flex; align-items:center; justify-content:center; flex:none;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+      </div>
+      <span style="font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:rgba(28,8,0,.5);">Petiscaria Aquino · Documentação técnica</span>
+    </div>
+
+    <h1 style="font-size:40px; font-weight:800; letter-spacing:-.03em; line-height:1; margin-bottom:14px;">Criação dos<br/><span style="color:#a04000;">Modais de Filtro</span></h1>
+    <p style="font-size:14px; font-weight:500; color:rgba(28,8,0,.6); line-height:1.6; max-width:520px;">Guia de arquitetura e implementação dos filtros do Monitor de Desperdício: os mini-filtros de painel e o modal de filtros avançados com três modos de análise.</p>
+
+    <div style="display:flex; gap:26px; margin-top:26px; padding-top:22px; border-top:1px solid rgba(120,68,10,.18); font-size:12px; color:rgba(28,8,0,.55);">
+      <div><span style="font-weight:700; color:#1c0800;">Arquivo</span><br/>Monitor de Desperdício.dc.html</div>
+      <div><span style="font-weight:700; color:#1c0800;">Versão</span><br/>Modo claro · jul/2026</div>
+      <div><span style="font-weight:700; color:#1c0800;">Stack</span><br/>Design Component (DCLogic)</div>
+    </div>
+
+    <!-- 1. VISÃO GERAL -->
+    <div style="margin-top:40px;">
+      <div style="font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#a04000; margin-bottom:14px;">1 · Visão geral</div>
+      <p style="font-size:13.5px; line-height:1.7; color:rgba(28,8,0,.82); margin-bottom:14px;">O sistema possui <strong>dois níveis de filtragem</strong>, independentes entre si:</p>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:12px;">
+        <li style="display:flex; gap:12px; align-items:flex-start;">
+          <span style="flex:none; width:22px; height:22px; border-radius:6px; background:#c96428; color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center;">A</span>
+          <span style="font-size:13.5px; line-height:1.6; color:rgba(28,8,0,.82);"><strong>Mini-filtros de painel</strong> — chips rápidos no canto de cada painel (Últimos lançamentos, Produtos desperdiçados, Principais motivos). Filtram por período pré-definido sem sair da tela.</span>
+        </li>
+        <li style="display:flex; gap:12px; align-items:flex-start;">
+          <span style="flex:none; width:22px; height:22px; border-radius:6px; background:#c96428; color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center;">B</span>
+          <span style="font-size:13.5px; line-height:1.6; color:rgba(28,8,0,.82);"><strong>Modal de filtros avançados</strong> — aberto pelo botão “Filtrar”. Cruza produtos, valores e datas com três modos de análise e um seletor de período flexível.</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2. MINI-FILTROS -->
+  <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#1c0800; margin-top:38px; break-inside:avoid;">
+    <div style="font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#a04000; margin-bottom:14px;">2 · Mini-filtros de painel</div>
+    <p style="font-size:13.5px; line-height:1.7; color:rgba(28,8,0,.82); margin-bottom:16px;">Cada painel guarda seu próprio estado de período. Os chips ativos ganham destaque (pílula branca no modo claro, laranja no escuro).</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px;">
+      <div style="background:#faf6f0; border:1px solid rgba(120,68,10,.18); border-radius:12px; padding:14px;">
+        <div style="font-size:12px; font-weight:800; margin-bottom:8px;">Últimos lançamentos</div>
+        <div style="font-size:11.5px; line-height:1.55; color:rgba(28,8,0,.6);">Hoje · Ontem · Outra data <span style="color:rgba(28,8,0,.4);">(abre calendário)</span></div>
+        <div style="margin-top:8px; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#a04000;">state.fUlt / fUltDate</div>
+      </div>
+      <div style="background:#faf6f0; border:1px solid rgba(120,68,10,.18); border-radius:12px; padding:14px;">
+        <div style="font-size:12px; font-weight:800; margin-bottom:8px;">Produtos desperdiçados</div>
+        <div style="font-size:11.5px; line-height:1.55; color:rgba(28,8,0,.6);">Hoje · Ontem · Mês · Total</div>
+        <div style="margin-top:8px; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#a04000;">state.fProd</div>
+      </div>
+      <div style="background:#faf6f0; border:1px solid rgba(120,68,10,.18); border-radius:12px; padding:14px;">
+        <div style="font-size:12px; font-weight:800; margin-bottom:8px;">Principais motivos</div>
+        <div style="font-size:11.5px; line-height:1.55; color:rgba(28,8,0,.6);">Hoje · Ontem · Mês · Total</div>
+        <div style="margin-top:8px; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#a04000;">state.fMot</div>
+      </div>
+    </div>
+
+    <div style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:rgba(28,8,0,.5); margin-bottom:10px;">Helpers de período (logic class)</div>
+    <div style="background:#1c1206; border-radius:12px; padding:18px 20px; overflow:hidden;">
+      <pre style="margin:0; font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:1.75; color:#f5ead9; white-space:pre-wrap;"><span style="color:#f5a020;">isYesterday</span>(ts) { <span style="color:#c99a6a;">// mesmo dia do calendário de ontem</span> }
+<span style="color:#f5a020;">sameDate</span>(ts, str) { <span style="color:#c99a6a;">// bate com uma data YYYY-MM-DD</span> }
+
+<span style="color:#f5a020;">periodFilter</span>(arr, p, dateStr) {
+  <span style="color:#e8946b;">if</span> (p === <span style="color:#9fd88a;">'hoje'</span>)  <span style="color:#e8946b;">return</span> arr.filter(l => this.sameDay(l.ts));
+  <span style="color:#e8946b;">if</span> (p === <span style="color:#9fd88a;">'ontem'</span>) <span style="color:#e8946b;">return</span> arr.filter(l => this.isYesterday(l.ts));
+  <span style="color:#e8946b;">if</span> (p === <span style="color:#9fd88a;">'mes'</span>)   <span style="color:#e8946b;">return</span> arr.filter(l => this.sameMonth(l.ts));
+  <span style="color:#e8946b;">if</span> (p === <span style="color:#9fd88a;">'outra'</span>) <span style="color:#e8946b;">return</span> arr.filter(l => this.sameDate(l.ts, dateStr));
+  <span style="color:#e8946b;">return</span> arr; <span style="color:#c99a6a;">// 'total'</span>
+}</pre>
+    </div>
+    <p style="font-size:12.5px; line-height:1.65; color:rgba(28,8,0,.65); margin-top:12px;">Cada painel chama <code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11.5px; color:#a04000;">periodFilter(launches, state.fX)</code> em <code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11.5px; color:#a04000;">renderVals()</code>, e agrega o resultado por produto/motivo. Subtítulos e totais de rodapé são derivados do mesmo período.</p>
+  </div>
+
+  <!-- 3. MODAL AVANÇADO -->
+  <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#1c0800; margin-top:38px;">
+    <div style="font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#a04000; margin-bottom:14px;">3 · Modal de filtros avançados</div>
+    <p style="font-size:13.5px; line-height:1.7; color:rgba(28,8,0,.82); margin-bottom:16px;">Aberto por <code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11.5px; color:#a04000;">openFiltros → state.modal = 'filtros'</code>. Estrutura: <strong>seletor de modo</strong> + <strong>seletor de período</strong> + área de <strong>resultado</strong> reativa.</p>
+
+    <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+      <div style="background:#faf6f0; border:1px solid rgba(120,68,10,.18); border-radius:12px; padding:16px 18px; break-inside:avoid;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <span style="flex:none; width:24px; height:24px; border-radius:7px; background:linear-gradient(135deg,#f5a020,#f0621a); color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center;">1</span>
+          <span style="font-size:13.5px; font-weight:800;">Mais registrados</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#a04000; margin-left:auto;">fxMode: 'topProd'</span>
+        </div>
+        <p style="font-size:12.5px; line-height:1.6; color:rgba(28,8,0,.68);">Agrupa lançamentos por produto e ranqueia pela <strong>quantidade de ocorrências</strong> no período. Cada linha mostra barra proporcional e valor total acumulado.</p>
+      </div>
+      <div style="background:#faf6f0; border:1px solid rgba(120,68,10,.18); border-radius:12px; padding:16px 18px; break-inside:avoid;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <span style="flex:none; width:24px; height:24px; border-radius:7px; background:linear-gradient(135deg,#f0621a,#c42208); color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center;">2</span>
+          <span style="font-size:13.5px; font-weight:800;">Maior valor</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#a04000; margin-left:auto;">fxMode: 'topValor'</span>
+        </div>
+        <p style="font-size:12.5px; line-height:1.6; color:rgba(28,8,0,.68);">Ordena os lançamentos individuais pelo <strong>valor de cada registro</strong>. Destaca o maior em um card-herói (produto, quantidade, motivo, data e valor) seguido do ranking completo.</p>
+      </div>
+      <div style="background:#faf6f0; border:1px solid rgba(120,68,10,.18); border-radius:12px; padding:16px 18px; break-inside:avoid;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <span style="flex:none; width:24px; height:24px; border-radius:7px; background:linear-gradient(135deg,#c42208,#8a1a06); color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center;">3</span>
+          <span style="font-size:13.5px; font-weight:800;">Por produto</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#a04000; margin-left:auto;">fxMode: 'porProduto'</span>
+        </div>
+        <p style="font-size:12.5px; line-height:1.6; color:rgba(28,8,0,.68);">Escolhe-se um produto no <code style="background:rgba(120,68,10,.1); padding:1px 5px; border-radius:5px; font-size:11px; color:#a04000;">&lt;select&gt;</code> e lista <strong>todas as datas</strong> em que ele foi registrado dentro do período, com rodapé somando ocorrências e valor total.</p>
+      </div>
+    </div>
+
+    <div style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:rgba(28,8,0,.5); margin-bottom:10px;">Seletor de período — fxRange()</div>
+    <div style="background:#1c1206; border-radius:12px; padding:18px 20px; overflow:hidden; break-inside:avoid;">
+      <pre style="margin:0; font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:1.75; color:#f5ead9; white-space:pre-wrap;"><span style="color:#f5a020;">fxRange</span>() { <span style="color:#c99a6a;">// devolve [inicio, fim] em ms</span>
+  <span style="color:#e8946b;">if</span> (fxPeriod === <span style="color:#9fd88a;">'7d'</span>)    <span style="color:#e8946b;">return</span> [now - 7*day, now];
+  <span style="color:#e8946b;">if</span> (fxPeriod === <span style="color:#9fd88a;">'30d'</span>)   <span style="color:#e8946b;">return</span> [now - 30*day, now];
+  <span style="color:#e8946b;">if</span> (fxPeriod === <span style="color:#9fd88a;">'mes'</span>)   <span style="color:#e8946b;">return</span> [inicioDoMes, now];
+  <span style="color:#e8946b;">if</span> (fxPeriod === <span style="color:#9fd88a;">'range'</span>) <span style="color:#e8946b;">return</span> [fxFrom, fxTo]; <span style="color:#c99a6a;">// de/até</span>
+  <span style="color:#e8946b;">return</span> [0, now]; <span style="color:#c99a6a;">// 'total'</span>
+}
+
+<span style="color:#c99a6a;">// filtra a base uma única vez, reusada pelos 3 modos</span>
+<span style="color:#e8946b;">const</span> [a, b] = this.fxRange();
+<span style="color:#e8946b;">const</span> within = launches.filter(l => l.ts >= a && l.ts <= b);</pre>
+    </div>
+    <p style="font-size:12.5px; line-height:1.65; color:rgba(28,8,0,.65); margin-top:12px;">Opções de período: <strong>7 dias · 30 dias · Mês · Total · Período</strong> (personalizado de/até com calendário). O array <code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11.5px; color:#a04000;">within</code> é calculado uma vez e alimenta os três modos — troca de modo não recalcula o recorte de datas.</p>
+  </div>
+
+  <!-- 4. FLUXO DE DADOS -->
+  <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#1c0800; margin-top:38px; break-inside:avoid;">
+    <div style="font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#a04000; margin-bottom:14px;">4 · Fluxo de dados</div>
+    <div style="display:flex; align-items:stretch; gap:8px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:120px; background:#c96428; border-radius:12px; padding:14px; color:#fff; text-align:center;">
+        <div style="font-size:11px; font-weight:800; letter-spacing:.04em;">state</div>
+        <div style="font-size:10.5px; color:rgba(255,255,255,.72); margin-top:4px;">fxMode · fxPeriod<br/>fxFrom/To · fxProd</div>
+      </div>
+      <div style="display:flex; align-items:center; color:#a04000; font-size:20px; font-weight:800;">→</div>
+      <div style="flex:1; min-width:120px; background:#c96428; border-radius:12px; padding:14px; color:#fff; text-align:center;">
+        <div style="font-size:11px; font-weight:800; letter-spacing:.04em;">fxVals()</div>
+        <div style="font-size:10.5px; color:rgba(255,255,255,.72); margin-top:4px;">fxRange → within<br/>agrega por modo</div>
+      </div>
+      <div style="display:flex; align-items:center; color:#a04000; font-size:20px; font-weight:800;">→</div>
+      <div style="flex:1; min-width:120px; background:#c96428; border-radius:12px; padding:14px; color:#fff; text-align:center;">
+        <div style="font-size:11px; font-weight:800; letter-spacing:.04em;">template</div>
+        <div style="font-size:10.5px; color:rgba(255,255,255,.72); margin-top:4px;">sc-if por modo<br/>sc-for nas listas</div>
+      </div>
+    </div>
+    <p style="font-size:12.5px; line-height:1.65; color:rgba(28,8,0,.65); margin-top:16px;">Todo cálculo vive em <code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11.5px; color:#a04000;">fxVals()</code>, espalhado dentro de <code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11.5px; color:#a04000;">renderVals()</code>. O template apenas exibe: <code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11.5px; color:#a04000;">&lt;sc-if&gt;</code> alterna o modo visível e <code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11.5px; color:#a04000;">&lt;sc-for&gt;</code> percorre as listas. Cada modo tem estado vazio dedicado quando não há dados no período.</p>
+  </div>
+
+  <!-- 5. CHECKLIST -->
+  <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#1c0800; margin-top:38px; break-inside:avoid;">
+    <div style="font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#a04000; margin-bottom:14px;">5 · Checklist para novos filtros</div>
+    <ol style="list-style:none; display:flex; flex-direction:column; gap:10px; counter-reset:step;">
+      <li style="display:flex; gap:12px; align-items:flex-start; font-size:13px; line-height:1.55; color:rgba(28,8,0,.82);"><span style="flex:none; width:20px; height:20px; border-radius:50%; border:1.5px solid #c96428; color:#a04000; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;">1</span> Adicionar o campo ao <code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11px; color:#a04000;">state</code> inicial com valor padrão.</li>
+      <li style="display:flex; gap:12px; align-items:flex-start; font-size:13px; line-height:1.55; color:rgba(28,8,0,.82);"><span style="flex:none; width:20px; height:20px; border-radius:50%; border:1.5px solid #c96428; color:#a04000; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;">2</span> Escrever/estender o helper de recorte (período ou agregação).</li>
+      <li style="display:flex; gap:12px; align-items:flex-start; font-size:13px; line-height:1.55; color:rgba(28,8,0,.82);"><span style="flex:none; width:20px; height:20px; border-radius:50%; border:1.5px solid #c96428; color:#a04000; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;">3</span> Expor a lista pronta + flag de vazio em <code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11px; color:#a04000;">renderVals()</code>.</li>
+      <li style="display:flex; gap:12px; align-items:flex-start; font-size:13px; line-height:1.55; color:rgba(28,8,0,.82);"><span style="flex:none; width:20px; height:20px; border-radius:50%; border:1.5px solid #c96428; color:#a04000; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;">4</span> Montar chips/select e a área de resultado com <code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11px; color:#a04000;">sc-if</code>/<code style="background:rgba(120,68,10,.1); padding:1px 6px; border-radius:5px; font-size:11px; color:#a04000;">sc-for</code>.</li>
+      <li style="display:flex; gap:12px; align-items:flex-start; font-size:13px; line-height:1.55; color:rgba(28,8,0,.82);"><span style="flex:none; width:20px; height:20px; border-radius:50%; border:1.5px solid #c96428; color:#a04000; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;">5</span> Conferir estado vazio e o comportamento nos dois temas (claro/escuro).</li>
+    </ol>
+    <div style="margin-top:28px; padding-top:16px; border-top:1px solid rgba(120,68,10,.18); font-size:11px; color:rgba(28,8,0,.4); text-align:center;">Monitor de Desperdício · Petiscaria Aquino · documentação gerada para a equipe de produto</div>
+  </div>
+
+</x-import>
+</x-dc>
+</body>
+</html>

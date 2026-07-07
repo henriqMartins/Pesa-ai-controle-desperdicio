@@ -93,3 +93,19 @@ export function diaEmSP(instante: Date = new Date()): string {
   const { ano, mes0, dia } = partesEmSP(instante)
   return `${ano}-${String(mes0 + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
 }
+
+/** Meia-noite (SP) de uma data 'AAAA-MM-DD' — início inclusivo do dia. */
+export function inicioDoDiaSPDeString(data: string): Date {
+  const [ano, mes, dia] = data.split('-').map(Number)
+  return instanteDeSP(ano, mes - 1, dia)
+}
+
+/**
+ * Meia-noite (SP) do dia **seguinte** a uma data 'AAAA-MM-DD' — fim exclusivo do
+ * dia. Usar como limite superior em intervalos "até" inclusivos (`ts < fim`).
+ * `Date.UTC` normaliza o estouro de `dia + 1` (ex.: 31 → dia 1 do próximo mês).
+ */
+export function fimDoDiaSPDeString(data: string): Date {
+  const [ano, mes, dia] = data.split('-').map(Number)
+  return instanteDeSP(ano, mes - 1, dia + 1)
+}

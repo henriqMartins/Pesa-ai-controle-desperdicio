@@ -6,6 +6,7 @@ import Equipe from './pages/Equipe'
 import Motivos from './pages/Motivos'
 import RegistrarModal from './components/RegistrarModal'
 import ModoExibicao from './components/ModoExibicao'
+import FiltrosModal from './components/FiltrosModal'
 import { useTheme } from './hooks/useTheme'
 import { FUSO } from './lib/fuso'
 
@@ -112,6 +113,28 @@ function BotaoExibicao({ onClick, compacto = false }: { onClick: () => void; com
   )
 }
 
+// ─── Botão "Filtrar" (abre o modal de filtros avançados) ─────────────────────────
+
+function BotaoFiltrar({ onClick, compacto = false }: { onClick: () => void; compacto?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      className={[
+        'flex flex-none items-center gap-2 rounded-xl transition-colors',
+        compacto ? 'h-9 w-9 justify-center' : 'px-3 py-2 text-sm font-bold',
+      ].join(' ')}
+      style={{ background: 'var(--w-05)', border: '1px solid var(--bd-07)', color: 'var(--tx-72)' }}
+      aria-label="Filtros avançados"
+      title="Filtros avançados"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 6h16M7 12h10M10 18h4" />
+      </svg>
+      {!compacto && 'Filtrar'}
+    </button>
+  )
+}
+
 // ─── Toast ───────────────────────────────────────────────────────────────────────
 
 function Toast({ msg }: { msg: string }) {
@@ -130,6 +153,7 @@ function Toast({ msg }: { msg: string }) {
 function Layout({ children }: { children: ReactNode }) {
   const [registrarAberto, setRegistrarAberto] = useState(false)
   const [exibicaoAberta, setExibicaoAberta] = useState(false)
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   function aoRegistrar() {
@@ -174,6 +198,7 @@ function Layout({ children }: { children: ReactNode }) {
             <RelogioAoVivo />
             <BotaoExibicao onClick={() => setExibicaoAberta(true)} />
             <BotaoTema />
+            <BotaoFiltrar onClick={() => setFiltrosAbertos(true)} />
             <button
               onClick={() => setRegistrarAberto(true)}
               className="btn-accent rounded-xl px-4 py-2 text-sm font-bold"
@@ -199,6 +224,7 @@ function Layout({ children }: { children: ReactNode }) {
         </div>
         <div className="flex items-center gap-2">
           <RelogioAoVivo />
+          <BotaoFiltrar compacto onClick={() => setFiltrosAbertos(true)} />
           <BotaoExibicao compacto onClick={() => setExibicaoAberta(true)} />
           <BotaoTema />
         </div>
@@ -237,6 +263,7 @@ function Layout({ children }: { children: ReactNode }) {
         <RegistrarModal onClose={() => setRegistrarAberto(false)} onRegistrado={aoRegistrar} />
       )}
       {exibicaoAberta && <ModoExibicao onClose={() => setExibicaoAberta(false)} />}
+      {filtrosAbertos && <FiltrosModal onClose={() => setFiltrosAbertos(false)} />}
       {toast && <Toast msg={toast} />}
     </div>
   )
