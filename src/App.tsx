@@ -55,7 +55,7 @@ function RelogioAoVivo() {
         className="h-2 w-2 flex-none rounded-full"
         style={{ background: 'var(--red)', boxShadow: '0 0 8px var(--red)', animation: 'livedot 1.4s ease-in-out infinite' }}
       />
-      <span className="text-[11px] font-bold tracking-wider" style={{ color: 'var(--red)' }}>
+      <span className="whitespace-nowrap text-[11px] font-bold tracking-wider" style={{ color: 'var(--red)' }}>
         AO VIVO {hora}
       </span>
     </div>

@@ -100,7 +100,7 @@ function PainelRanking({
   const max = itens[0]?.total ?? 1
   return (
     <div className="panel rounded-2xl p-4">
-      <div className="mb-3 flex items-center justify-between gap-2">
+      <div className="mb-3 flex flex-col gap-2">
         <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40">{titulo}</h3>
         {acoes}
       </div>
@@ -231,7 +231,7 @@ export default function Monitor() {
 
   return (
     <>
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
       {/* ── Erro de carregamento + retry ── */}
       {d.erro && (
         <div
@@ -296,7 +296,7 @@ export default function Monitor() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Últimos lançamentos */}
         <div className="panel rounded-2xl p-4">
-          <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="mb-3 flex flex-col gap-2">
             <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Últimos lançamentos</h3>
             <ChipsPeriodo
               opcoes={[
