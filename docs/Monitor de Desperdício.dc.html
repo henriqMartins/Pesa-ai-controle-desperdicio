@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; font-family:'Plus Jakarta Sans',system-ui,sans-serif; }
+  button,select,input{ font-family:inherit; }
+  select option{ color:#1a0f05; background:#fff8f2; }
+  :root{ --txt-ph:rgba(255,255,255,.35); }
+  ::placeholder{ color:var(--txt-ph); }
+  @keyframes livedot{ 0%,100%{ opacity:1; } 50%{ opacity:.2; } }
+  @keyframes toastIn{ from{ transform:translateY(18px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+  @keyframes modalIn{ from{ transform:scale(.97) translateY(6px); opacity:0; } to{ transform:scale(1) translateY(0); opacity:1; } }
+  @keyframes overlayIn{ from{ opacity:0; } to{ opacity:1; } }
+</style>
+<script>
+(function(){
+  var t=localStorage.getItem('aq-theme')||'light';
+  if(t==='dark') document.documentElement.style.setProperty('--txt-ph','rgba(248,244,238,.35)');
+})();
+</script>
+</helmet>
+
+<div style="min-height:100vh; background:{{ bg }}; color:{{ txt }}; padding-bottom:40px;">
+
+  <!-- TOP BAR -->
+  <div style="position:sticky; top:0; z-index:30; backdrop-filter:blur(14px); background:{{ topBar }}; border-bottom:1px solid {{ bdrAmb }}; display:flex; align-items:center; gap:16px; padding:11px 28px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:10px; flex:none;">
+      <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(140deg,#f5a020,#c42208); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(196,34,8,.4); flex:none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1.1 13h9.8L18 7M10 11v6M14 11v6"/></svg>
+      </div>
+      <div style="line-height:1.2;">
+        <div style="font-size:16px; font-weight:800; color:#e07a15; letter-spacing:-.01em; white-space:nowrap;">Petiscaria Aquino</div>
+        <div style="font-size:10px; font-weight:600; color:{{ barTxt }}; letter-spacing:.04em;">Monitor de Desperdício</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:2px; margin-left:8px;">
+      <button onClick="{{ goMonitor }}" style="{{ tabMonitorStyle }}">Monitor</button>
+      <button onClick="{{ goProdutos }}" style="{{ tabProdutosStyle }}">Produtos</button>
+      <button onClick="{{ goEquipe }}" style="{{ tabEquipeStyle }}">Equipe</button>
+      <button onClick="{{ goPratos }}" style="{{ tabPratosStyle }}">Pratos</button>
+    </div>
+
+    <div style="flex:1;"></div>
+
+    <div style="display:flex; align-items:center; gap:8px; background:{{ live }}; border:1px solid {{ bdrAmb }}; padding:7px 13px; border-radius:10px;">
+      <span style="width:8px; height:8px; border-radius:50%; background:#f0621a; box-shadow:0 0 8px #f0621a; animation:livedot 1.4s ease-in-out infinite; flex:none;"></span>
+      <span style="color:#f0621a; font-size:11px; font-weight:700; letter-spacing:.06em;">AO VIVO</span>
+      <span style="font-size:14px; font-weight:700; color:{{ barTxt }}; font-variant-numeric:tabular-nums;">{{ clockStr }}</span>
+    </div>
+
+    <button onClick="{{ toggleDisplay }}" title="Modo exibição — tela cheia para telões e TVs" style="display:flex; align-items:center; gap:7px; height:36px; padding:0 13px; border-radius:9px; border:1px solid {{ bdrAmb }}; background:{{ live }}; cursor:pointer; color:{{ barTxt }}; font-weight:700; font-size:13px; flex:none;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      Exibição
+    </button>
+
+    <button onClick="{{ toggleTheme }}" title="{{ themeTitle }}" style="width:36px; height:36px; border-radius:9px; border:1px solid {{ bdrAmb }}; background:{{ live }}; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none;">
+      <sc-if value="{{ isDark }}" hint-placeholder-val="{{ true }}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f5a020" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </sc-if>
+      <sc-if value="{{ isLight }}" hint-placeholder-val="{{ false }}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c46010" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </sc-if>
+    </button>
+
+    <button onClick="{{ openFiltros }}" title="Filtros avançados" style="display:flex; align-items:center; gap:7px; background:{{ live }}; color:{{ barTxt }}; border:1px solid {{ bdrAmb }}; border-radius:10px; padding:10px 14px; height:40px; font-weight:700; font-size:14px; cursor:pointer; flex:none;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+      Filtrar
+    </button>
+
+    <button onClick="{{ openRegistrar }}" style="display:flex; align-items:center; gap:7px; background:linear-gradient(135deg,#f5a020,#c42208); color:#fff; border:none; border-radius:10px; padding:10px 16px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 6px 20px rgba(196,34,8,.35);">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Registrar desperdício
+    </button>
+  </div>
+
+  <!-- MODO EXIBIÇÃO (telões / TVs) -->
+  <sc-if value="{{ isDisplay }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed; inset:0; z-index:90; background:{{ bg }}; color:{{ txt }}; display:flex; flex-direction:column; padding:clamp(26px,3vw,56px); gap:clamp(18px,2.2vh,32px); overflow:hidden; animation:overlayIn .25s ease;">
+
+    <div style="display:flex; align-items:center; gap:clamp(14px,1.6vw,26px); flex:none;">
+      <div style="width:clamp(46px,3.8vw,66px); height:clamp(46px,3.8vw,66px); border-radius:clamp(12px,1.2vw,18px); background:linear-gradient(140deg,#f5a020,#c42208); display:flex; align-items:center; justify-content:center; box-shadow:0 8px 28px rgba(196,34,8,.45); flex:none;">
+        <svg width="54%" height="54%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1.1 13h9.8L18 7M10 11v6M14 11v6"/></svg>
+      </div>
+      <div style="line-height:1.12;">
+        <div style="font-size:clamp(24px,2.4vw,44px); font-weight:800; letter-spacing:-.02em; color:{{ pageTxt }};">Petiscaria Aquino</div>
+        <div style="font-size:clamp(12px,1vw,19px); font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:{{ barTxt }}; margin-top:2px;">Monitor de Desperdício</div>
+      </div>
+      <div style="flex:1;"></div>
+      <div style="display:flex; align-items:center; gap:clamp(10px,1vw,16px); background:{{ surf }}; border:1px solid {{ bdr }}; box-shadow:{{ sh }}; border-radius:clamp(12px,1.2vw,18px); padding:clamp(10px,1vw,16px) clamp(16px,1.5vw,26px);">
+        <span style="width:clamp(10px,.9vw,15px); height:clamp(10px,.9vw,15px); border-radius:50%; background:#f0621a; box-shadow:0 0 12px #f0621a; animation:livedot 1.4s ease-in-out infinite; flex:none;"></span>
+        <span style="color:{{ txt }}; font-size:clamp(12px,1vw,18px); font-weight:800; letter-spacing:.08em;">AO VIVO</span>
+        <span style="font-size:clamp(20px,1.7vw,32px); font-weight:800; color:{{ txt }}; font-variant-numeric:tabular-nums; letter-spacing:-.01em;">{{ clockStr }}</span>
+      </div>
+      <button onClick="{{ exitDisplay }}" title="Sair do modo exibição (Esc)" style="display:flex; align-items:center; gap:8px; height:clamp(44px,3.4vw,58px); padding:0 clamp(16px,1.4vw,24px); border-radius:clamp(11px,1vw,16px); border:1px solid {{ bdrAmb }}; background:{{ surf }}; box-shadow:{{ sh }}; cursor:pointer; color:{{ txt }}; font-weight:700; font-size:clamp(13px,1vw,18px); flex:none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        Sair
+      </button>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:clamp(16px,1.5vw,26px); flex:none;">
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; box-shadow:{{ sh }}; border-radius:clamp(20px,1.8vw,30px); padding:clamp(24px,2.2vw,42px); position:relative; overflow:hidden;">
+        <div style="font-size:clamp(13px,1.1vw,21px); font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:{{ la }}; margin-bottom:clamp(10px,1vh,20px);">Desperdício do dia</div>
+        <div style="font-size:clamp(54px,6.5vw,132px); font-weight:800; letter-spacing:-.04em; line-height:.9; color:{{ txt }};">{{ diaTotalStr }}</div>
+        <div style="font-size:clamp(13px,1vw,21px); font-weight:500; color:{{ txtS }}; margin-top:clamp(10px,1.1vh,20px);">{{ diaCount }} · maior: {{ diaTopProd }}</div>
+        <div style="position:absolute; right:0; top:0; bottom:0; width:clamp(6px,.5vw,9px); background:linear-gradient(180deg,#f5a020,#c42208);"></div>
+      </div>
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; box-shadow:{{ sh }}; border-radius:clamp(20px,1.8vw,30px); padding:clamp(22px,2vw,38px); display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:clamp(12px,1vw,19px); font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:{{ lb }}; margin-bottom:clamp(8px,.9vh,16px);">Desperdício do mês</div>
+        <div style="font-size:clamp(38px,4.2vw,86px); font-weight:800; letter-spacing:-.03em; line-height:.95; color:{{ txt }};">{{ mesTotalStr }}</div>
+        <div style="font-size:clamp(12px,.95vw,19px); font-weight:500; color:{{ txtS }}; margin-top:clamp(8px,.9vh,16px);">{{ mesCount }} lançamentos</div>
+      </div>
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; box-shadow:{{ sh }}; border-radius:clamp(20px,1.8vw,30px); padding:clamp(22px,2vw,38px); display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:clamp(12px,1vw,19px); font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:{{ lc }}; margin-bottom:clamp(8px,.9vh,16px);">Média por dia</div>
+        <div style="font-size:clamp(38px,4.2vw,86px); font-weight:800; letter-spacing:-.03em; line-height:.95; color:{{ txt }};">{{ mediaDiaStr }}</div>
+        <div style="font-size:clamp(12px,.95vw,19px); font-weight:500; color:{{ txtS }}; margin-top:clamp(8px,.9vh,16px);">projeção: {{ projecaoMesStr }}</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(16px,1.5vw,26px); flex:1; min-height:0;">
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; box-shadow:{{ sh }}; border-radius:clamp(20px,1.8vw,30px); padding:clamp(22px,2vw,40px); display:flex; flex-direction:column; min-height:0;">
+        <div style="font-size:clamp(12px,1vw,19px); font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:{{ la }}; margin-bottom:clamp(14px,1.6vh,28px); flex:none;">Produtos desperdiçados</div>
+        <div style="display:flex; flex-direction:column; gap:clamp(12px,1.4vh,22px); flex:1; justify-content:space-evenly;">
+          <sc-for list="{{ prodArr }}" as="p" hint-placeholder-count="5">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; gap:14px; margin-bottom:clamp(5px,.6vh,10px);">
+                <span style="font-size:clamp(15px,1.4vw,28px); font-weight:700; color:{{ txt }};"><span style="color:{{ txtM }};">{{ p.rank }}</span> {{ p.name }}</span>
+                <span style="font-size:clamp(15px,1.4vw,28px); font-weight:800; color:{{ txt }}; white-space:nowrap;">{{ p.valueStr }}</span>
+              </div>
+              <div style="height:clamp(7px,.7vh,12px); border-radius:99px; background:{{ bar }}; overflow:hidden;"><div style="{{ p.dBarStyle }}"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; box-shadow:{{ sh }}; border-radius:clamp(20px,1.8vw,30px); padding:clamp(22px,2vw,40px); display:flex; flex-direction:column; min-height:0;">
+        <div style="font-size:clamp(12px,1vw,19px); font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:{{ ld }}; margin-bottom:clamp(14px,1.6vh,28px); flex:none;">Principais motivos</div>
+        <div style="display:flex; flex-direction:column; gap:clamp(12px,1.4vh,22px); flex:1; justify-content:space-evenly;">
+          <sc-for list="{{ motArr }}" as="m" hint-placeholder-count="5">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; gap:14px; margin-bottom:clamp(5px,.6vh,10px);">
+                <span style="font-size:clamp(15px,1.4vw,28px); font-weight:700; color:{{ txt }};"><span style="color:{{ txtM }};">{{ m.rank }}</span> {{ m.mot }}</span>
+                <span style="font-size:clamp(15px,1.4vw,28px); font-weight:800; color:{{ txt }}; white-space:nowrap;">{{ m.valueStr }}</span>
+              </div>
+              <div style="height:clamp(7px,.7vh,12px); border-radius:99px; background:{{ bar }}; overflow:hidden;"><div style="{{ m.dBarStyle }}"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </sc-if>
+
+  <!-- MONITOR PAGE -->
+  <sc-if value="{{ isMonitor }}" hint-placeholder-val="{{ true }}">
+  <div style="max-width:1280px; margin:0 auto; padding:28px 28px 0;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px;">
+
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:20px; box-shadow:{{ sh }}; padding:24px 26px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
+        <div style="min-width:0;">
+          <div style="font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:{{ la }}; margin-bottom:12px;">Desperdício do dia</div>
+          <div style="font-size:44px; font-weight:800; letter-spacing:-.03em; line-height:1; color:{{ txt }};">{{ diaTotalStr }}</div>
+          <div style="font-size:12px; font-weight:500; color:{{ txtS }}; margin-top:8px;">{{ diaCount }} · maior: {{ diaTopProd }}</div>
+        </div>
+        <div style="width:4px; min-height:56px; border-radius:2px; background:linear-gradient(180deg,#f5a020,#c42208); flex:none; margin-top:2px;"></div>
+      </div>
+
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:20px; box-shadow:{{ sh }}; padding:24px 26px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
+        <div style="min-width:0;">
+          <div style="font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:{{ lb }}; margin-bottom:12px;">Desperdício do mês</div>
+          <div style="font-size:44px; font-weight:800; letter-spacing:-.03em; line-height:1; color:{{ txt }};">{{ mesTotalStr }}</div>
+          <div style="font-size:12px; font-weight:500; color:{{ txtS }}; margin-top:8px;">{{ mesCount }} lançamentos</div>
+        </div>
+        <div style="width:4px; min-height:56px; border-radius:2px; background:#e07a15; flex:none; margin-top:2px;"></div>
+      </div>
+
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:20px; box-shadow:{{ sh }}; padding:24px 26px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
+        <div style="min-width:0;">
+          <div style="font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:{{ lc }}; margin-bottom:12px;">Média por dia</div>
+          <div style="font-size:44px; font-weight:800; letter-spacing:-.03em; line-height:1; color:{{ txt }};">{{ mediaDiaStr }}</div>
+          <div style="font-size:12px; font-weight:500; color:{{ txtS }}; margin-top:8px;">projeção: {{ projecaoMesStr }}</div>
+        </div>
+        <div style="width:4px; min-height:56px; border-radius:2px; background:#f5a020; flex:none; margin-top:2px;"></div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin-top:14px;">
+
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:20px; box-shadow:{{ sh }}; padding:24px; min-height:360px; display:flex; flex-direction:column;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+          <div style="font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:{{ lb }};">Últimos lançamentos</div>
+          <div style="display:flex; gap:5px; flex-wrap:wrap;">
+            <sc-for list="{{ ultFilters }}" as="f" hint-placeholder-count="3">
+              <button onClick="{{ f.on }}" style="{{ f.style }}">{{ f.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ ultShowDate }}" hint-placeholder-val="{{ false }}">
+          <input type="date" value="{{ fUltDate }}" onChange="{{ onUltDate }}" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; color:{{ txt }}; border-radius:9px; padding:9px 12px; font-size:13px; font-weight:600; font-family:inherit; margin-bottom:14px;"/>
+        </sc-if>
+        <div style="flex:1;">
+          <sc-if value="{{ ultEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px; font-weight:500; color:{{ txtM }}; padding:24px 0; text-align:center;">Nenhum lançamento em {{ ultPeriodLabel }}.</div>
+          </sc-if>
+          <sc-for list="{{ ultimos }}" as="l" hint-placeholder-count="5">
+            <div style="{{ l.rowStyle }}">
+              <div style="min-width:0;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:14px; font-weight:700; color:{{ txt }}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ l.name }}</span>
+                  <sc-if value="{{ l.isNew }}" hint-placeholder-val="{{ false }}"><span style="font-size:9px; font-weight:800; letter-spacing:.05em; background:rgba(52,211,153,.18); color:#34d399; border:1px solid rgba(52,211,153,.3); padding:2px 7px; border-radius:20px; white-space:nowrap; flex:none;">NOVO</span></sc-if>
+                </div>
+                <div style="font-size:11px; font-weight:500; color:{{ txtM }}; margin-top:3px;">{{ l.sub }} · {{ l.timeStr }}</div>
+              </div>
+              <div style="{{ l.valStyle }}">{{ l.valueStr }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:20px; box-shadow:{{ sh }}; padding:24px; min-height:360px; display:flex; flex-direction:column;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:4px;">
+          <div style="font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:{{ la }};">Produtos desperdiçados</div>
+          <div style="display:flex; gap:5px; flex-wrap:wrap;">
+            <sc-for list="{{ prodFilters }}" as="f" hint-placeholder-count="4">
+              <button onClick="{{ f.on }}" style="{{ f.style }}">{{ f.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="font-size:12px; font-weight:500; color:{{ txtL }}; margin-bottom:20px;">{{ prodSubLabel }}</div>
+        <div style="flex:1;">
+          <sc-if value="{{ prodEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px; font-weight:500; color:{{ txtM }}; padding:24px 0; text-align:center;">Sem dados no período.</div>
+          </sc-if>
+          <sc-for list="{{ prodArr }}" as="o" hint-placeholder-count="4">
+            <div style="margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:7px;">
+                <span style="font-size:13px; font-weight:600; color:{{ txt }};">{{ o.label }}</span>
+                <span style="font-size:13px; font-weight:700; color:{{ txt }}; white-space:nowrap;">{{ o.valueStr }}</span>
+              </div>
+              <div style="height:2px; border-radius:2px; background:{{ bar }};"><div style="{{ o.barStyle }}"></div></div>
+              <div style="font-size:11px; font-weight:500; color:{{ txtM }}; margin-top:5px;">{{ o.count }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid {{ sep }}; padding-top:14px; margin-top:4px;">
+          <span style="font-size:12px; font-weight:600; color:{{ txtS }};">{{ prodTotalLabel }}</span>
+          <span style="font-size:17px; font-weight:800; color:{{ txt }};">{{ prodTotalStr }}</span>
+        </div>
+      </div>
+
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:20px; box-shadow:{{ sh }}; padding:24px; min-height:360px; display:flex; flex-direction:column;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:4px;">
+          <div style="font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:{{ ld }};">Principais motivos</div>
+          <div style="display:flex; gap:5px; flex-wrap:wrap;">
+            <sc-for list="{{ motFilters }}" as="f" hint-placeholder-count="4">
+              <button onClick="{{ f.on }}" style="{{ f.style }}">{{ f.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="font-size:12px; font-weight:500; color:{{ txtL }}; margin-bottom:20px;">{{ motSubLabel }}</div>
+        <div style="flex:1;">
+          <sc-if value="{{ motEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px; font-weight:500; color:{{ txtM }}; padding:24px 0; text-align:center;">Sem dados no período.</div>
+          </sc-if>
+          <sc-for list="{{ motArr }}" as="m" hint-placeholder-count="4">
+            <div style="margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:7px;">
+                <span style="font-size:13px; font-weight:600; color:{{ txt }};">{{ m.rank }} {{ m.mot }}</span>
+                <span style="font-size:13px; font-weight:700; color:{{ txt }}; white-space:nowrap;">{{ m.valueStr }}</span>
+              </div>
+              <div style="height:2px; border-radius:2px; background:{{ bar }};"><div style="{{ m.barStyle }}"></div></div>
+              <div style="font-size:11px; font-weight:500; color:{{ txtM }}; margin-top:5px;">{{ m.count }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid {{ sep }}; padding-top:14px; margin-top:4px;">
+          <span style="font-size:12px; font-weight:600; color:{{ txtS }};">{{ motTotalLabel }}</span>
+          <span style="font-size:17px; font-weight:800; color:{{ txt }};">{{ motTotalStr }}</span>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center; font-size:11px; font-weight:500; color:{{ ft }}; padding:22px 0 8px; letter-spacing:.04em;">Petiscaria Aquino · atualiza ao vivo a cada lançamento</div>
+  </div>
+  </sc-if>
+
+  <!-- PRODUTOS PAGE -->
+  <sc-if value="{{ isProdutos }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:960px; margin:0 auto; padding:32px 28px 0;">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-bottom:24px;">
+      <div>
+        <h2 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-.02em; color:{{ pageTxt }};">Produtos</h2>
+        <div style="font-size:13px; font-weight:500; color:{{ barTxt }}; margin-top:4px;">preço cadastrado · cálculo automático do desperdício</div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <div style="display:flex; align-items:center; gap:8px; background:{{ live }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:0 12px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:{{ barTxt }}; flex:none;"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input value="{{ pSearch }}" onInput="{{ onPSearch }}" placeholder="buscar…" style="background:transparent; border:none; outline:none; color:{{ pageTxt }}; font-size:14px; font-weight:500; padding:10px 0; width:130px;"/>
+        </div>
+        <button onClick="{{ openNovoProduto }}" style="display:flex; align-items:center; gap:6px; background:linear-gradient(135deg,#f5a020,#c42208); color:#fff; border:none; border-radius:10px; padding:0 16px; height:40px; font-weight:800; font-size:14px; cursor:pointer;">＋ Novo</button>
+      </div>
+    </div>
+    <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:18px; box-shadow:{{ sh }}; padding:0 20px 10px; overflow:hidden;">
+      <div style="display:grid; grid-template-columns:2.4fr .9fr 1fr 1.3fr 44px; gap:12px; padding:16px 4px 13px; border-bottom:1px solid {{ thBdr }}; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:{{ th }};">
+        <span>Produto</span><span>Unidade</span><span>Preço</span><span>Categoria</span><span></span>
+      </div>
+      <sc-for list="{{ prodRows }}" as="r" hint-placeholder-count="6">
+        <div style="display:grid; grid-template-columns:2.4fr .9fr 1fr 1.3fr 44px; gap:12px; align-items:center; padding:14px 4px; border-bottom:1px solid {{ rowBdr }};">
+          <span style="font-size:15px; font-weight:700; color:{{ txt }};">{{ r.name }}</span>
+          <span style="font-size:13px; font-weight:500; color:{{ txtS }};">{{ r.unitLabel }}</span>
+          <span style="font-size:14px; font-weight:700; color:{{ vc }};">{{ r.priceStr }}</span>
+          <span style="font-size:13px; font-weight:500; color:{{ txtM }};">{{ r.cat }}</span>
+          <button onClick="{{ r.onEdit }}" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:8px; width:34px; height:34px; cursor:pointer; color:{{ abC }}; font-size:14px;">✎</button>
+        </div>
+      </sc-for>
+      <sc-if value="{{ prodRowsEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center; padding:36px; color:{{ txtS }}; font-weight:500; font-size:14px;">Nenhum produto encontrado.</div></sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- EQUIPE PAGE -->
+  <sc-if value="{{ isEquipe }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:760px; margin:0 auto; padding:32px 28px 0;">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-bottom:24px;">
+      <div>
+        <h2 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-.02em; color:{{ pageTxt }};">Equipe</h2>
+        <div style="font-size:13px; font-weight:500; color:{{ barTxt }}; margin-top:4px;">{{ empActiveCount }} ativos · {{ empCount }} no total</div>
+      </div>
+      <button onClick="{{ openNovoFunc }}" style="display:flex; align-items:center; gap:7px; background:linear-gradient(135deg,#f5a020,#c42208); color:#fff; border:none; border-radius:10px; padding:10px 16px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 6px 20px rgba(196,34,8,.3);">＋ Novo funcionário</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <sc-for list="{{ empRows }}" as="e" hint-placeholder-count="4">
+        <div style="display:flex; align-items:center; gap:14px; background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:14px; box-shadow:{{ sh }}; padding:14px 16px;">
+          <div style="{{ e.avatarStyle }}">{{ e.initial }}</div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:15px; font-weight:700; color:{{ txt }};">{{ e.name }}</div>
+            <div style="font-size:12px; font-weight:500; color:{{ txtS }}; margin-top:2px;">{{ e.role }}</div>
+          </div>
+          <span style="{{ e.pillStyle }}">{{ e.statusText }}</span>
+          <button onClick="{{ e.onToggle }}" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:8px; padding:7px 12px; cursor:pointer; color:{{ abC }}; font-size:12px; font-weight:700;">{{ e.toggleLabel }}</button>
+          <button onClick="{{ e.onEdit }}" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:8px; width:34px; height:34px; cursor:pointer; color:{{ abC }}; font-size:14px;">✎</button>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- PRATOS PAGE -->
+  <sc-if value="{{ isPratos }}" hint-placeholder-val="{{ false }}">
+
+    <!-- LISTA -->
+    <sc-if value="{{ isPratosLista }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width:900px; margin:0 auto; padding:32px 28px 0;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-bottom:24px;">
+        <div>
+          <h2 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-.02em; color:{{ pageTxt }};">Pratos prontos</h2>
+          <div style="font-size:13px; font-weight:500; color:{{ barTxt }}; margin-top:4px;">{{ pratosCount }} · ficha técnica e precificação · acesso restrito à gestão</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span style="font-size:11px; font-weight:800; letter-spacing:.08em; color:{{ vc }}; border:1px solid {{ vcBdr }}; background:{{ vcBg }}; border-radius:30px; padding:7px 14px;">GESTOR</span>
+          <button onClick="{{ openNovoPrato }}" style="display:flex; align-items:center; gap:6px; background:linear-gradient(135deg,#f5a020,#c42208); color:#fff; border:none; border-radius:10px; padding:0 16px; height:40px; font-weight:800; font-size:14px; cursor:pointer;">＋ Novo prato</button>
+        </div>
+      </div>
+
+      <sc-if value="{{ pratosEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:18px; box-shadow:{{ sh }}; text-align:center; padding:48px 24px; color:{{ txtS }}; font-weight:500; font-size:14px;">Nenhum prato cadastrado ainda.</div>
+      </sc-if>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <sc-for list="{{ pratoRows }}" as="pr" hint-placeholder-count="3">
+          <div style="display:flex; align-items:center; gap:14px; background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:14px; box-shadow:{{ sh }}; padding:14px 16px;">
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:15px; font-weight:700; color:{{ txt }};">{{ pr.nome }}</div>
+              <div style="font-size:12px; font-weight:500; color:{{ txtS }}; margin-top:2px;">Custo {{ pr.custoStr }} · markup {{ pr.markupStr }}</div>
+            </div>
+            <div style="font-size:17px; font-weight:800; color:{{ vc }}; white-space:nowrap;">{{ pr.precoStr }}</div>
+            <button onClick="{{ pr.onEdit }}" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:8px; width:34px; height:34px; cursor:pointer; color:{{ abC }}; font-size:14px;">✎</button>
+            <button onClick="{{ pr.onDelete }}" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:8px; width:34px; height:34px; cursor:pointer; color:#f0464e; font-size:14px;">🗑</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- FICHA (criar/editar) -->
+    <sc-if value="{{ isPratosFicha }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:820px; margin:0 auto; padding:28px 28px 40px;">
+
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:22px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <button onClick="{{ voltarLista }}" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:9px; width:36px; height:36px; cursor:pointer; color:{{ abC }}; font-size:15px; flex:none;">←</button>
+          <div style="width:40px; height:40px; border-radius:11px; background:linear-gradient(140deg,#f5a020,#c42208); display:flex; align-items:center; justify-content:center; flex:none;">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+          </div>
+          <div>
+            <div style="font-size:20px; font-weight:800; letter-spacing:-.01em; color:{{ txt }};">Ficha Técnica / Precificação</div>
+            <div style="font-size:12px; font-weight:500; color:{{ txtS }}; margin-top:2px;">pratos prontos</div>
+          </div>
+        </div>
+        <span style="font-size:11px; font-weight:800; letter-spacing:.08em; color:{{ vc }}; border:1px solid {{ vcBdr }}; background:{{ vcBg }}; border-radius:30px; padding:7px 14px; flex:none;">GESTOR</span>
+      </div>
+
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:18px; box-shadow:{{ sh }}; padding:20px; margin-bottom:14px;">
+        <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:8px;">Nome do prato</label>
+        <input value="{{ fPratoNome }}" onInput="{{ onFPratoNome }}" placeholder="ex: Costela com Requeijão" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:13px 14px; color:{{ txt }}; font-size:16px; font-weight:700; outline:none;"/>
+      </div>
+
+      <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:18px; box-shadow:{{ sh }}; padding:20px; margin-bottom:14px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+          <div style="font-size:15px; font-weight:800; color:{{ txt }};">Ingredientes</div>
+          <div onClick="{{ togglePerdaGlobal }}" style="display:flex; align-items:center; gap:9px; cursor:pointer;">
+            <span style="font-size:12px; font-weight:700; color:{{ txtS }};">Calcular perda</span>
+            <div style="{{ perdaToggleTrack }}"><div style="{{ perdaToggleKnob }}"></div></div>
+          </div>
+        </div>
+
+        <div style="{{ ingHeaderGrid }}; padding:0 4px 8px; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:{{ th }};">
+          <span>Ingrediente</span><span>Tipo</span><span>Valor</span><span>Qtd</span><span>Custo</span>
+        </div>
+
+        <sc-for list="{{ ingRows }}" as="ing" hint-placeholder-count="4">
+          <div style="border-bottom:1px solid {{ rowBdr }}; padding:6px 0;">
+            <div style="{{ ingHeaderGrid }}; align-items:center;">
+              <input value="{{ ing.nome }}" onInput="{{ ing.onNome }}" placeholder="ingrediente" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:8px; padding:9px 10px; color:{{ txt }}; font-size:13px; font-weight:600; outline:none;"/>
+              <div style="position:relative;">
+                <select value="{{ ing.tipo }}" onChange="{{ ing.onTipo }}" style="appearance:none; width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:8px; padding:9px 22px 9px 10px; color:{{ txt }}; font-size:12px; font-weight:600; outline:none; cursor:pointer;">
+                  <sc-for list="{{ tipoOptions }}" as="to" hint-placeholder-count="6"><option value="{{ to.v }}">{{ to.l }}</option></sc-for>
+                </select>
+                <span style="position:absolute; right:8px; top:50%; transform:translateY(-50%); pointer-events:none; color:{{ txtM }}; font-size:10px;">▾</span>
+              </div>
+              <input value="{{ ing.valor }}" onInput="{{ ing.onValor }}" inputmode="decimal" placeholder="0" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:8px; padding:9px 10px; color:{{ txt }}; font-size:13px; font-weight:600; outline:none;"/>
+              <input value="{{ ing.qtd }}" onInput="{{ ing.onQtd }}" inputmode="decimal" placeholder="0" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:8px; padding:9px 10px; color:{{ txt }}; font-size:13px; font-weight:600; outline:none;"/>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                <span style="font-size:13px; font-weight:800; color:#34d399;">{{ ing.custoStr }}</span>
+                <div style="display:flex; gap:4px; flex:none;">
+                  <sc-if value="{{ perdaGlobalOn }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ ing.onToggleExpand }}" title="Calcular perda" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:7px; width:28px; height:28px; cursor:pointer; color:{{ ing.perdaBtnColor }}; font-size:12px;">{{ ing.expandIcon }}</button>
+                  </sc-if>
+                  <button onClick="{{ ing.onDelete }}" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:7px; width:28px; height:28px; cursor:pointer; color:#f0464e; font-size:12px;">🗑</button>
+                </div>
+              </div>
+            </div>
+            <sc-if value="{{ ing.showPerda }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; align-items:center; gap:10px; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:10px 12px; margin-top:8px;">
+                <div style="flex:1;">
+                  <label style="font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:5px;">Peso bruto (kg)</label>
+                  <input value="{{ ing.pesoBruto }}" onInput="{{ ing.onPesoBruto }}" inputmode="decimal" placeholder="0,000" style="width:100%; background:{{ surf }}; border:1px solid {{ bdrIn }}; border-radius:7px; padding:8px 10px; color:{{ txt }}; font-size:13px; font-weight:600; outline:none;"/>
+                </div>
+                <div style="flex:1;">
+                  <label style="font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:5px;">Peso líquido (kg)</label>
+                  <input value="{{ ing.pesoLiquido }}" onInput="{{ ing.onPesoLiquido }}" inputmode="decimal" placeholder="0,000" style="width:100%; background:{{ surf }}; border:1px solid {{ bdrIn }}; border-radius:7px; padding:8px 10px; color:{{ txt }}; font-size:13px; font-weight:600; outline:none;"/>
+                </div>
+                <div style="flex:none; text-align:center; min-width:70px;">
+                  <label style="font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:5px;">Perda</label>
+                  <div style="font-size:14px; font-weight:800; color:{{ ing.perdaPctColor }};">{{ ing.perdaPctStr }}</div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+
+        <button onClick="{{ addIngrediente }}" style="display:flex; align-items:center; gap:7px; background:{{ ab }}; border:1px solid {{ bsBdr }}; color:{{ abC }}; border-radius:10px; padding:11px 15px; font-weight:700; font-size:13px; cursor:pointer; margin-top:10px;">＋ Adicionar ingrediente</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+        <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:18px; box-shadow:{{ sh }}; padding:18px 20px;">
+          <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:8px;">Embalagem (R$)</label>
+          <input value="{{ fEmbalagem }}" onInput="{{ onFEmbalagem }}" inputmode="decimal" placeholder="0,00" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 14px; color:{{ txt }}; font-size:15px; font-weight:700; outline:none;"/>
+        </div>
+        <div style="background:{{ surf }}; border:1px solid {{ bdr }}; border-radius:18px; box-shadow:{{ sh }}; padding:18px 20px;">
+          <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:8px;">Margem sobre o custo (%)</label>
+          <input value="{{ fMargem }}" onInput="{{ onFMargem }}" inputmode="decimal" placeholder="0" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 14px; color:{{ txt }}; font-size:15px; font-weight:700; outline:none;"/>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(150deg,#10b981,#0d9488); border-radius:18px; padding:22px 24px; color:#fff; box-shadow:0 18px 40px rgba(13,148,136,.28); margin-bottom:16px;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:800; margin-bottom:16px;">🏷 Resultado</div>
+        <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:600; padding:6px 0; opacity:.92;"><span>Custo dos ingredientes</span><span>{{ custoIngredientesStr }}</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:600; padding:6px 0; opacity:.92;"><span>+ Embalagem</span><span>{{ embalagemStr }}</span></div>
+        <div style="height:1px; background:rgba(255,255,255,.25); margin:10px 0;"></div>
+        <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:800; padding:2px 0;"><span>Total custo</span><span>{{ totalCustoStr }}</span></div>
+        <div style="height:1px; background:rgba(255,255,255,.25); margin:14px 0;"></div>
+        <div style="font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; opacity:.85; margin-bottom:6px;">Preço de venda sugerido</div>
+        <div style="display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+          <div style="font-size:36px; font-weight:800; letter-spacing:-.02em;">{{ precoSugeridoStr }}</div>
+          <div style="text-align:right; font-size:12px; font-weight:600; opacity:.88;">Markup: {{ markupStr }}<br/>Margem s/venda: {{ margemVendaStr }}</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button onClick="{{ voltarLista }}" style="flex:1; background:{{ bs }}; color:{{ bsC }}; border:1px solid {{ bsBdr }}; border-radius:12px; padding:13px; font-weight:700; font-size:14px; cursor:pointer;">Cancelar</button>
+        <button onClick="{{ submitPrato }}" style="flex:1.5; background:linear-gradient(135deg,#f5a020,#c42208); color:#fff; border:none; border-radius:12px; padding:13px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 6px 18px rgba(196,34,8,.3);">Salvar prato</button>
+      </div>
+
+    </div>
+    </sc-if>
+
+  </sc-if>
+
+  <!-- MODAL FILTROS AVANÇADOS -->
+  <sc-if value="{{ isFiltros }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeModal }}" style="position:fixed; inset:0; z-index:50; background:{{ ov }}; backdrop-filter:blur(4px); display:flex; align-items:flex-start; justify-content:center; padding:40px 20px; overflow:auto; animation:overlayIn .2s ease;">
+    <div onClick="{{ stop }}" style="width:min(560px,96vw); background:{{ modalBg }}; border:1px solid {{ bdrAmb }}; border-radius:22px; padding:26px; box-shadow:0 28px 80px rgba(0,0,0,.5); animation:modalIn .22s ease;">
+
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+        <div>
+          <div style="font-size:20px; font-weight:800; letter-spacing:-.01em; color:{{ txt }};">Filtros avançados</div>
+          <div style="font-size:12px; font-weight:500; color:{{ txtS }}; margin-top:3px;">cruze produtos, valores e datas por período</div>
+        </div>
+        <button onClick="{{ closeModal }}" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:9px; width:32px; height:32px; cursor:pointer; color:{{ abC }}; font-size:15px; flex:none;">✕</button>
+      </div>
+
+      <!-- seletor de modo -->
+      <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:8px;">Filtrar por</label>
+      <div style="display:flex; gap:6px; margin-bottom:18px;">
+        <sc-for list="{{ fxModes }}" as="m" hint-placeholder-count="3"><button onClick="{{ m.on }}" style="{{ m.style }}">{{ m.label }}</button></sc-for>
+      </div>
+
+      <!-- período -->
+      <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:8px;">Período</label>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+        <sc-for list="{{ fxPeriods }}" as="p" hint-placeholder-count="5"><button onClick="{{ p.on }}" style="{{ p.style }}">{{ p.label }}</button></sc-for>
+      </div>
+      <sc-if value="{{ fxIsRange }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; gap:10px; margin-bottom:14px;">
+          <div style="flex:1;">
+            <label style="font-size:10px; font-weight:600; color:{{ txtL }}; display:block; margin-bottom:5px;">De</label>
+            <input type="date" value="{{ fxFrom }}" onChange="{{ onFxFrom }}" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; color:{{ txt }}; border-radius:9px; padding:9px 12px; font-size:13px; font-weight:600; font-family:inherit;"/>
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:10px; font-weight:600; color:{{ txtL }}; display:block; margin-bottom:5px;">Até</label>
+            <input type="date" value="{{ fxTo }}" onChange="{{ onFxTo }}" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; color:{{ txt }}; border-radius:9px; padding:9px 12px; font-size:13px; font-weight:600; font-family:inherit;"/>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- seletor de produto (modo 3) -->
+      <sc-if value="{{ fxIsPorProduto }}" hint-placeholder-val="{{ false }}">
+        <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:8px;">Produto</label>
+        <div style="position:relative; margin-bottom:14px;">
+          <select value="{{ fxProd }}" onChange="{{ onFxProd }}" style="appearance:none; width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 36px 12px 14px; color:{{ txt }}; font-size:14px; font-weight:600; outline:none; cursor:pointer;">
+            <option value="">Selecione um produto…</option>
+            <sc-for list="{{ prodOptions }}" as="op" hint-placeholder-count="5"><option value="{{ op.id }}">{{ op.label }}</option></sc-for>
+          </select>
+          <span style="position:absolute; right:13px; top:50%; transform:translateY(-50%); pointer-events:none; color:{{ txtM }}; font-size:12px;">▾</span>
+        </div>
+      </sc-if>
+
+      <!-- RESULTADO -->
+      <div style="background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:16px; padding:18px; min-height:160px;">
+
+        <!-- modo 1: mais registrados -->
+        <sc-if value="{{ fxIsTopProd }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:{{ txtL }}; margin-bottom:16px;">Mais registrados · {{ fxPeriodLabel }}</div>
+          <sc-if value="{{ fxTopProdEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; color:{{ txtM }}; text-align:center; padding:20px 0;">Nenhum registro no período.</div></sc-if>
+          <sc-for list="{{ fxTopProd }}" as="o" hint-placeholder-count="5">
+            <div style="margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:6px;">
+                <span style="font-size:14px; font-weight:700; color:{{ txt }};"><span style="color:{{ txtM }};">{{ o.rank }}</span> {{ o.name }}</span>
+                <span style="font-size:13px; font-weight:700; color:{{ vc }}; white-space:nowrap;">{{ o.countStr }}</span>
+              </div>
+              <div style="height:6px; border-radius:99px; background:{{ bar }}; overflow:hidden;"><div style="{{ o.barStyle }}"></div></div>
+              <div style="font-size:11px; font-weight:500; color:{{ txtM }}; margin-top:5px;">valor total: {{ o.valueStr }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+
+        <!-- modo 2: maior valor -->
+        <sc-if value="{{ fxIsTopValor }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:{{ txtL }}; margin-bottom:16px;">Maiores valores · {{ fxPeriodLabel }}</div>
+          <sc-if value="{{ fxTopValorEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; color:{{ txtM }}; text-align:center; padding:20px 0;">Nenhum registro no período.</div></sc-if>
+          <sc-if value="{{ fxTopValorHero }}" hint-placeholder-val="{{ false }}">
+            <div style="background:{{ vcBg }}; border:1px solid {{ vcBdr }}; border-radius:14px; padding:16px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; gap:14px;">
+              <div style="min-width:0;">
+                <div style="font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:{{ txtL }}; margin-bottom:5px;">Maior registro</div>
+                <div style="font-size:17px; font-weight:800; color:{{ txt }};">{{ fxTopValorHero.name }}</div>
+                <div style="font-size:11px; font-weight:500; color:{{ txtM }}; margin-top:3px;">{{ fxTopValorHero.sub }} · {{ fxTopValorHero.dateStr }}</div>
+              </div>
+              <div style="font-size:26px; font-weight:800; color:{{ vc }}; white-space:nowrap;">{{ fxTopValorHero.valueStr }}</div>
+            </div>
+          </sc-if>
+          <sc-for list="{{ fxTopValor }}" as="o" hint-placeholder-count="5">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid {{ rowBdr }};">
+              <div style="min-width:0;">
+                <div style="font-size:14px; font-weight:700; color:{{ txt }};"><span style="color:{{ txtM }};">{{ o.rank }}</span> {{ o.name }}</div>
+                <div style="font-size:11px; font-weight:500; color:{{ txtM }}; margin-top:2px;">{{ o.sub }} · {{ o.dateStr }}</div>
+              </div>
+              <div style="font-size:14px; font-weight:800; color:{{ vc }}; white-space:nowrap;">{{ o.valueStr }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+
+        <!-- modo 3: por produto -->
+        <sc-if value="{{ fxIsPorProduto }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ fxProdNone }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; color:{{ txtM }}; text-align:center; padding:28px 0;">Selecione um produto para ver todas as datas em que foi registrado.</div></sc-if>
+          <sc-if value="{{ fxProdEventsEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; color:{{ txtM }}; text-align:center; padding:28px 0;">Nenhum registro de {{ fxProdName }} em {{ fxPeriodLabel }}.</div></sc-if>
+          <sc-for list="{{ fxProdEvents }}" as="ev" hint-placeholder-count="5">
+            <div style="display:flex; align-items:center; gap:14px; padding:11px 0; border-bottom:1px solid {{ rowBdr }};">
+              <div style="text-align:center; flex:none; width:54px;">
+                <div style="font-size:13px; font-weight:800; color:{{ txt }};">{{ ev.dateStr }}</div>
+                <div style="font-size:10px; font-weight:600; color:{{ txtM }}; text-transform:uppercase;">{{ ev.weekday }} · {{ ev.timeStr }}</div>
+              </div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:700; color:{{ txt }};">{{ ev.qtyStr }}</div>
+                <div style="font-size:11px; font-weight:500; color:{{ txtM }}; margin-top:2px;">{{ ev.motivo }}</div>
+              </div>
+              <div style="font-size:14px; font-weight:800; color:{{ vc }}; white-space:nowrap;">{{ ev.valueStr }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+
+      </div>
+
+      <!-- rodapé do modo 3 -->
+      <sc-if value="{{ fxIsPorProduto }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ fxProd }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding:0 4px;">
+            <span style="font-size:12px; font-weight:600; color:{{ txtS }};">{{ fxProdCountStr }} · {{ fxPeriodLabel }}</span>
+            <span style="font-size:17px; font-weight:800; color:{{ txt }};">{{ fxProdTotalStr }}</span>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <button onClick="{{ closeModal }}" style="width:100%; margin-top:20px; background:linear-gradient(135deg,#f5a020,#c42208); color:#fff; border:none; border-radius:12px; padding:13px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 6px 18px rgba(196,34,8,.3);">Fechar</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- MODAL REGISTRAR -->
+  <sc-if value="{{ isRegistrar }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeModal }}" style="position:fixed; inset:0; z-index:50; background:{{ ov }}; backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:20px; animation:overlayIn .2s ease;">
+    <div onClick="{{ stop }}" style="width:min(440px,94vw); max-height:92vh; overflow:auto; background:{{ modalBg }}; border:1px solid {{ bdrAmb }}; border-radius:22px; padding:26px; box-shadow:0 28px 80px rgba(0,0,0,.5); animation:modalIn .22s ease;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:22px;">
+        <div>
+          <div style="font-size:20px; font-weight:800; letter-spacing:-.01em; color:{{ txt }};">Registrar desperdício</div>
+          <div style="font-size:12px; font-weight:500; color:{{ txtS }}; margin-top:3px;">valor calculado automaticamente</div>
+        </div>
+        <button onClick="{{ closeModal }}" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:9px; width:32px; height:32px; cursor:pointer; color:{{ abC }}; font-size:15px; flex:none; margin-top:2px;">✕</button>
+      </div>
+      <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:7px;">Produto</label>
+      <div style="position:relative; margin-bottom:16px;">
+        <select value="{{ rProd }}" onChange="{{ onRProd }}" style="appearance:none; width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 36px 12px 14px; color:{{ txt }}; font-size:14px; font-weight:600; outline:none; cursor:pointer;">
+          <option value="">Selecione…</option>
+          <sc-for list="{{ prodOptions }}" as="op" hint-placeholder-count="5"><option value="{{ op.id }}">{{ op.label }}</option></sc-for>
+        </select>
+        <span style="position:absolute; right:13px; top:50%; transform:translateY(-50%); pointer-events:none; color:{{ txtM }}; font-size:12px;">▾</span>
+      </div>
+      <div style="display:flex; gap:12px; margin-bottom:16px;">
+        <div style="flex:1.3;">
+          <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:7px;">Quantidade</label>
+          <input value="{{ rQty }}" onInput="{{ onRQty }}" inputmode="decimal" placeholder="0" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 14px; color:{{ txt }}; font-size:15px; font-weight:700; outline:none;"/>
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:7px;">Unidade</label>
+          <div style="position:relative;">
+            <select value="{{ rUnit }}" onChange="{{ onRUnit }}" style="appearance:none; width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 32px 12px 14px; color:{{ txt }}; font-size:14px; font-weight:700; outline:none; cursor:pointer;">
+              <option value="un">unidade(s)</option><option value="kg">kg</option><option value="g">gramas</option><option value="L">litros</option>
+            </select>
+            <span style="position:absolute; right:12px; top:50%; transform:translateY(-50%); pointer-events:none; color:{{ txtM }}; font-size:12px;">▾</span>
+          </div>
+        </div>
+      </div>
+      <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:8px;">Motivo</label>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:9px;">
+        <sc-for list="{{ motivoChips }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.on }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+      </div>
+      <input value="{{ rMotivo }}" onInput="{{ onRMotivo }}" placeholder="ou escreva o motivo…" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:11px 14px; color:{{ txt }}; font-size:13px; font-weight:500; outline:none; margin-bottom:16px;"/>
+      <div style="display:flex; justify-content:space-between; align-items:center; background:{{ vcBg }}; border:1px solid {{ vcBdr }}; border-radius:12px; padding:14px 16px; margin-bottom:20px;">
+        <div>
+          <div style="font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:{{ txtL }};">Valor calculado</div>
+          <div style="font-size:11px; font-weight:500; color:{{ txtM }}; margin-top:2px;">{{ valorFormula }}</div>
+        </div>
+        <div style="{{ valorEstilo }}">{{ valorEstimadoStr }}</div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button onClick="{{ closeModal }}" style="flex:1; background:{{ bs }}; color:{{ bsC }}; border:1px solid {{ bsBdr }}; border-radius:12px; padding:13px; font-weight:700; font-size:14px; cursor:pointer;">Cancelar</button>
+        <button onClick="{{ submitLaunch }}" style="flex:1.5; background:linear-gradient(135deg,#f5a020,#c42208); color:#fff; border:none; border-radius:12px; padding:13px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 6px 18px rgba(196,34,8,.3);">Registrar</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- MODAL PRODUTO -->
+  <sc-if value="{{ isProdModal }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeModal }}" style="position:fixed; inset:0; z-index:50; background:{{ ov }}; backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:20px; animation:overlayIn .2s ease;">
+    <div onClick="{{ stop }}" style="width:min(420px,94vw); background:{{ modalBg }}; border:1px solid {{ bdrAmb }}; border-radius:22px; padding:26px; box-shadow:0 28px 80px rgba(0,0,0,.5); animation:modalIn .22s ease;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:22px;">
+        <div style="font-size:20px; font-weight:800; color:{{ txt }};">{{ prodModalTitle }}</div>
+        <button onClick="{{ closeModal }}" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:9px; width:32px; height:32px; cursor:pointer; color:{{ abC }}; font-size:15px;">✕</button>
+      </div>
+      <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:7px;">Nome</label>
+      <input value="{{ pName }}" onInput="{{ onPName }}" placeholder="ex: Pão brioche" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 14px; color:{{ txt }}; font-size:14px; font-weight:600; outline:none; margin-bottom:16px;"/>
+      <div style="display:flex; gap:12px; margin-bottom:16px;">
+        <div style="flex:1;">
+          <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:7px;">Unidade</label>
+          <div style="position:relative;">
+            <select value="{{ pUnit }}" onChange="{{ onPUnit }}" style="appearance:none; width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 32px 12px 14px; color:{{ txt }}; font-size:14px; font-weight:700; outline:none; cursor:pointer;">
+              <option value="un">unidade(s)</option><option value="kg">kg</option><option value="g">gramas</option><option value="L">litros</option>
+            </select>
+            <span style="position:absolute; right:12px; top:50%; transform:translateY(-50%); pointer-events:none; color:{{ txtM }}; font-size:12px;">▾</span>
+          </div>
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:7px;">Preço / unidade</label>
+          <input value="{{ pPrice }}" onInput="{{ onPPrice }}" inputmode="decimal" placeholder="0,00" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 14px; color:{{ txt }}; font-size:14px; font-weight:700; outline:none;"/>
+        </div>
+      </div>
+      <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:7px;">Categoria <span style="text-transform:none; font-weight:400; color:{{ txtM }};">(opcional)</span></label>
+      <input value="{{ pCat }}" onInput="{{ onPCat }}" placeholder="ex: Pães, Molhos…" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 14px; color:{{ txt }}; font-size:14px; font-weight:500; outline:none; margin-bottom:22px;"/>
+      <div style="display:flex; gap:10px;">
+        <button onClick="{{ closeModal }}" style="flex:1; background:{{ bs }}; color:{{ bsC }}; border:1px solid {{ bsBdr }}; border-radius:12px; padding:13px; font-weight:700; font-size:14px; cursor:pointer;">Cancelar</button>
+        <button onClick="{{ submitProduto }}" style="flex:1.4; background:linear-gradient(135deg,#f5a020,#c42208); color:#fff; border:none; border-radius:12px; padding:13px; font-weight:800; font-size:14px; cursor:pointer;">Salvar</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- MODAL FUNCIONARIO -->
+  <sc-if value="{{ isFuncModal }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeModal }}" style="position:fixed; inset:0; z-index:50; background:{{ ov }}; backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:20px; animation:overlayIn .2s ease;">
+    <div onClick="{{ stop }}" style="width:min(400px,94vw); background:{{ modalBg }}; border:1px solid {{ bdrAmb }}; border-radius:22px; padding:26px; box-shadow:0 28px 80px rgba(0,0,0,.5); animation:modalIn .22s ease;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:22px;">
+        <div style="font-size:20px; font-weight:800; color:{{ txt }};">{{ funcModalTitle }}</div>
+        <button onClick="{{ closeModal }}" style="background:{{ ab }}; border:1px solid {{ bsBdr }}; border-radius:9px; width:32px; height:32px; cursor:pointer; color:{{ abC }}; font-size:15px;">✕</button>
+      </div>
+      <div style="display:flex; justify-content:center; margin-bottom:18px;">
+        <div style="width:66px; height:66px; border-radius:50%; border:1px dashed {{ bdrIn }}; display:flex; flex-direction:column; align-items:center; justify-content:center; color:{{ txtM }}; font-size:10px; font-weight:600; gap:2px;"><span style="font-size:18px;">＋</span>foto</div>
+      </div>
+      <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:7px;">Nome</label>
+      <input value="{{ fName }}" onInput="{{ onFName }}" placeholder="nome completo" style="width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 14px; color:{{ txt }}; font-size:14px; font-weight:600; outline:none; margin-bottom:16px;"/>
+      <label style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:{{ txtL }}; display:block; margin-bottom:7px;">Função</label>
+      <div style="position:relative; margin-bottom:18px;">
+        <select value="{{ fRole }}" onChange="{{ onFRole }}" style="appearance:none; width:100%; background:{{ inBg }}; border:1px solid {{ bdrIn }}; border-radius:10px; padding:12px 32px 12px 14px; color:{{ txt }}; font-size:14px; font-weight:700; outline:none; cursor:pointer;">
+          <option value="Atendente">Atendente</option><option value="Cozinha">Cozinha</option><option value="Caixa">Caixa</option><option value="Gerente">Gerente</option>
+        </select>
+        <span style="position:absolute; right:12px; top:50%; transform:translateY(-50%); pointer-events:none; color:{{ txtM }}; font-size:12px;">▾</span>
+      </div>
+      <div onClick="{{ toggleFActive }}" style="display:flex; align-items:center; justify-content:space-between; background:{{ live }}; border:1px solid {{ bdr }}; border-radius:12px; padding:13px 16px; margin-bottom:22px; cursor:pointer;">
+        <span style="font-size:14px; font-weight:700; color:{{ txt }};">Ativo</span>
+        <div style="{{ fToggleTrack }}"><div style="{{ fToggleKnob }}"></div></div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button onClick="{{ closeModal }}" style="flex:1; background:{{ bs }}; color:{{ bsC }}; border:1px solid {{ bsBdr }}; border-radius:12px; padding:13px; font-weight:700; font-size:14px; cursor:pointer;">Cancelar</button>
+        <button onClick="{{ submitFunc }}" style="flex:1.4; background:linear-gradient(135deg,#f5a020,#c42208); color:#fff; border:none; border-radius:12px; padding:13px; font-weight:800; font-size:14px; cursor:pointer;">Salvar</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed; left:50%; bottom:26px; transform:translateX(-50%); z-index:60; display:flex; align-items:center; gap:13px; background:{{ modalBg }}; border:1px solid {{ tsBdr }}; border-radius:14px; padding:13px 18px; box-shadow:0 16px 48px rgba(0,0,0,.4); animation:toastIn .22s ease; white-space:nowrap;">
+    <div style="width:32px; height:32px; border-radius:50%; background:#f0621a; color:#fff; font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center; flex:none;">✓</div>
+    <div>
+      <div style="font-size:14px; font-weight:800; color:{{ txt }};">{{ toast.msg }}</div>
+      <sc-if value="{{ toast.sub }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px; font-weight:500; color:{{ tsS }}; margin-top:1px;">{{ toast.sub }}</div></sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    theme: 'light', display: false,
+    fUlt: 'hoje', fUltDate: '', fProd: 'mes', fMot: 'mes',
+    fxMode: 'topProd', fxPeriod: '30d', fxFrom: '', fxTo: '', fxProd: '',
+    page: 'monitor', modal: null, editProdId: null, editFuncId: null,
+    rProd: '', rQty: '', rUnit: '', rMotivo: '',
+    pName: '', pUnit: 'un', pPrice: '', pCat: '',
+    fName: '', fRole: 'Atendente', fActive: true,
+    pSearch: '', toast: null, now: Date.now(),
+    pratosView: 'lista', fPratoId: null,
+    fPratoNome: '', fEmbalagem: '', fMargem: '', fPerdaGlobal: false,
+    fIngredientes: [],
+    pratos: [
+      { id:'pr1', nome:'Costela com Requeijão', embalagem:'3.2', margem:'86', perdaGlobal:false, ingredientes: [
+        { id:'i1', nome:'Costela (pronta)', tipo:'fixo', valor:'52.08', qtd:'1', expanded:false, pesoBruto:'', pesoLiquido:'' },
+        { id:'i2', nome:'Requeijão', tipo:'kg', valor:'40', qtd:'100', expanded:false, pesoBruto:'', pesoLiquido:'' },
+        { id:'i3', nome:'Queijo', tipo:'kg', valor:'49.3', qtd:'60', expanded:false, pesoBruto:'', pesoLiquido:'' },
+        { id:'i4', nome:'Alho frito', tipo:'kg', valor:'61', qtd:'5', expanded:false, pesoBruto:'', pesoLiquido:'' },
+        { id:'i5', nome:'Pimenta', tipo:'un', valor:'0.25', qtd:'1', expanded:false, pesoBruto:'', pesoLiquido:'' },
+      ]},
+    ],
+    products: [
+      { id:'p1', name:'Pão brioche', unit:'un', price:4.05, cat:'Pães' },
+      { id:'p2', name:'Pão mini', unit:'un', price:3.60, cat:'Pães' },
+      { id:'p3', name:'Maionese da casa', unit:'g', price:0.029, cat:'Molhos' },
+      { id:'p4', name:'Palito de mussarela', unit:'un', price:2.95, cat:'Porções' },
+      { id:'p5', name:'X-Bacon', unit:'un', price:16.00, cat:'Lanches' },
+      { id:'p6', name:'X-Burguer', unit:'un', price:9.00, cat:'Lanches' },
+      { id:'p7', name:'Batata frita', unit:'g', price:0.018, cat:'Porções' },
+    ],
+    employees: [
+      { id:'e1', name:'Pamela', role:'Atendente', active:true },
+      { id:'e2', name:'Carlos', role:'Cozinha', active:true },
+      { id:'e3', name:'Thiago', role:'Cozinha', active:false },
+      { id:'e4', name:'Júlia', role:'Caixa', active:true },
+    ],
+    launches: [],
+  };
+
+  componentDidMount() {
+    const saved = localStorage.getItem('aq-theme') || 'light';
+    if (saved !== 'light') { this.applyThemeSideEffects(saved); this.setState({ theme: saved }); }
+    this.setState({ launches: this.seedLaunches() });
+    this._t = setInterval(() => this.setState({ now: Date.now() }), 1000);
+    this._fs = () => { if (!document.fullscreenElement && this.state.display) this.setState({ display:false }); };
+    this._key = (e) => { if (e.key === 'Escape' && this.state.display) this.exitDisplay(); };
+    document.addEventListener('fullscreenchange', this._fs);
+    document.addEventListener('keydown', this._key);
+  }
+  componentWillUnmount() {
+    clearInterval(this._t); clearTimeout(this._tt);
+    document.removeEventListener('fullscreenchange', this._fs);
+    document.removeEventListener('keydown', this._key);
+  }
+
+  applyThemeSideEffects(theme) {
+    const ph = theme === 'dark' ? 'rgba(248,244,238,.35)' : 'rgba(255,255,255,.35)';
+    document.documentElement.style.setProperty('--txt-ph', ph);
+    localStorage.setItem('aq-theme', theme);
+  }
+
+  enterDisplay() {
+    this.setState({ display:true, page:'monitor', modal:null });
+    try { const el = document.documentElement; if (el.requestFullscreen) el.requestFullscreen(); } catch(e) {}
+  }
+  exitDisplay() {
+    this.setState({ display:false });
+    try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); } catch(e) {}
+  }
+  toggleDisplay() { if (this.state.display) this.exitDisplay(); else this.enterDisplay(); }
+
+  tokens(dark) {
+    return {
+      bg:      dark ? '#0e0c09'               : '#dedad3',
+      surf:    dark ? '#1c1710'               : '#c96428',
+      topBar:  dark ? 'rgba(14,12,9,.92)'      : 'rgba(218,214,207,.97)',
+      modalBg: dark ? '#1c1710'               : '#c96428',
+      bdr:     dark ? 'rgba(248,244,238,.06)'  : 'rgba(255,255,255,.22)',
+      bdrAmb:  dark ? 'rgba(224,122,21,.14)'   : 'rgba(150,75,10,.28)',
+      bdrIn:   dark ? 'rgba(248,244,238,.12)'  : 'rgba(255,255,255,.32)',
+      txt:     dark ? '#f8f4ee'               : '#ffffff',
+      txtS:    dark ? 'rgba(248,244,238,.5)'   : 'rgba(255,255,255,.72)',
+      txtM:    dark ? 'rgba(248,244,238,.45)'  : 'rgba(255,255,255,.58)',
+      txtL:    dark ? 'rgba(248,244,238,.4)'   : 'rgba(255,255,255,.66)',
+      rowBdr:  dark ? 'rgba(248,244,238,.06)'  : 'rgba(255,255,255,.18)',
+      inBg:    dark ? 'rgba(248,244,238,.05)'  : 'rgba(0,0,0,.18)',
+      live:    dark ? 'rgba(248,244,238,.04)'  : 'rgba(0,0,0,.12)',
+      bs:      dark ? 'rgba(248,244,238,.06)'  : 'rgba(255,255,255,.18)',
+      bsC:     dark ? 'rgba(248,244,238,.7)'   : 'rgba(255,255,255,.9)',
+      bsBdr:   dark ? 'rgba(248,244,238,.1)'   : 'rgba(255,255,255,.26)',
+      vcBg:    dark ? 'rgba(240,98,26,.07)'    : 'rgba(255,255,255,.14)',
+      vcBdr:   dark ? 'rgba(240,98,26,.18)'    : 'rgba(255,255,255,.32)',
+      vc:      dark ? '#f5a020'               : '#ffffff',
+      rn:      dark ? 'rgba(240,98,26,.06)'    : 'rgba(255,255,255,.12)',
+      chBg:    dark ? 'rgba(248,244,238,.05)'  : 'rgba(255,255,255,.16)',
+      chBdr:   dark ? 'rgba(248,244,238,.1)'   : 'rgba(255,255,255,.26)',
+      chC:     dark ? 'rgba(248,244,238,.65)'  : 'rgba(255,255,255,.85)',
+      ov:      dark ? 'rgba(14,12,9,.78)'      : 'rgba(0,0,0,.55)',
+      togOff:  dark ? 'rgba(248,244,238,.15)'  : 'rgba(255,255,255,.32)',
+      th:      dark ? 'rgba(248,244,238,.3)'   : 'rgba(255,255,255,.62)',
+      thBdr:   dark ? 'rgba(248,244,238,.08)'  : 'rgba(255,255,255,.22)',
+      ft:      dark ? 'rgba(248,244,238,.25)'  : 'rgba(28,8,0,.38)',
+      tsBdr:   dark ? 'rgba(224,122,21,.22)'   : 'rgba(255,210,130,.45)',
+      tsS:     dark ? 'rgba(248,244,238,.5)'   : 'rgba(255,255,255,.72)',
+      ab:      dark ? 'rgba(248,244,238,.06)'  : 'rgba(255,255,255,.18)',
+      abC:     dark ? 'rgba(248,244,238,.65)'  : '#ffffff',
+      bar:     dark ? 'rgba(248,244,238,.08)'  : 'rgba(255,255,255,.24)',
+      sep:     dark ? 'rgba(248,244,238,.08)'  : 'rgba(255,255,255,.22)',
+      tabBg:   dark ? 'rgba(224,122,21,.1)'    : 'rgba(210,105,10,.18)',
+      tabBdr:  dark ? 'rgba(224,122,21,.25)'   : 'rgba(210,105,10,.5)',
+      sh:      dark ? 'none'                  : '0 4px 24px rgba(90,35,5,.28), 0 1px 4px rgba(90,35,5,.16)',
+      // label tokens preservam cores no dark, viram branco no light
+      la:      dark ? '#f0621a'               : 'rgba(255,255,255,.82)',
+      lb:      dark ? '#e07a15'               : 'rgba(255,255,255,.82)',
+      lc:      dark ? '#f5a020'               : 'rgba(255,255,255,.82)',
+      ld:      dark ? '#c42208'               : 'rgba(255,255,255,.82)',
+      // texto de página (fora dos cards — fundo cinza)
+      pageTxt: dark ? '#f8f4ee'               : '#1c0800',
+      barTxt:  dark ? 'rgba(248,244,238,.5)'   : 'rgba(28,8,0,.54)',
+    };
+  }
+
+  seedLaunches() {
+    const now = Date.now(), day = 86400000;
+    const mk = (productId, qty, motivo, daysAgo, hour, min) => {
+      const d = new Date(now - daysAgo * day); d.setHours(hour, min||0, 0, 0);
+      return { id:'l'+Math.random().toString(36).slice(2,9), productId, qty, motivo, ts:d.getTime() };
+    };
+    return [
+      mk('p2',1,'Erro de montagem',0,9,12), mk('p1',1,'Caiu no chão',0,10,40),
+      mk('p5',1,'Validade vencida',0,12,5), mk('p3',90,'Sobra',0,14,22),
+      mk('p1',4,'Erro de montagem',2,11,10), mk('p1',3,'Queimou / estragou',5,19,30),
+      mk('p2',5,'Erro de montagem',3,13,15), mk('p4',2,'Caiu no chão',6,20,5),
+      mk('p3',220,'Sobra',4,15,50), mk('p6',1,'Caiu no chão',1,12,30),
+      mk('p5',2,'Validade vencida',7,12,10), mk('p7',320,'Sobra',8,18,0),
+      mk('p1',3,'Outro',9,16,45), mk('p2',1,'Caiu no chão',1,21,12),
+      mk('p4',1,'Queimou / estragou',2,17,33),
+    ];
+  }
+
+  brl(n) { return 'R$ '+(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  prod(id) { return this.state.products.find(p=>p.id===id); }
+  valueOf(l) { const p=this.prod(l.productId); return p?p.price*l.qty:0; }
+  sameDay(ts) { const d=new Date(ts),n=new Date(this.state.now); return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate(); }
+  sameMonth(ts) { const d=new Date(ts),n=new Date(this.state.now); return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth(); }
+  isYesterday(ts) { const d=new Date(ts),n=new Date(this.state.now); n.setDate(n.getDate()-1); return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate(); }
+  sameDate(ts,str) { if(!str) return false; const d=new Date(ts),[y,m,dd]=str.split('-').map(Number); return d.getFullYear()===y&&d.getMonth()===m-1&&d.getDate()===dd; }
+  periodFilter(arr,p,dateStr) { if(p==='hoje')return arr.filter(l=>this.sameDay(l.ts)); if(p==='ontem')return arr.filter(l=>this.isYesterday(l.ts)); if(p==='mes')return arr.filter(l=>this.sameMonth(l.ts)); if(p==='outra')return arr.filter(l=>this.sameDate(l.ts,dateStr)); return arr; }
+  periodLabel(p,dateStr) { if(p==='hoje')return 'hoje'; if(p==='ontem')return 'ontem'; if(p==='mes')return 'mês atual'; if(p==='outra'){ if(!dateStr)return 'selecione a data'; const[y,m,dd]=dateStr.split('-'); return dd+'/'+m+'/'+y; } return 'todo o período'; }
+  timeOf(ts) { return new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+  unitLabel(u) { return ({un:'unidade(s)',kg:'kg',g:'gramas',L:'litros'})[u]||u; }
+  flash(msg,sub) { clearTimeout(this._tt); this.setState({toast:{msg,sub:sub||''}}); this._tt=setTimeout(()=>this.setState({toast:null}),2800); }
+  closeM() { this.setState({modal:null,editProdId:null,editFuncId:null}); }
+
+  fxRange() {
+    const S=this.state, now=S.now, day=86400000;
+    if(S.fxPeriod==='7d') return [now-7*day, now];
+    if(S.fxPeriod==='30d') return [now-30*day, now];
+    if(S.fxPeriod==='mes'){ const d=new Date(now); return [new Date(d.getFullYear(),d.getMonth(),1).getTime(), now]; }
+    if(S.fxPeriod==='range'){
+      const from=S.fxFrom?new Date(S.fxFrom+'T00:00:00').getTime():0;
+      const to=S.fxTo?new Date(S.fxTo+'T23:59:59').getTime():now;
+      return [from,to];
+    }
+    return [0, now];
+  }
+  fxPeriodLabel() {
+    const S=this.state;
+    if(S.fxPeriod==='7d') return 'últimos 7 dias';
+    if(S.fxPeriod==='30d') return 'últimos 30 dias';
+    if(S.fxPeriod==='mes') return 'mês atual';
+    if(S.fxPeriod==='range'){
+      const f=S.fxFrom?S.fxFrom.split('-').reverse().join('/'):'início';
+      const t=S.fxTo?S.fxTo.split('-').reverse().join('/'):'hoje';
+      return f+' até '+t;
+    }
+    return 'todo o histórico';
+  }
+  dateOf(ts){ return new Date(ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
+  weekdayOf(ts){ return new Date(ts).toLocaleDateString('pt-BR',{weekday:'short'}).replace('.',''); }
+
+  fxVals(T, dark, miniBase, miniOn) {
+    const S=this.state;
+    const mkF=(opts,cur,key)=>opts.map(o=>({label:o.l,on:()=>this.setState({[key]:o.v}),style:cur===o.v?miniOn:miniBase}));
+    const fxModes=[
+      {l:'Mais registrados',v:'topProd'},
+      {l:'Maior valor',v:'topValor'},
+      {l:'Por produto',v:'porProduto'},
+    ].map(o=>({label:o.l,on:()=>this.setState({fxMode:o.v}),
+      style:S.fxMode===o.v
+        ?`flex:1; text-align:center; font-size:13px; font-weight:700; padding:10px 8px; border-radius:10px; cursor:pointer; border:1px solid ${dark?'#f0621a':'#ffffff'}; background:${dark?'rgba(240,98,26,.16)':'#ffffff'}; color:${dark?'#f5a020':'#b84800'};`
+        :`flex:1; text-align:center; font-size:13px; font-weight:600; padding:10px 8px; border-radius:10px; cursor:pointer; border:1px solid ${T.chBdr}; background:transparent; color:${T.chC};`}));
+    const fxPeriods=mkF([{l:'7 dias',v:'7d'},{l:'30 dias',v:'30d'},{l:'Mês',v:'mes'},{l:'Total',v:'total'},{l:'Período',v:'range'}],S.fxPeriod,'fxPeriod');
+
+    const [a,b]=this.fxRange();
+    const within=S.launches.filter(l=>l.ts>=a&&l.ts<=b);
+
+    // modo 1 — produtos mais registrados (por nº de ocorrências)
+    const byCount={};
+    within.forEach(l=>{const k=l.productId;(byCount[k]=byCount[k]||{c:0,v:0});byCount[k].c++;byCount[k].v+=this.valueOf(l);});
+    let topProd=Object.entries(byCount).map(([id,o])=>({name:(this.prod(id)||{}).name||'—',c:o.c,v:o.v})).sort((x,y)=>y.c-x.c).slice(0,8);
+    const maxC=topProd.length?topProd[0].c:1;
+    topProd=topProd.map((o,i)=>({
+      rank:(i+1)+'º', name:o.name, countStr:o.c+(o.c===1?' registro':' registros'), valueStr:this.brl(o.v),
+      barStyle:`height:100%; border-radius:99px; background:linear-gradient(90deg,#f5a020,#f0621a); width:${Math.max(6,Math.round((o.c/maxC)*100))}%;`,
+    }));
+
+    // modo 2 — maiores valores individuais registrados + produto
+    let topValor=[...within].sort((x,y)=>this.valueOf(y)-this.valueOf(x)).slice(0,8).map((l,i)=>{
+      const p=this.prod(l.productId);
+      return {
+        rank:(i+1)+'º', name:p?p.name:'—', valueStr:this.brl(this.valueOf(l)),
+        sub:(l.qty+' '+this.unitLabel((p||{}).unit||'un'))+' · '+(l.motivo||'—'),
+        dateStr:this.dateOf(l.ts)+' · '+this.timeOf(l.ts),
+      };
+    });
+    const topValorHero=topValor[0]||null;
+
+    // modo 3 — por produto: todas as datas dentro do período
+    const fxProdEvents=S.fxProd
+      ? within.filter(l=>l.productId===S.fxProd).sort((x,y)=>y.ts-x.ts).map(l=>({
+          dateStr:this.dateOf(l.ts), weekday:this.weekdayOf(l.ts), timeStr:this.timeOf(l.ts),
+          qtyStr:l.qty+' '+this.unitLabel((this.prod(l.productId)||{}).unit||'un'),
+          motivo:l.motivo||'—', valueStr:this.brl(this.valueOf(l)),
+        }))
+      : [];
+    const fxProdSel=this.prod(S.fxProd);
+    const fxProdTotal=S.fxProd?within.filter(l=>l.productId===S.fxProd).reduce((s,l)=>s+this.valueOf(l),0):0;
+
+    return {
+      fxModes, fxPeriods, fxPeriodLabel:this.fxPeriodLabel(),
+      fxIsTopProd:S.fxMode==='topProd', fxIsTopValor:S.fxMode==='topValor', fxIsPorProduto:S.fxMode==='porProduto',
+      fxIsRange:S.fxPeriod==='range', fxFrom:S.fxFrom, fxTo:S.fxTo,
+      onFxFrom:e=>this.setState({fxFrom:e.target.value}), onFxTo:e=>this.setState({fxTo:e.target.value}),
+      fxTopProd:topProd, fxTopProdEmpty:topProd.length===0,
+      fxTopValor:topValor, fxTopValorEmpty:topValor.length===0, fxTopValorHero:topValorHero,
+      fxProd:S.fxProd, onFxProd:e=>this.setState({fxProd:e.target.value}),
+      fxProdEvents, fxProdEventsEmpty:!!S.fxProd&&fxProdEvents.length===0, fxProdNone:!S.fxProd,
+      fxProdName:fxProdSel?fxProdSel.name:'', fxProdCount:fxProdEvents.length,
+      fxProdCountStr:fxProdEvents.length+(fxProdEvents.length===1?' registro':' registros'),
+      fxProdTotalStr:this.brl(fxProdTotal),
+    };
+  }
+
+  tipoDivisor(tipo) { return (tipo==='kg'||tipo==='L') ? 1000 : 1; }
+  tipoLabel(tipo) { return ({fixo:'custo fixo',kg:'por kg',g:'por grama',L:'por litro',mL:'por mL',un:'unidade'})[tipo]||tipo; }
+  numOf(v) { return parseFloat(String(v||'').replace(',','.'))||0; }
+
+  custoBaseIngrediente(ing) {
+    const valor=this.numOf(ing.valor), qtd=this.numOf(ing.qtd);
+    return valor * qtd / this.tipoDivisor(ing.tipo);
+  }
+  custoFinalIngrediente(ing, perdaOn) {
+    const base = this.custoBaseIngrediente(ing);
+    if (!perdaOn || !ing.expanded) return base;
+    const bruto=this.numOf(ing.pesoBruto), liq=this.numOf(ing.pesoLiquido);
+    if (bruto>0 && liq>0) return base * (bruto/liq);
+    return base;
+  }
+  percPerda(ing) {
+    const bruto=this.numOf(ing.pesoBruto), liq=this.numOf(ing.pesoLiquido);
+    if (bruto>0 && liq>0) return ((bruto-liq)/bruto)*100;
+    return null;
+  }
+
+  pratoTotais(prato) {
+    const perdaOn = !!prato.perdaGlobal;
+    const custoIng = (prato.ingredientes||[]).reduce((s,ing)=>s+this.custoFinalIngrediente(ing,perdaOn),0);
+    const emb = this.numOf(prato.embalagem);
+    const total = custoIng + emb;
+    const margem = this.numOf(prato.margem);
+    const preco = total * (1 + margem/100);
+    const markup = total>0 ? preco/total : 0;
+    const margemVenda = preco>0 ? ((preco-total)/preco)*100 : 0;
+    return { custoIng, emb, total, preco, markup, margemVenda };
+  }
+
+  updateFIng(id, patch) { this.setState({ fIngredientes: this.state.fIngredientes.map(i=>i.id===id?{...i,...patch}:i) }); }
+
+  openNovoPrato() {
+    this.setState({ pratosView:'ficha', fPratoId:null, fPratoNome:'', fEmbalagem:'', fMargem:'', fPerdaGlobal:false,
+      fIngredientes:[{ id:'ni'+Date.now(), nome:'', tipo:'un', valor:'', qtd:'', expanded:false, pesoBruto:'', pesoLiquido:'' }] });
+  }
+  openEditPrato(id) {
+    const p = this.state.pratos.find(x=>x.id===id); if (!p) return;
+    this.setState({ pratosView:'ficha', fPratoId:id, fPratoNome:p.nome, fEmbalagem:p.embalagem, fMargem:p.margem,
+      fPerdaGlobal:!!p.perdaGlobal, fIngredientes: p.ingredientes.map(i=>({...i})) });
+  }
+  voltarLista() { this.setState({ pratosView:'lista' }); }
+  submitPrato() {
+    const S=this.state, nome=(S.fPratoNome||'').trim();
+    if (!nome) { this.flash('Informe o nome do prato'); return; }
+    const prato = { id:S.fPratoId||('pr'+Date.now()), nome, embalagem:S.fEmbalagem, margem:S.fMargem, perdaGlobal:S.fPerdaGlobal, ingredientes:S.fIngredientes };
+    if (S.fPratoId) this.setState({ pratos:S.pratos.map(p=>p.id===S.fPratoId?prato:p), pratosView:'lista' });
+    else this.setState({ pratos:[...S.pratos,prato], pratosView:'lista' });
+    this.flash(S.fPratoId?'Prato atualizado':'Prato cadastrado', nome);
+  }
+  deletePrato(id) { this.setState({ pratos:this.state.pratos.filter(p=>p.id!==id) }); }
+
+  pratosVals(T, dark) {
+    const S = this.state;
+    const tipoOptions = ['fixo','kg','g','L','mL','un'].map(v=>({v,l:this.tipoLabel(v)}));
+
+    const perdaOn = S.fPerdaGlobal;
+    const ingRows = (S.fIngredientes||[]).map(ing=>{
+      const custo = this.custoFinalIngrediente(ing, perdaOn);
+      const perc = this.percPerda(ing);
+      return {
+        id:ing.id, nome:ing.nome, tipo:ing.tipo, valor:ing.valor, qtd:ing.qtd,
+        onNome:e=>this.updateFIng(ing.id,{nome:e.target.value}),
+        onTipo:e=>this.updateFIng(ing.id,{tipo:e.target.value}),
+        onValor:e=>this.updateFIng(ing.id,{valor:e.target.value}),
+        onQtd:e=>this.updateFIng(ing.id,{qtd:e.target.value}),
+        onDelete:()=>this.setState({fIngredientes:S.fIngredientes.filter(i=>i.id!==ing.id)}),
+        custoStr:this.brl(custo),
+        onToggleExpand:()=>this.updateFIng(ing.id,{expanded:!ing.expanded}),
+        expandIcon: ing.expanded?'▴':'▾',
+        perdaBtnColor: ing.expanded?'#f5a020':T.abC,
+        showPerda: perdaOn && ing.expanded,
+        pesoBruto:ing.pesoBruto, pesoLiquido:ing.pesoLiquido,
+        onPesoBruto:e=>this.updateFIng(ing.id,{pesoBruto:e.target.value}),
+        onPesoLiquido:e=>this.updateFIng(ing.id,{pesoLiquido:e.target.value}),
+        perdaPctStr: perc===null ? '—' : perc.toFixed(1)+'%',
+        perdaPctColor: perc===null ? T.txtM : (perc>15?'#f0464e':'#34d399'),
+      };
+    });
+
+    const custoIngredientes = ingRows.reduce((s,r,i)=>s+this.custoFinalIngrediente(S.fIngredientes[i],perdaOn),0);
+    const emb = this.numOf(S.fEmbalagem);
+    const totalCusto = custoIngredientes + emb;
+    const margem = this.numOf(S.fMargem);
+    const precoSugerido = totalCusto * (1+margem/100);
+    const markup = totalCusto>0 ? precoSugerido/totalCusto : 0;
+    const margemVenda = precoSugerido>0 ? ((precoSugerido-totalCusto)/precoSugerido)*100 : 0;
+
+    const pratoRows = S.pratos.map(p=>{
+      const t = this.pratoTotais(p);
+      return {
+        id:p.id, nome:p.nome, custoStr:this.brl(t.total), precoStr:this.brl(t.preco),
+        markupStr:t.markup.toFixed(2)+'×',
+        onEdit:()=>this.openEditPrato(p.id), onDelete:()=>this.deletePrato(p.id),
+      };
+    });
+
+    return {
+      pratosView:S.pratosView, isPratosLista:S.pratosView==='lista', isPratosFicha:S.pratosView==='ficha',
+      pratosCount:S.pratos.length+(S.pratos.length===1?' prato cadastrado':' pratos cadastrados'),
+      pratosEmpty:S.pratos.length===0, pratoRows,
+      openNovoPrato:()=>this.openNovoPrato(), voltarLista:()=>this.voltarLista(), submitPrato:()=>this.submitPrato(),
+      fPratoNome:S.fPratoNome, onFPratoNome:e=>this.setState({fPratoNome:e.target.value}),
+      fEmbalagem:S.fEmbalagem, onFEmbalagem:e=>this.setState({fEmbalagem:e.target.value}),
+      fMargem:S.fMargem, onFMargem:e=>this.setState({fMargem:e.target.value}),
+      perdaGlobalOn:perdaOn,
+      togglePerdaGlobal:()=>this.setState({fPerdaGlobal:!S.fPerdaGlobal}),
+      perdaToggleTrack:`width:40px; height:22px; border-radius:30px; position:relative; transition:.15s; background:${perdaOn?'#f0621a':T.togOff};`,
+      perdaToggleKnob:`position:absolute; top:2px; left:${perdaOn?'20px':'2px'}; width:18px; height:18px; border-radius:50%; background:#fff; transition:.15s;`,
+      ingHeaderGrid: perdaOn ? 'display:grid; grid-template-columns:1.6fr 1fr .8fr .7fr 1.1fr; gap:8px;' : 'display:grid; grid-template-columns:1.6fr 1fr .8fr .7fr 1.1fr; gap:8px;',
+      tipoOptions, ingRows,
+      addIngrediente:()=>this.setState({fIngredientes:[...S.fIngredientes,{id:'ni'+Date.now()+Math.random().toString(36).slice(2,6),nome:'',tipo:'un',valor:'',qtd:'',expanded:false,pesoBruto:'',pesoLiquido:''}]}),
+      custoIngredientesStr:this.brl(custoIngredientes), embalagemStr:this.brl(emb), totalCustoStr:this.brl(totalCusto),
+      precoSugeridoStr:this.brl(precoSugerido), markupStr:markup.toFixed(2)+'×', margemVendaStr:margemVenda.toFixed(0)+'%',
+    };
+  }
+
+  renderVals() {
+    const S = this.state;
+    const dark = S.theme === 'dark';
+    const T = this.tokens(dark);
+
+    const tabBase = `padding:8px 14px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer; border:none; background:transparent; color:${T.barTxt};`;
+    const tabActive = `padding:8px 14px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer; border:1px solid ${T.tabBdr}; background:${T.tabBg}; color:#e07a15;`;
+    const tab = n => S.page===n ? tabActive : tabBase;
+
+    const launches = S.launches, sum = arr => arr.reduce((a,l)=>a+this.valueOf(l),0);
+    const wasteToday = launches.filter(l=>this.sameDay(l.ts));
+    const wasteMonth = launches.filter(l=>this.sameMonth(l.ts));
+    const mesTotalNum = sum(wasteMonth);
+    const dayOfMonth = new Date(S.now).getDate();
+    const daysInMonth = new Date(new Date(S.now).getFullYear(),new Date(S.now).getMonth()+1,0).getDate();
+    const mediaDia = dayOfMonth ? mesTotalNum/dayOfMonth : 0;
+
+    let diaTop = '—';
+    if (wasteToday.length) {
+      const m={}; wasteToday.forEach(l=>{m[l.productId]=(m[l.productId]||0)+this.valueOf(l);});
+      diaTop=(this.prod(Object.entries(m).sort((a,b)=>b[1]-a[1])[0][0])||{}).name||'—';
+    }
+
+    // ===== filtros de período =====
+    const miniBase=`font-size:11px; font-weight:600; padding:4px 10px; border-radius:7px; cursor:pointer; border:1px solid ${T.chBdr}; background:transparent; color:${T.chC}; white-space:nowrap;`;
+    const miniOn=dark
+      ?`font-size:11px; font-weight:700; padding:4px 10px; border-radius:7px; cursor:pointer; border:1px solid #f0621a; background:rgba(240,98,26,.16); color:#f5a020; white-space:nowrap;`
+      :`font-size:11px; font-weight:700; padding:4px 10px; border-radius:7px; cursor:pointer; border:1px solid #ffffff; background:#ffffff; color:#b84800; white-space:nowrap;`;
+    const mkFilter=(opts,cur,key)=>opts.map(o=>({label:o.l,on:()=>this.setState({[key]:o.v}),style:cur===o.v?miniOn:miniBase}));
+    const ultFilters=mkFilter([{l:'Hoje',v:'hoje'},{l:'Ontem',v:'ontem'},{l:'Outra data',v:'outra'}],S.fUlt,'fUlt');
+    const prodFilters=mkFilter([{l:'Hoje',v:'hoje'},{l:'Ontem',v:'ontem'},{l:'Mês',v:'mes'},{l:'Total',v:'total'}],S.fProd,'fProd');
+    const motFilters=mkFilter([{l:'Hoje',v:'hoje'},{l:'Ontem',v:'ontem'},{l:'Mês',v:'mes'},{l:'Total',v:'total'}],S.fMot,'fMot');
+
+    const ultSource=this.periodFilter(launches,S.fUlt,S.fUltDate);
+    const prodSource=this.periodFilter(launches,S.fProd);
+    const motSource=this.periodFilter(launches,S.fMot);
+    const prodTotalNum=sum(prodSource), motTotalNum=sum(motSource);
+
+    const newIds = this._newIds||new Set();
+    const ultimos = [...ultSource].sort((a,b)=>b.ts-a.ts).slice(0,6).map(l=>{
+      const p=this.prod(l.productId), isNew=newIds.has(l.id);
+      return {
+        name:p?p.name:'—', sub:l.motivo||'—', timeStr:this.timeOf(l.ts),
+        valueStr:this.brl(this.valueOf(l)), isNew,
+        valStyle:`font-size:14px; font-weight:800; white-space:nowrap; color:${T.vc};`,
+        rowStyle:`display:flex; justify-content:space-between; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid ${T.rowBdr};`+(isNew?` background:${T.rn}; padding:11px 10px; margin:0 -10px; border-radius:8px; border-bottom-color:transparent;`:''),
+      };
+    });
+
+    const byProd={};
+    prodSource.forEach(l=>{const k=l.productId;(byProd[k]=byProd[k]||{v:0,c:0});byProd[k].v+=this.valueOf(l);byProd[k].c++;});
+    let prodArr=Object.entries(byProd).map(([id,o])=>({id,name:(this.prod(id)||{}).name||'—',v:o.v,c:o.c})).sort((a,b)=>b.v-a.v).slice(0,5);
+    const topV=prodArr.length?prodArr[0].v:1;
+    prodArr=prodArr.map((o,i)=>({
+      rank:(i+1)+'º', name:o.name,
+      label:(i+1)+'º '+o.name, valueStr:this.brl(o.v),
+      count:o.c+(o.c===1?' lançamento':' lançamentos'),
+      barStyle:`height:2px; border-radius:2px; background:#f0621a; width:${Math.max(4,Math.round((o.v/topV)*100))}%;`,
+      dBarStyle:`height:100%; border-radius:99px; background:linear-gradient(90deg,#f5a020,#f0621a); width:${Math.max(4,Math.round((o.v/topV)*100))}%;`,
+    }));
+
+    const byMot={};
+    motSource.forEach(l=>{const k=(l.motivo||'Outro').trim()||'Outro';(byMot[k]=byMot[k]||{v:0,c:0});byMot[k].v+=this.valueOf(l);byMot[k].c++;});
+    let motArr=Object.entries(byMot).map(([k,o])=>({mot:k,v:o.v,c:o.c})).sort((a,b)=>b.v-a.v).slice(0,5);
+    const topM=motArr.length?motArr[0].v:1;
+    motArr=motArr.map((o,i)=>({
+      rank:(i+1)+'º', mot:o.mot, valueStr:this.brl(o.v),
+      count:o.c+(o.c===1?' ocorrência':' ocorrências'),
+      barStyle:`height:2px; border-radius:2px; background:#c42208; width:${Math.max(4,Math.round((o.v/topM)*100))}%;`,
+      dBarStyle:`height:100%; border-radius:99px; background:linear-gradient(90deg,#f0621a,#c42208); width:${Math.max(4,Math.round((o.v/topM)*100))}%;`,
+    }));
+
+    const rp=this.prod(S.rProd), rQtyNum=parseFloat((S.rQty||'').replace(',','.'))||0;
+    const valorFormula = rp&&rQtyNum ? this.brl(rp.price)+' × '+S.rQty : 'preço × quantidade';
+    const motivos=['Erro de montagem','Queimou / estragou','Caiu no chão','Sobra','Validade vencida','Outro'];
+    const chipBase=`background:${T.chBg}; border:1px solid ${T.chBdr}; color:${T.chC}; border-radius:30px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer;`;
+    const chipOn=`background:rgba(240,98,26,.15); border:1px solid #f0621a; color:${T.vc}; border-radius:30px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer;`;
+    const motivoChips=motivos.map(m=>({label:m,on:()=>this.setState({rMotivo:m}),style:S.rMotivo===m?chipOn:chipBase}));
+    const prodOptions=S.products.map(p=>({id:p.id,label:p.name+' · '+this.brl(p.price)+'/'+p.unit}));
+
+    const q=(S.pSearch||'').toLowerCase();
+    const prodRows=S.products.filter(p=>!q||p.name.toLowerCase().includes(q)).map(p=>({
+      name:p.name, unitLabel:this.unitLabel(p.unit), priceStr:this.brl(p.price), cat:p.cat||'—',
+      onEdit:()=>this.openProduto(p.id),
+    }));
+
+    const avP=['#f0621a','#e07a15','#c42208','#f5a020','#d4700f','#b85010'];
+    const empRows=S.employees.map((e,i)=>({
+      name:e.name, role:e.role, initial:(e.name||'?').trim().charAt(0).toUpperCase(),
+      avatarStyle:`width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; color:#fff; flex:none; background:${avP[i%avP.length]};`,
+      statusText:e.active?'ativo':'inativo',
+      pillStyle:e.active
+        ?'font-size:10px; font-weight:700; letter-spacing:.04em; background:rgba(52,211,153,.12); color:#34d399; border:1px solid rgba(52,211,153,.3); border-radius:30px; padding:4px 11px;'
+        :`font-size:10px; font-weight:700; letter-spacing:.04em; background:${T.bs}; color:${T.txtM}; border:1px solid ${T.bsBdr}; border-radius:30px; padding:4px 11px;`,
+      toggleLabel:e.active?'Desativar':'Ativar',
+      onToggle:()=>this.setState({employees:S.employees.map(x=>x.id===e.id?{...x,active:!x.active}:x)}),
+      onEdit:()=>this.openFunc(e.id),
+    }));
+
+    const fToggleTrack=`width:44px; height:24px; border-radius:30px; position:relative; transition:.15s; background:${S.fActive?'#f0621a':T.togOff};`;
+    const fToggleKnob=`position:absolute; top:2px; left:${S.fActive?'22px':'2px'}; width:20px; height:20px; border-radius:50%; background:#fff; transition:.15s;`;
+
+    return {
+      // theme tokens — used as color holes in template
+      ...T,
+      // theme controls
+      isDark: dark, isLight: !dark,
+      themeTitle: dark ? 'Mudar para modo claro' : 'Mudar para modo escuro',
+      toggleTheme: () => { const n=dark?'light':'dark'; this.applyThemeSideEffects(n); this.setState({theme:n}); },
+      isDisplay: S.display,
+      toggleDisplay: () => this.toggleDisplay(),
+      exitDisplay: () => this.exitDisplay(),
+      // nav
+      goMonitor:()=>this.setState({page:'monitor'}),
+      goProdutos:()=>this.setState({page:'produtos'}),
+      goEquipe:()=>this.setState({page:'equipe'}),
+      goPratos:()=>this.setState({page:'pratos'}),
+      tabMonitorStyle:tab('monitor'), tabProdutosStyle:tab('produtos'), tabEquipeStyle:tab('equipe'), tabPratosStyle:tab('pratos'),
+      isMonitor:S.page==='monitor', isProdutos:S.page==='produtos', isEquipe:S.page==='equipe', isPratos:S.page==='pratos',
+      ...this.pratosVals(T,dark),
+      clockStr:new Date(S.now).toLocaleTimeString('pt-BR'),
+      // modals
+      openRegistrar:()=>this.setState({modal:'registrar'}),
+      openNovoProduto:()=>this.openProduto(null),
+      openNovoFunc:()=>this.openFunc(null),
+      openFiltros:()=>this.setState({modal:'filtros'}),
+      closeModal:()=>this.closeM(), stop:e=>e.stopPropagation(),
+      isRegistrar:S.modal==='registrar', isProdModal:S.modal==='produto', isFuncModal:S.modal==='funcionario',
+      isFiltros:S.modal==='filtros',
+      ...this.fxVals(T,dark,miniBase,miniOn),
+      // dashboard data
+      diaTotalStr:this.brl(sum(wasteToday)), diaCount:wasteToday.length+(wasteToday.length===1?' lançamento':' lançamentos'), diaTopProd:diaTop,
+      mesTotalStr:this.brl(mesTotalNum), mesCount:wasteMonth.length,
+      mediaDiaStr:this.brl(mediaDia), projecaoMesStr:this.brl(mediaDia*daysInMonth),
+      ultimos, prodArr, motArr,
+      // filtros dos painéis
+      ultFilters, prodFilters, motFilters,
+      ultShowDate:S.fUlt==='outra', fUltDate:S.fUltDate,
+      onUltDate:e=>this.setState({fUltDate:e.target.value}),
+      ultEmpty:ultimos.length===0, prodEmpty:prodArr.length===0, motEmpty:motArr.length===0,
+      ultPeriodLabel:this.periodLabel(S.fUlt,S.fUltDate),
+      prodSubLabel:prodSource.length+(prodSource.length===1?' lançamento · ':' lançamentos · ')+this.periodLabel(S.fProd),
+      motSubLabel:'no período · '+this.periodLabel(S.fMot),
+      prodTotalStr:this.brl(prodTotalNum), motTotalStr:this.brl(motTotalNum),
+      prodTotalLabel:S.fProd==='total'?'Total geral':S.fProd==='mes'?'Total no mês':S.fProd==='ontem'?'Total ontem':S.fProd==='outra'?'Total na data':'Total hoje',
+      motTotalLabel:S.fMot==='total'?'Total geral':S.fMot==='mes'?'Desperdício do mês':S.fMot==='ontem'?'Desperdício ontem':S.fMot==='outra'?'Desperdício na data':'Desperdício hoje',
+      // registrar form
+      rProd:S.rProd, rQty:S.rQty, rUnit:S.rUnit, rMotivo:S.rMotivo,
+      onRProd:e=>{const id=e.target.value,p=this.prod(id);this.setState({rProd:id,rUnit:p?p.unit:S.rUnit});},
+      onRQty:e=>this.setState({rQty:e.target.value}),
+      onRUnit:e=>this.setState({rUnit:e.target.value}),
+      onRMotivo:e=>this.setState({rMotivo:e.target.value}),
+      motivoChips, prodOptions,
+      valorEstimadoStr:rp&&rQtyNum?this.brl(rp.price*rQtyNum):'R$ —',
+      valorFormula,
+      valorEstilo:`font-size:24px; font-weight:800; color:${rp&&rQtyNum?T.vc:T.txtM};`,
+      submitLaunch:()=>this.submitLaunch(),
+      // produto form
+      pName:S.pName, pUnit:S.pUnit, pPrice:S.pPrice, pCat:S.pCat,
+      onPName:e=>this.setState({pName:e.target.value}),
+      onPUnit:e=>this.setState({pUnit:e.target.value}),
+      onPPrice:e=>this.setState({pPrice:e.target.value}),
+      onPCat:e=>this.setState({pCat:e.target.value}),
+      prodModalTitle:S.editProdId?'Editar produto':'Novo produto',
+      submitProduto:()=>this.submitProduto(),
+      pSearch:S.pSearch, onPSearch:e=>this.setState({pSearch:e.target.value}),
+      prodRows, prodRowsEmpty:prodRows.length===0,
+      // equipe
+      empRows, empCount:S.employees.length, empActiveCount:S.employees.filter(e=>e.active).length,
+      fName:S.fName, fRole:S.fRole,
+      onFName:e=>this.setState({fName:e.target.value}),
+      onFRole:e=>this.setState({fRole:e.target.value}),
+      toggleFActive:()=>this.setState({fActive:!S.fActive}),
+      fToggleTrack, fToggleKnob,
+      funcModalTitle:S.editFuncId?'Editar funcionário':'Novo funcionário',
+      submitFunc:()=>this.submitFunc(),
+      toast:S.toast,
+    };
+  }
+
+  submitLaunch() {
+    const S=this.state;
+    if (!S.rProd){this.flash('Selecione um produto');return;}
+    const qty=parseFloat((S.rQty||'').replace(',','.'));
+    if (!qty||qty<=0){this.flash('Informe a quantidade');return;}
+    const id='l'+Date.now();
+    const l={id,productId:S.rProd,qty,unit:S.rUnit||this.prod(S.rProd).unit,motivo:(S.rMotivo||'Outro').trim()||'Outro',ts:Date.now()};
+    this._newIds=this._newIds||new Set(); this._newIds.add(id);
+    this.setState({launches:[...S.launches,l],modal:null,page:'monitor',rProd:'',rQty:'',rUnit:'',rMotivo:''});
+    this.flash('Desperdício registrado · '+this.brl(this.valueOf(l)),this.prod(l.productId).name);
+  }
+
+  openProduto(id) {
+    if(id){const p=this.prod(id);this.setState({modal:'produto',editProdId:id,pName:p.name,pUnit:p.unit,pPrice:String(p.price).replace('.',','),pCat:p.cat||''});}
+    else{this.setState({modal:'produto',editProdId:null,pName:'',pUnit:'un',pPrice:'',pCat:''});}
+  }
+  submitProduto() {
+    const S=this.state,name=(S.pName||'').trim();
+    if(!name){this.flash('Informe o nome do produto');return;}
+    const price=parseFloat((S.pPrice||'').replace(',','.'))||0;
+    if(S.editProdId){
+      this.setState({products:S.products.map(p=>p.id===S.editProdId?{...p,name,unit:S.pUnit,price,cat:(S.pCat||'').trim()||'—'}:p),modal:null,editProdId:null});
+      this.flash('Produto atualizado',name);
+    } else {
+      this.setState({products:[...S.products,{id:'p'+Date.now(),name,unit:S.pUnit,price,cat:(S.pCat||'').trim()||'—'}],modal:null});
+      this.flash('Produto cadastrado',name);
+    }
+  }
+
+  openFunc(id) {
+    if(id){const e=this.state.employees.find(x=>x.id===id);this.setState({modal:'funcionario',editFuncId:id,fName:e.name,fRole:e.role,fActive:e.active});}
+    else{this.setState({modal:'funcionario',editFuncId:null,fName:'',fRole:'Atendente',fActive:true});}
+  }
+  submitFunc() {
+    const S=this.state,name=(S.fName||'').trim();
+    if(!name){this.flash('Informe o nome');return;}
+    if(S.editFuncId){
+      this.setState({employees:S.employees.map(e=>e.id===S.editFuncId?{...e,name,role:S.fRole,active:S.fActive}:e),modal:null,editFuncId:null});
+      this.flash('Funcionário atualizado',name);
+    } else {
+      this.setState({employees:[...S.employees,{id:'e'+Date.now(),name,role:S.fRole,active:S.fActive}],modal:null});
+      this.flash('Funcionário cadastrado',name);
+    }
+  }
+}
+</script>
+</body>
+</html>
