@@ -1,6 +1,6 @@
 // §3 — lista de pratos. Presentational: recebe os resumos e os handlers.
 import BadgeGestor from './BadgeGestor'
-import { brl } from './calculo.stub'
+import { brl } from '../../lib/calculoPrato'
 import type { PratoResumo } from './tipos'
 
 type Props = {

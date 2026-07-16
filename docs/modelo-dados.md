@@ -5,8 +5,10 @@
 > reproduzido abaixo para consulta — mantenha-o em sincronia com o `schema.sql`.
 > Planejamento original (congelado, schema antigo): [historico/base.md](historico/base.md).
 
-Quatro tabelas resolvem o sistema. Totais e rankings são **consultas** sobre a
-tabela de registros — não precisam de tabela própria.
+Quatro tabelas resolvem o núcleo do sistema (Monitor/Produtos/Equipe/Motivos).
+Totais e rankings são **consultas** sobre a tabela de registros — não precisam de
+tabela própria. O módulo de **Pratos** acrescenta mais duas tabelas relacionais
+(ver seção própria abaixo).
 
 ## Tabelas
 
@@ -152,6 +154,56 @@ custo numeric(10,2)
   (round(quantidade * preco_unitario_no_momento, 2)) stored
 ```
 
+## Módulo de Pratos (ficha técnica / precificação)
+
+Duas tabelas relacionais cobrem os **pratos prontos** (produtos compostos por
+vários ingredientes, ex.: "Costela com Requeijão"), separadas do catálogo de
+`alimentos`. Os ingredientes são **texto livre com valor digitado à mão** — não
+puxam de `alimentos`. Não há snapshot de preço: o custo é recalculado a partir
+dos inputs salvos. DDL em [`criar_tabelas_pratos.sql`](../supabase/criar_tabelas_pratos.sql).
+
+### `pratos`
+Cabeçalho da ficha.
+
+| Coluna | Tipo | Observações |
+|---|---|---|
+| `id` | uuid | PK, `gen_random_uuid()`. |
+| `nome` | text | Obrigatório. |
+| `calcular_perda` | boolean | Toggle global da ficha; default `false`. |
+| `embalagem` | numeric(10,2) | Custo fixo de embalagem (R$); default `0`, `>= 0`. |
+| `margem_pct` | numeric(10,2) | Markup sobre o custo (%); default `0`, `>= 0`. |
+| `ativo` | boolean | Default `true`. |
+| `criado_em` | timestamptz | Default `now()`. |
+
+### `prato_ingredientes`
+Linhas da ficha técnica (FK → `pratos`, `on delete cascade`).
+
+| Coluna | Tipo | Observações |
+|---|---|---|
+| `id` | uuid | PK, `gen_random_uuid()`. |
+| `prato_id` | uuid | FK → `pratos(id)`, `on delete cascade`. Indexada. |
+| `posicao` | int | Ordem na ficha; default `0`. |
+| `nome` | text | Texto livre; default `''`. |
+| `tipo` | text | `'fixo'`,`'kg'`,`'g'`,`'L'`,`'mL'`,`'un'`. |
+| `valor` | numeric(12,4) | Preço unitário conforme o tipo; default `0`, `>= 0`. |
+| `qtd` | numeric(12,4) | Quantidade usada (g/mL quando tipo é kg/L); default `0`, `>= 0`. |
+| `peso_bruto_kg` | numeric(12,4) | Nulável; só usado com perda ativa. |
+| `peso_liquido_kg` | numeric(12,4) | Nulável; só usado com perda ativa. |
+
+**Cálculo:** feito no cliente ([`src/lib/calculoPrato.ts`](../src/lib/calculoPrato.ts),
+espelhando o [README §8](README-tela-pratos.md)): `baseCost = valor*qtd/(kg|L ? 1000 : 1)`;
+com perda ativa e pesos > 0, `finalCost = baseCost*(bruto/liquido)`; o preço
+sugerido é `totalCusto*(1+margem/100)`. Perda `%` = `((bruto-liquido)/bruto)*100`
+(limiar de alerta 15%).
+
+**Salvamento atômico:** a escrita em duas tabelas usa a função RPC `salvar_prato(payload jsonb)`
+(no mesmo script), que faz upsert do prato + substituição completa dos ingredientes
+numa transação. O cliente chama `supabase.rpc('salvar_prato', { payload })`.
+
+> **RLS:** hoje permissivo para a `anon key`, como as demais tabelas. A restrição
+> real por papel (só gestor) fica para a fase de segurança — ver
+> [plano-seguranca.md](plano-seguranca.md).
+
 ## Consultas (totais e rankings)
 
 ```sql
@@ -222,4 +274,5 @@ grant select, insert, update, delete on public.registros    to anon, authenticat
 | [`migrate_v1_to_v2.sql`](../supabase/migrate_v1_to_v2.sql) | Migrar um banco do schema antigo (`valor_por_kg`/`peso_g`) preservando dados, e criar a tabela `motivos`. |
 | [`criar_tabela_motivos.sql`](../supabase/criar_tabela_motivos.sql) | Criar **só** a tabela `motivos` (+RLS, grant, motivos padrão) num banco que já tem as demais. Use quando `/rest/v1/motivos` responde 404. |
 | [`seed.sql`](../supabase/seed.sql) | Popular dados de exemplo (alimentos, funcionários, motivos, registros). |
+| [`criar_tabelas_pratos.sql`](../supabase/criar_tabelas_pratos.sql) | Criar as tabelas `pratos`/`prato_ingredientes` (+RPC `salvar_prato`, RLS, grants). Idempotente. |
 | [`reset_e_recriar.sql`](../supabase/reset_e_recriar.sql) | Apagar as tabelas (dev, sem dados a preservar). |

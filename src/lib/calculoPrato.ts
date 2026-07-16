@@ -1,16 +1,11 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// STUB VISUAL — NÃO É A LÓGICA CANÔNICA.
+// Cálculo de custo e precificação de pratos (ficha técnica).
+// Fórmulas do README §8 ("Cálculo de custo por ingrediente / do prato").
 //
-// Existe só para a tela renderizar valores plausíveis no preview. As fórmulas
-// abaixo reproduzem o README §8 ("Cálculo de custo por ingrediente / do prato"),
-// mas a implementação de verdade é do AGENTE DE LÓGICA:
-//   - mover para `src/lib/calculoPrato.ts` (com testes Vitest);
-//   - validar limiar de perda, arredondamentos e unidades;
-//   - ligar aos dados reais (usePratos + Supabase).
-// Ver docs/plano-tela-pratos-logica.md.
-// ─────────────────────────────────────────────────────────────────────────────
+// Opera sobre os VIEW-MODELS (campos string, com máscara decimal) para permitir
+// o recálculo ao vivo enquanto a gestora digita — o mesmo dado que a UI mantém.
+// A conversão de/para o formato do banco vive em src/lib/mapPrato.ts.
 
-import type { IngredientePrato, Prato, ResultadoCalculo } from './tipos'
+import type { IngredientePrato, Prato, ResultadoCalculo } from '../components/pratos/tipos'
 
 /** "12,50" → 12.5 · vazio/inválido → 0 (mesmo espírito do form de Produtos). */
 export function num(s: string): number {
@@ -36,7 +31,11 @@ export function perdaPct(ing: IngredientePrato): number | null {
   return ((bruto - liquido) / bruto) * 100
 }
 
-/** Custo final: encarece proporcional à perda quando o toggle está ativo. */
+/**
+ * Custo final do ingrediente: quando a perda está ativa e ambos os pesos estão
+ * preenchidos, encarece proporcionalmente (paga o bruto, rende o líquido).
+ * Sem perda, usa o custo base.
+ */
 export function custoFinalIngrediente(ing: IngredientePrato, calcularPerda: boolean): number {
   const base = custoBaseIngrediente(ing)
   const bruto = num(ing.pesoBrutoKg)
@@ -59,5 +58,5 @@ export function calcularPrato(prato: Prato): ResultadoCalculo {
   return { custoIngredientes, embalagem, totalCusto, precoSugerido, markup, margemVenda }
 }
 
-// Limiar de alerta de perda (%). O agente de lógica deve torná-lo ajustável.
+// Limiar de alerta de perda (%): a UI pinta a perda de vermelho acima disto.
 export const LIMIAR_PERDA = 15

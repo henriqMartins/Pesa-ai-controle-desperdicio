@@ -1,22 +1,18 @@
 // Aba Pratos — container que alterna lista ↔ ficha (view-switch local, §2).
-//
-// Camada VISUAL: mantém o estado de navegação e, POR ENQUANTO, os dados em
-// memória (semeados com exemplos) só para o preview. O AGENTE DE LÓGICA
-// substitui o bloco marcado por `usePratos` (Supabase) + cálculo canônico e
-// remove `dadosExemplo`. Ver docs/plano-tela-pratos-logica.md.
+// Os dados vêm do Supabase via usePratos; o cálculo dos resumos usa a lógica
+// canônica de src/lib/calculoPrato. Ver docs/plano-tela-pratos-logica.md.
 import { useMemo, useState } from 'react'
 import ListaPratos from '../components/pratos/ListaPratos'
 import FichaPrato from '../components/pratos/FichaPrato'
-import { calcularPrato } from '../components/pratos/calculo.stub'
-import { pratosExemplo, pratoVazio } from '../components/pratos/dadosExemplo'
+import { calcularPrato } from '../lib/calculoPrato'
+import { pratoVazio } from '../components/pratos/fabricas'
+import { usePratos } from '../hooks/usePratos'
 import type { Prato, PratoResumo } from '../components/pratos/tipos'
 
 type Vista = { tela: 'lista' } | { tela: 'ficha'; prato: Prato }
 
 export default function Pratos() {
-  // ── TODO(lógica): trocar por usePratos() (Supabase). ──────────────────────
-  const [pratos, setPratos] = useState<Prato[]>(() => pratosExemplo())
-  // ──────────────────────────────────────────────────────────────────────────
+  const { pratos, loading, salvar, excluir } = usePratos()
   const [vista, setVista] = useState<Vista>({ tela: 'lista' })
 
   const resumos: PratoResumo[] = useMemo(
@@ -35,17 +31,25 @@ export default function Pratos() {
     const p = pratos.find((x) => x.id === id)
     if (p) setVista({ tela: 'ficha', prato: p })
   }
-  function excluir(id: string) {
+  async function aoExcluir(id: string) {
     if (!window.confirm('Excluir este prato?')) return
-    setPratos((ps) => ps.filter((p) => p.id !== id))
+    try {
+      await excluir(id)
+    } catch (e) {
+      window.alert(e instanceof Error ? e.message : 'Erro ao excluir o prato.')
+    }
   }
-  function salvar(prato: Prato) {
-    setPratos((ps) => (ps.some((p) => p.id === prato.id) ? ps.map((p) => (p.id === prato.id ? prato : p)) : [...ps, prato]))
-    setVista({ tela: 'lista' })
+  async function aoSalvar(prato: Prato) {
+    try {
+      await salvar(prato)
+      setVista({ tela: 'lista' })
+    } catch (e) {
+      window.alert(e instanceof Error ? e.message : 'Erro ao salvar o prato.')
+    }
   }
 
   if (vista.tela === 'ficha') {
-    return <FichaPrato pratoInicial={vista.prato} onCancelar={() => setVista({ tela: 'lista' })} onSalvar={salvar} />
+    return <FichaPrato pratoInicial={vista.prato} onCancelar={() => setVista({ tela: 'lista' })} onSalvar={aoSalvar} />
   }
-  return <ListaPratos pratos={resumos} onNovo={novo} onEditar={editar} onExcluir={excluir} />
+  return <ListaPratos pratos={resumos} loading={loading} onNovo={novo} onEditar={editar} onExcluir={aoExcluir} />
 }

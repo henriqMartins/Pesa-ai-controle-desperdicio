@@ -5,8 +5,8 @@ import { useState } from 'react'
 import BadgeGestor from './BadgeGestor'
 import LinhaIngrediente from './LinhaIngrediente'
 import ResultadoPrato from './ResultadoPrato'
-import { ingredienteVazio } from './dadosExemplo'
-import { calcularPrato } from './calculo.stub'
+import { ingredienteVazio } from './fabricas'
+import { calcularPrato } from '../../lib/calculoPrato'
 import type { IngredientePrato, Prato } from './tipos'
 
 type Props = {

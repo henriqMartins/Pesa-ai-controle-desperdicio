@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { OPCOES_TIPO, type IngredientePrato } from './tipos'
-import { brl, custoFinalIngrediente, perdaPct, LIMIAR_PERDA } from './calculo.stub'
+import { brl, custoFinalIngrediente, perdaPct, LIMIAR_PERDA } from '../../lib/calculoPrato'
 
 const dec = (v: string) => v.replace(/[^0-9.,]/g, '')
 

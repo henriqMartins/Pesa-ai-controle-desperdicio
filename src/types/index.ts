@@ -6,3 +6,10 @@ export type {
 } from './funcionario'
 export type { Registro, NovoRegistro, RegistroCompleto } from './registro'
 export type { Motivo, NovoMotivo } from './motivo'
+export type {
+  Prato,
+  PratoIngrediente,
+  TipoIngredientePrato,
+  PratoPayload,
+  IngredientePayload,
+} from './prato'

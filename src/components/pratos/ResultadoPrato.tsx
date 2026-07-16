@@ -1,7 +1,7 @@
 // Bloco 4 — card hero de resultado. Decisão §5.5: gradiente accent laranja,
 // preço em branco. Componente puro: recebe o resumo já calculado.
 import type { ResultadoCalculo } from './tipos'
-import { brl } from './calculo.stub'
+import { brl } from '../../lib/calculoPrato'
 
 function Linha({ rotulo, valor, forte = false }: { rotulo: string; valor: string; forte?: boolean }) {
   return (
