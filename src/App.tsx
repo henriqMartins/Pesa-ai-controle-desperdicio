@@ -4,10 +4,12 @@ import Monitor from './pages/Monitor'
 import Produtos from './pages/Produtos'
 import Equipe from './pages/Equipe'
 import Motivos from './pages/Motivos'
+import Pratos from './pages/Pratos'
 import RegistrarModal from './components/RegistrarModal'
 import ModoExibicao from './components/ModoExibicao'
 import FiltrosModal from './components/FiltrosModal'
 import { useTheme } from './hooks/useTheme'
+import { useEhGestor } from './hooks/useEhGestor'
 import { FUSO } from './lib/fuso'
 
 const GRAD = 'var(--accent-grad)'
@@ -29,12 +31,17 @@ const IconEquipe = (p: IconProps) => (
 const IconMotivos = (p: IconProps) => (
   <svg {...ic} {...p}><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 3 12V4a1 1 0 0 1 1-1h8a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.6z" /><circle cx="7.5" cy="7.5" r="1.2" /></svg>
 )
+const IconPratos = (p: IconProps) => (
+  <svg {...ic} {...p}><path d="M4 3v7a3 3 0 0 0 6 0V3" /><path d="M7 10v11" /><path d="M17 3c-1.7 0-3 2-3 5s1 4 3 4 3-1 3-4-1.3-5-3-5z" /><path d="M17 12v9" /></svg>
+)
 
+// `gestor: true` = só aparece/roteia para o perfil gestor (gating de UX — §2.2).
 const NAV = [
   { to: '/monitor', label: 'Monitor', Icon: IconMonitor },
   { to: '/produtos', label: 'Produtos', Icon: IconProdutos },
   { to: '/equipe', label: 'Equipe', Icon: IconEquipe },
   { to: '/motivos', label: 'Motivos', Icon: IconMotivos },
+  { to: '/pratos', label: 'Pratos', Icon: IconPratos, gestor: true },
 ]
 
 // ─── Relógio AO VIVO ────────────────────────────────────────────────────────────
@@ -155,6 +162,8 @@ function Layout({ children }: { children: ReactNode }) {
   const [exibicaoAberta, setExibicaoAberta] = useState(false)
   const [filtrosAbertos, setFiltrosAbertos] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const ehGestor = useEhGestor()
+  const navItens = NAV.filter((n) => !n.gestor || ehGestor)
 
   function aoRegistrar() {
     setToast('Registro salvo!')
@@ -181,7 +190,7 @@ function Layout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          {NAV.map(({ to, label }) => (
+          {navItens.map(({ to, label }) => (
             <NavLink
               key={to}
               to={to}
@@ -201,9 +210,9 @@ function Layout({ children }: { children: ReactNode }) {
             <BotaoFiltrar onClick={() => setFiltrosAbertos(true)} />
             <button
               onClick={() => setRegistrarAberto(true)}
-              className="btn-accent rounded-xl px-4 py-2 text-sm font-bold"
+              className="whitespace-nowrap btn-accent rounded-xl px-4 py-2 text-sm font-bold"
             >
-              ＋ Registrar
+              Registrar +
             </button>
           </div>
         </nav>
@@ -237,7 +246,7 @@ function Layout({ children }: { children: ReactNode }) {
         className="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t sm:hidden"
         style={{ background: 'var(--header-bg)', backdropFilter: 'blur(12px)', borderColor: 'var(--bd-08)' }}
       >
-        {NAV.map(({ to, label, Icon }) => (
+        {navItens.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -270,6 +279,8 @@ function Layout({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
+  // Gating de rota (§2.2): sem ser gestor, /pratos cai no fallback do Monitor.
+  const ehGestor = useEhGestor()
   return (
     <BrowserRouter>
       <Layout>
@@ -279,6 +290,7 @@ export default function App() {
           <Route path="/produtos" element={<Produtos />} />
           <Route path="/equipe" element={<Equipe />} />
           <Route path="/motivos" element={<Motivos />} />
+          <Route path="/pratos" element={ehGestor ? <Pratos /> : <Navigate to="/monitor" replace />} />
           <Route path="*" element={<Navigate to="/monitor" replace />} />
         </Routes>
       </Layout>
