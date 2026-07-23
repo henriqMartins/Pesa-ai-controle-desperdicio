@@ -16,10 +16,12 @@ function ModalProduto({
   produto,
   onClose,
   onSalvar,
+  onExcluir,
 }: {
   produto: Alimento | null
   onClose: () => void
   onSalvar: (dados: { nome: string; categoria?: string; preco_por_unidade: number; unidade: UnidadeBase; ativo: boolean }) => Promise<void>
+  onExcluir: (id: string) => Promise<void>
 }) {
   const [nome, setNome] = useState(produto?.nome ?? '')
   const [categoria, setCategoria] = useState(produto?.categoria ?? '')
@@ -44,6 +46,21 @@ function ModalProduto({
       onClose()
     } catch (e) {
       setErro(e instanceof Error ? e.message : 'Erro ao salvar')
+      setSalvando(false)
+    }
+  }
+
+  async function excluir() {
+    if (!produto) return
+    if (!window.confirm(`Excluir "${produto.nome}"? Esta ação não pode ser desfeita.`)) return
+    setSalvando(true)
+    setErro(null)
+    try {
+      await onExcluir(produto.id)
+      onClose()
+    } catch (e) {
+      // Ex.: produto com lançamentos vinculados — a mensagem orienta a desativar.
+      setErro(e instanceof Error ? e.message : 'Erro ao excluir')
       setSalvando(false)
     }
   }
@@ -118,6 +135,17 @@ function ModalProduto({
               {salvando ? 'Salvando...' : 'Salvar'}
             </button>
           </div>
+
+          {produto && (
+            <button
+              onClick={excluir}
+              disabled={salvando}
+              className="w-full text-center text-sm font-semibold transition-colors disabled:opacity-40"
+              style={{ color: 'var(--red)' }}
+            >
+              Excluir produto
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -127,7 +155,7 @@ function ModalProduto({
 // ─── Página ──────────────────────────────────────────────────────────────────────
 
 export default function Produtos() {
-  const { alimentos, loading, adicionar, atualizar } = useAlimentos(false)
+  const { alimentos, loading, adicionar, atualizar, excluir } = useAlimentos(false)
   const [busca, setBusca] = useState('')
   const [modal, setModal] = useState<{ aberto: boolean; produto: Alimento | null }>({ aberto: false, produto: null })
 
@@ -194,6 +222,7 @@ export default function Produtos() {
           produto={modal.produto}
           onClose={() => setModal({ aberto: false, produto: null })}
           onSalvar={salvar}
+          onExcluir={excluir}
         />
       )}
     </div>

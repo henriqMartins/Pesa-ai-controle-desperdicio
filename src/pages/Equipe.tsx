@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useFuncionarios } from '../hooks/useFuncionarios'
+import { useEhGestor } from '../hooks/useEhGestor'
 import type { Funcionario } from '../types'
 
 const GRAD = 'var(--accent-grad)'
@@ -13,10 +14,12 @@ function ModalFuncionario({
   funcionario,
   onClose,
   onSalvar,
+  onExcluir,
 }: {
   funcionario: Funcionario | null
   onClose: () => void
   onSalvar: (dados: { nome: string; papel: Papel; ativo: boolean }) => Promise<void>
+  onExcluir: (id: string) => Promise<void>
 }) {
   const [nome, setNome] = useState(funcionario?.nome ?? '')
   const [papel, setPapel] = useState<Papel>((funcionario?.papel as Papel) ?? 'funcionario')
@@ -33,6 +36,21 @@ function ModalFuncionario({
       onClose()
     } catch (e) {
       setErro(e instanceof Error ? e.message : 'Erro ao salvar')
+      setSalvando(false)
+    }
+  }
+
+  async function excluir() {
+    if (!funcionario) return
+    if (!window.confirm(`Excluir "${funcionario.nome}"? Esta ação não pode ser desfeita.`)) return
+    setSalvando(true)
+    setErro(null)
+    try {
+      await onExcluir(funcionario.id)
+      onClose()
+    } catch (e) {
+      // Ex.: funcionário com lançamentos vinculados — a mensagem orienta a desativar.
+      setErro(e instanceof Error ? e.message : 'Erro ao excluir')
       setSalvando(false)
     }
   }
@@ -72,6 +90,17 @@ function ModalFuncionario({
             <button onClick={onClose} className="rounded-xl px-5 py-3 text-sm font-bold text-white/60" style={{ border: '1px solid var(--bd-15)' }}>Cancelar</button>
             <button onClick={salvar} disabled={salvando || !nome.trim()} className="btn-accent flex-1 rounded-xl py-3 text-sm font-extrabold">{salvando ? 'Salvando...' : 'Salvar'}</button>
           </div>
+
+          {funcionario && (
+            <button
+              onClick={excluir}
+              disabled={salvando}
+              className="w-full text-center text-sm font-semibold transition-colors disabled:opacity-40"
+              style={{ color: 'var(--red)' }}
+            >
+              Excluir funcionário
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -81,7 +110,10 @@ function ModalFuncionario({
 // ─── Página ──────────────────────────────────────────────────────────────────────
 
 export default function Equipe() {
-  const { funcionarios, loading, adicionar, atualizar } = useFuncionarios(false)
+  const { funcionarios, loading, adicionar, atualizar, excluir } = useFuncionarios(false)
+  // Equipe é gerenciável só pelo gestor. O funcionário vê a lista em leitura
+  // (o RLS também barra a escrita — isto é só o gating de UX; ver plano-seguranca).
+  const ehGestor = useEhGestor()
   const [modal, setModal] = useState<{ aberto: boolean; funcionario: Funcionario | null }>({ aberto: false, funcionario: null })
 
   const ativos = funcionarios.filter((f) => f.ativo).length
@@ -96,7 +128,9 @@ export default function Equipe() {
       <div className="overflow-hidden rounded-2xl" style={{ background: 'var(--surface)', border: '1px solid var(--bd-07)' }}>
         <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: '1px solid var(--bd-06)' }}>
           <span className="font-bold text-white">Equipe · {ativos} ativo{ativos === 1 ? '' : 's'}</span>
-          <button onClick={() => setModal({ aberto: true, funcionario: null })} className="btn-accent rounded-xl px-3.5 py-2 text-sm font-bold">＋ Novo</button>
+          {ehGestor && (
+            <button onClick={() => setModal({ aberto: true, funcionario: null })} className="btn-accent rounded-xl px-3.5 py-2 text-sm font-bold">＋ Novo</button>
+          )}
         </div>
 
         {loading && <div className="px-4 py-8 text-center text-sm text-white/40">Carregando...</div>}
@@ -116,13 +150,15 @@ export default function Equipe() {
               : { background: 'var(--w-07)', color: 'var(--tx-40)', border: '1px solid var(--w-12)' }}>
               {f.ativo ? 'ativo' : 'inativo'}
             </span>
-            <button onClick={() => setModal({ aberto: true, funcionario: f })} className="flex h-8 w-8 items-center justify-center rounded-lg text-white/45 hover:text-white" style={{ border: '1px solid var(--bd-12)' }} aria-label="editar">✎</button>
+            {ehGestor && (
+              <button onClick={() => setModal({ aberto: true, funcionario: f })} className="flex h-8 w-8 items-center justify-center rounded-lg text-white/45 hover:text-white" style={{ border: '1px solid var(--bd-12)' }} aria-label="editar">✎</button>
+            )}
           </div>
         ))}
       </div>
 
       {modal.aberto && (
-        <ModalFuncionario funcionario={modal.funcionario} onClose={() => setModal({ aberto: false, funcionario: null })} onSalvar={salvar} />
+        <ModalFuncionario funcionario={modal.funcionario} onClose={() => setModal({ aberto: false, funcionario: null })} onSalvar={salvar} onExcluir={excluir} />
       )}
     </div>
   )

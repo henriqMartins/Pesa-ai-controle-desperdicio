@@ -30,6 +30,19 @@ export function useAlimentos(apenasAtivos = true) {
     await carregar()
   }
 
+  async function excluir(id: string) {
+    const { error: err } = await supabase.from('alimentos').delete().eq('id', id)
+    if (err) {
+      // 23503 = foreign_key_violation: há registros apontando para este produto.
+      // Não apagamos (destruiria o histórico dos relatórios) — orientamos a desativar.
+      if (err.code === '23503') {
+        throw new Error('Este produto tem lançamentos vinculados. Desative-o em vez de excluir.')
+      }
+      throw new Error(err.message)
+    }
+    await carregar()
+  }
+
   // Carga inicial (e quando o filtro muda). Como o fetch é assíncrono, os
   // setState ocorrem após o await — fora do corpo síncrono do efeito.
   useEffect(() => {
@@ -48,5 +61,5 @@ export function useAlimentos(apenasAtivos = true) {
     }
   }, [apenasAtivos])
 
-  return { alimentos, loading, error, adicionar, atualizar, recarregar: carregar }
+  return { alimentos, loading, error, adicionar, atualizar, excluir, recarregar: carregar }
 }

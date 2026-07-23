@@ -1,19 +1,15 @@
-// Gating de UX da aba Pratos (§2.2) — decide o que MOSTRAR/ESCONDER.
+// Autorização por papel — decide o que MOSTRAR/ESCONDER na UI (ex.: aba Pratos).
 //
-// ⚠️ Isto é UX, NÃO segurança. Esconder a aba no front não protege o banco:
-// hoje o RLS de `pratos`/`prato_ingredientes` é permissivo. A restrição REAL
-// por papel (Supabase Auth + RLS por papel) fica para a fase de segurança —
-// ver docs/plano-seguranca.md.
+// O papel vem agora da SESSÃO de Auth (app_metadata do JWT, via papelDaSessao),
+// não mais do funcionário escolhido no dropdown. Assim o gating acompanha a
+// conta logada (gestor × funcionário), e não a atribuição do registro.
 //
-// Derivação: o perfil ativo é o último funcionário selecionado no fluxo de
-// registro (useFuncionarioAtual, em localStorage). É gestor quando esse
-// funcionário tem papel 'gestor'.
-import { useFuncionarioAtual } from './useFuncionarioAtual'
-import { useFuncionarios } from './useFuncionarios'
+// ⚠️ Continua sendo UX, NÃO segurança: esconder a aba no front não fecha o
+// banco. A restrição real por papel é o RLS (Fase 2) — ver docs/plano-seguranca.md.
+import { useSessao } from './useSessao'
+import { papelDaSessao } from '../lib/auth'
 
 export function useEhGestor(): boolean {
-  const { funcionarioId } = useFuncionarioAtual()
-  const { funcionarios } = useFuncionarios(false)
-  if (!funcionarioId) return false
-  return funcionarios.some((f) => f.id === funcionarioId && f.papel === 'gestor')
+  const { session } = useSessao()
+  return papelDaSessao(session) === 'gestor'
 }

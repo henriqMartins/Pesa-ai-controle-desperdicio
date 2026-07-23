@@ -30,6 +30,19 @@ export function useFuncionarios(apenasAtivos = true) {
     await carregar()
   }
 
+  async function excluir(id: string) {
+    const { error: err } = await supabase.from('funcionarios').delete().eq('id', id)
+    if (err) {
+      // 23503 = foreign_key_violation: há registros feitos por este funcionário.
+      // Não apagamos (perderia a autoria no histórico) — orientamos a desativar.
+      if (err.code === '23503') {
+        throw new Error('Este funcionário tem lançamentos vinculados. Desative-o em vez de excluir.')
+      }
+      throw new Error(err.message)
+    }
+    await carregar()
+  }
+
   // Carga inicial (e quando o filtro muda). Como o fetch é assíncrono, os
   // setState ocorrem após o await — fora do corpo síncrono do efeito.
   useEffect(() => {
@@ -48,5 +61,5 @@ export function useFuncionarios(apenasAtivos = true) {
     }
   }, [apenasAtivos])
 
-  return { funcionarios, loading, error, adicionar, atualizar, recarregar: carregar }
+  return { funcionarios, loading, error, adicionar, atualizar, excluir, recarregar: carregar }
 }

@@ -8,8 +8,11 @@ import Pratos from './pages/Pratos'
 import RegistrarModal from './components/RegistrarModal'
 import ModoExibicao from './components/ModoExibicao'
 import FiltrosModal from './components/FiltrosModal'
+import { ProtectedRoute } from './components/ProtectedRoute'
 import { useTheme } from './hooks/useTheme'
 import { useEhGestor } from './hooks/useEhGestor'
+import { useLock } from './hooks/useLock'
+import { sair } from './lib/auth'
 import { FUSO } from './lib/fuso'
 
 const GRAD = 'var(--accent-grad)'
@@ -142,6 +145,56 @@ function BotaoFiltrar({ onClick, compacto = false }: { onClick: () => void; comp
   )
 }
 
+// ─── Botão "Bloquear" (lock → cobre a tela sem derrubar a sessão) ────────────────
+
+function BotaoLock({ compacto = false }: { compacto?: boolean }) {
+  const { lockar } = useLock()
+  return (
+    <button
+      onClick={lockar}
+      className={[
+        'flex flex-none items-center gap-2 rounded-xl transition-colors',
+        compacto ? 'h-9 w-9 justify-center' : 'px-3 py-2 text-sm font-bold',
+      ].join(' ')}
+      style={{ background: 'var(--w-05)', border: '1px solid var(--bd-07)', color: 'var(--tx-72)' }}
+      aria-label="Bloquear"
+      title="Bloquear tela (mantém a sessão)"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+      {!compacto && 'Bloquear'}
+    </button>
+  )
+}
+
+// ─── Botão "Sair" (logout → volta ao PIN) ────────────────────────────────────────
+
+function BotaoSair({ compacto = false }: { compacto?: boolean }) {
+  // signOut derruba a sessão; o onAuthStateChange (useSessao) leva o
+  // ProtectedRoute a renderizar a TelaPin — sem navegação manual.
+  return (
+    <button
+      onClick={() => void sair()}
+      className={[
+        'flex flex-none items-center gap-2 rounded-xl transition-colors',
+        compacto ? 'h-9 w-9 justify-center' : 'px-3 py-2 text-sm font-bold',
+      ].join(' ')}
+      style={{ background: 'var(--w-05)', border: '1px solid var(--bd-07)', color: 'var(--tx-72)' }}
+      aria-label="Sair"
+      title="Sair (voltar ao PIN)"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        <polyline points="16 17 21 12 16 7" />
+        <line x1="21" y1="12" x2="9" y2="12" />
+      </svg>
+      {!compacto && 'Sair'}
+    </button>
+  )
+}
+
 // ─── Toast ───────────────────────────────────────────────────────────────────────
 
 function Toast({ msg }: { msg: string }) {
@@ -208,6 +261,8 @@ function Layout({ children }: { children: ReactNode }) {
             <BotaoExibicao onClick={() => setExibicaoAberta(true)} />
             <BotaoTema />
             <BotaoFiltrar onClick={() => setFiltrosAbertos(true)} />
+            <BotaoLock />
+            <BotaoSair />
             <button
               onClick={() => setRegistrarAberto(true)}
               className="whitespace-nowrap btn-accent rounded-xl px-4 py-2 text-sm font-bold"
@@ -236,6 +291,8 @@ function Layout({ children }: { children: ReactNode }) {
           <BotaoFiltrar compacto onClick={() => setFiltrosAbertos(true)} />
           <BotaoExibicao compacto onClick={() => setExibicaoAberta(true)} />
           <BotaoTema />
+          <BotaoLock compacto />
+          <BotaoSair compacto />
         </div>
       </header>
 
@@ -283,17 +340,19 @@ export default function App() {
   const ehGestor = useEhGestor()
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Navigate to="/monitor" replace />} />
-          <Route path="/monitor" element={<Monitor />} />
-          <Route path="/produtos" element={<Produtos />} />
-          <Route path="/equipe" element={<Equipe />} />
-          <Route path="/motivos" element={<Motivos />} />
-          <Route path="/pratos" element={ehGestor ? <Pratos /> : <Navigate to="/monitor" replace />} />
-          <Route path="*" element={<Navigate to="/monitor" replace />} />
-        </Routes>
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Navigate to="/monitor" replace />} />
+            <Route path="/monitor" element={<Monitor />} />
+            <Route path="/produtos" element={<Produtos />} />
+            <Route path="/equipe" element={<Equipe />} />
+            <Route path="/motivos" element={<Motivos />} />
+            <Route path="/pratos" element={ehGestor ? <Pratos /> : <Navigate to="/monitor" replace />} />
+            <Route path="*" element={<Navigate to="/monitor" replace />} />
+          </Routes>
+        </Layout>
+      </ProtectedRoute>
     </BrowserRouter>
   )
 }
