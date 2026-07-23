@@ -7,12 +7,12 @@ import LockOverlay from './LockOverlay'
 // sucesso. Regressão coberta: antes o papel vinha de um useSessao próprio que
 // começava null → o validar saía calado e o PIN travava preenchido.
 
-const entrarComPin = vi.fn()
+const verificarPin = vi.fn()
 const desbloquear = vi.fn()
 
 vi.mock('../lib/auth', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/auth')>()
-  return { ...real, entrarComPin: (...a: unknown[]) => entrarComPin(...a) }
+  return { ...real, verificarPin: (...a: unknown[]) => verificarPin(...a) }
 })
 vi.mock('../hooks/useLock', () => ({
   useLock: () => ({ locked: true, lockar: vi.fn(), desbloquear }),
@@ -32,16 +32,16 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('LockOverlay', () => {
-  it('revalida o PIN do papel da sessão e desbloqueia no sucesso', async () => {
-    entrarComPin.mockResolvedValue(undefined)
+  it('confere o PIN do papel da sessão e desbloqueia no sucesso', async () => {
+    verificarPin.mockResolvedValue(undefined)
     render(<LockOverlay session={sessao('gestor')} />)
     digitar('123456')
-    await waitFor(() => expect(entrarComPin).toHaveBeenCalledWith('gestor', '123456'))
+    await waitFor(() => expect(verificarPin).toHaveBeenCalledWith('gestor', '123456'))
     await waitFor(() => expect(desbloquear).toHaveBeenCalled())
   })
 
   it('mostra erro e não desbloqueia com PIN errado', async () => {
-    entrarComPin.mockRejectedValue(new Error('bad'))
+    verificarPin.mockRejectedValue(new Error('bad'))
     render(<LockOverlay session={sessao('funcionario')} />)
     digitar('000000')
     expect(await screen.findByText('PIN incorreto')).toBeInTheDocument()

@@ -5,7 +5,7 @@
 // reaproveita rate limiting, expiração e refresh de token nativos e, acima de
 // tudo, gera a SESSÃO autenticada em que o RLS da Fase 2 vai se apoiar.
 // Ver docs/plano-seguranca.md.
-import type { Session } from '@supabase/supabase-js'
+import { createClient, type Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 
 /** Papéis do sistema — definem autorização (o que cada conta pode fazer). */
@@ -35,6 +35,45 @@ export async function entrarComPin(papel: Papel, pin: string): Promise<void> {
 
 /** Encerra a sessão (volta para a TelaPin). */
 export const sair = () => supabase.auth.signOut()
+
+/**
+ * Cliente ISOLADO só para conferir o PIN (usado no desbloqueio). Não persiste
+ * sessão, não faz refresh e tem storageKey próprio — assim NÃO disputa o "lock"
+ * interno de auth do cliente principal. Re-autenticar no cliente principal com
+ * uma sessão já ativa trava o `signInWithPassword` (contende com refresh de
+ * token/realtime). Criado sob demanda.
+ */
+let verificador: ReturnType<typeof createClient> | null = null
+function getVerificador() {
+  if (!verificador) {
+    verificador = createClient(
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_ANON_KEY,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+          storageKey: 'pin-verificador',
+        },
+      },
+    )
+  }
+  return verificador
+}
+
+/**
+ * Confere o PIN no servidor SEM tocar na sessão viva (para o desbloqueio da tela
+ * bloqueada). Lança se o PIN estiver errado. Não cria sessão utilizável — só
+ * valida a credencial no cliente isolado.
+ */
+export async function verificarPin(papel: Papel, pin: string): Promise<void> {
+  const { error } = await getVerificador().auth.signInWithPassword({
+    email: EMAILS[papel],
+    password: pin,
+  })
+  if (error) throw error
+}
 
 /**
  * Lê o papel do JWT. Vem de `app_metadata` — que só a service_role altera — e

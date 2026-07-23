@@ -3,11 +3,11 @@ import type { Session } from '@supabase/supabase-js'
 import TecladoPin from './TecladoPin'
 import { useLock } from '../hooks/useLock'
 import { useLockout } from '../hooks/useLockout'
-import { entrarComPin, papelDaSessao, sair } from '../lib/auth'
+import { verificarPin, papelDaSessao, sair } from '../lib/auth'
 
 // Tela de bloqueio (Fase 3): cobre o app sem derrubar a sessão. Para desbloquear,
-// revalida o PIN da MESMA conta via signInWithPassword (não compara PIN no
-// cliente). "Sair" continua disponível para trocar de conta / fim de turno.
+// confere o PIN via `verificarPin` (cliente isolado, no servidor — não compara
+// PIN no cliente e não toca na sessão viva). "Sair" troca de conta / fim de turno.
 //
 // A sessão vem por PROP do ProtectedRoute (que só monta este overlay quando já
 // há sessão). Antes, um useSessao próprio daqui tinha uma janela inicial com
@@ -29,7 +29,7 @@ export default function LockOverlay({ session }: { session: Session }) {
     if (!papel) return
     setEnviando(true)
     try {
-      await entrarComPin(papel, pinCompleto)
+      await verificarPin(papel, pinCompleto)
       resetar()
       desbloquear()
     } catch {
