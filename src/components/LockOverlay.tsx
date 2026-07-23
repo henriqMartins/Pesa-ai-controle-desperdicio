@@ -1,6 +1,6 @@
 import { useState } from 'react'
+import type { Session } from '@supabase/supabase-js'
 import TecladoPin from './TecladoPin'
-import { useSessao } from '../hooks/useSessao'
 import { useLock } from '../hooks/useLock'
 import { useLockout } from '../hooks/useLockout'
 import { entrarComPin, papelDaSessao, sair } from '../lib/auth'
@@ -8,11 +8,14 @@ import { entrarComPin, papelDaSessao, sair } from '../lib/auth'
 // Tela de bloqueio (Fase 3): cobre o app sem derrubar a sessão. Para desbloquear,
 // revalida o PIN da MESMA conta via signInWithPassword (não compara PIN no
 // cliente). "Sair" continua disponível para trocar de conta / fim de turno.
+//
+// A sessão vem por PROP do ProtectedRoute (que só monta este overlay quando já
+// há sessão). Antes, um useSessao próprio daqui tinha uma janela inicial com
+// session=null → papel null → o validar saía calado e o PIN travava preenchido.
 
 const GRAD = 'var(--accent-grad)'
 
-export default function LockOverlay() {
-  const { session } = useSessao()
+export default function LockOverlay({ session }: { session: Session }) {
   const { desbloquear } = useLock()
   const { bloqueado, segundosRestantes, registrarErro, resetar } = useLockout()
   const [pin, setPin] = useState('')
