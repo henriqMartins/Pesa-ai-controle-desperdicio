@@ -5,6 +5,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  //configurar para pegar porta definida no .env
+  server: {
+    port: Number(process.env.VITE_PORT) || 3000,
+    open: true,
+  },
   // Configuração dos testes (Vitest). Roda com `npm test`.
   test: {
     environment: 'jsdom', // simula o navegador (necessário para testar hooks/componentes)
@@ -20,6 +25,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Registro via arquivo externo (/registerSW.js), não inline — necessário
+      // para a CSP com script-src 'self' (ver vercel.json).
+      injectRegister: 'script',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Monitor de Desperdício — Petiscaria Aquino',

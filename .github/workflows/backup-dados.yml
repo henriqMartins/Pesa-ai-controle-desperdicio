@@ -4,9 +4,12 @@ name: Backup dos dados
 # Perder o histórico de lançamentos da petiscaria seria grave, e o free tier não
 # garante backups acessíveis — então guardamos uma cópia semanal por conta própria.
 #
+# Usa a SERVICE_ROLE key: após a Fase 2 (RLS por papel), a anon key não lê mais
+# as tabelas. A service_role ignora o RLS e é segura aqui — roda no servidor do
+# GitHub Actions (secret), NUNCA no frontend. Ver docs/plano-seguranca.md.
+#
 # Não grava dados no repositório (apenas artefato, com retenção), evitando expor
-# o histórico no Git. Usa os mesmos secrets do keep-alive (anon key + RLS aberto
-# já permitem leitura de tudo) — nenhum segredo novo é necessário.
+# o histórico no Git.
 
 on:
   schedule:
@@ -31,9 +34,9 @@ jobs:
             while :; do
               fim=$((offset + pagina - 1))
               resp=$(curl -s \
-                "${SUPABASE_URL}/rest/v1/${tabela}?select=*&order=criado_em.asc" \
-                -H "apikey: ${SUPABASE_ANON_KEY}" \
-                -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+                "${SUPABASE_URL}/rest/v1/${tabela}?select=*&order=id.asc" \
+                -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+                -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
                 -H "Range-Unit: items" \
                 -H "Range: ${offset}-${fim}")
               # Falha cedo se a resposta não for um array (ex.: erro de auth).
@@ -52,14 +55,14 @@ jobs:
             echo "${tabela}: $(jq 'length' "backup/${tabela}.json") linhas no total"
           }
 
-          for t in alimentos funcionarios motivos registros; do
+          for t in alimentos funcionarios motivos registros pratos prato_ingredientes; do
             baixar_tabela "$t"
           done
 
           ls -la backup
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Publica o backup como artefato
         uses: actions/upload-artifact@v4

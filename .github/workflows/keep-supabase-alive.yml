@@ -1,7 +1,11 @@
 name: Keep Supabase Alive
 
-# Mantém o projeto Supabase ativo evitando a pausa automática após 7 dias de inatividade. 
+# Mantém o projeto Supabase ativo evitando a pausa automática após 7 dias de inatividade.
 # Faz uma query leve na REST API (toca o Postgres) a cada 2 dias.
+#
+# Usa a SERVICE_ROLE key: após a Fase 2 (RLS por papel), a anon key recebe 401 e
+# o ping falharia. A service_role ignora o RLS e é segura aqui (roda no GitHub
+# Actions, nunca no frontend). Ver docs/plano-seguranca.md.
 
 on:
   schedule:
@@ -18,11 +22,12 @@ jobs:
           # Diagnóstico: confirma que os secrets chegaram preenchidos
           # (mostra só o tamanho, nunca o valor).
           echo "URL definida? len=${#SUPABASE_URL}"
-          echo "ANON_KEY definida? len=${#SUPABASE_ANON_KEY}"
+          echo "SERVICE_ROLE_KEY definida? len=${#SUPABASE_SERVICE_ROLE_KEY}"
 
           body=$(curl -s -w "\n%{http_code}" \
             "${SUPABASE_URL}/rest/v1/funcionarios?select=id&limit=1" \
-            -H "apikey: ${SUPABASE_ANON_KEY}")
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}")
           status=$(echo "$body" | tail -n1)
           echo "HTTP status: $status"
           echo "Resposta: $(echo "$body" | sed '$d')"
@@ -33,4 +38,4 @@ jobs:
           echo "Supabase respondeu OK — projeto mantido ativo."
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
