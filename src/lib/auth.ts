@@ -33,14 +33,8 @@ export async function entrarComPin(papel: Papel, pin: string): Promise<void> {
   if (error) throw error
 }
 
-/**
- * Encerra a sessão (volta para a TelaPin). Usa `scope: 'local'`: limpa a sessão
- * SÓ neste aparelho, sem a chamada de rede de revogação do `signOut` global —
- * essa chamada segura o lock interno do cliente de auth e faz o
- * `signInWithPassword` seguinte (relogar) travar até ela responder. Local é
- * instantâneo e adequado a um dispositivo de balcão compartilhado.
- */
-export const sair = () => supabase.auth.signOut({ scope: 'local' })
+/** Encerra a sessão (volta para a TelaPin). */
+export const sair = () => supabase.auth.signOut()
 
 /**
  * Lê o papel do JWT. Vem de `app_metadata` — que só a service_role altera — e
