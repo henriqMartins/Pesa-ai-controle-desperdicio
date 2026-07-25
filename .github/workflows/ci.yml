@@ -1,0 +1,38 @@
+name: CI
+
+# Portão de qualidade: roda lint + typecheck + testes + build a cada push e em
+# cada Pull Request. Impede subir código quebrado para a loja. Não precisa de
+# secrets: os testes usam variáveis de ambiente fake (ver vite.config.ts) e o
+# build não executa o código que exige as VITE_SUPABASE_* (só empacota).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configura o Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instala dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Testes
+        run: npm test
+
+      - name: Build
+        run: npm run build
