@@ -299,11 +299,12 @@ export default function FiltrosModal({ onClose }: { onClose: () => void }) {
           background: 'var(--surface-2)',
           border: '1px solid var(--bd-10)',
           maxWidth: isMobile ? '100%' : 460,
-          maxHeight: isMobile ? '92vh' : '90vh',
+          maxHeight: isMobile ? '92dvh' : '90dvh',
           display: 'flex',
           flexDirection: 'column',
           borderRadius: isMobile ? '24px 24px 0 0' : 20,
           boxShadow: '0 -8px 40px rgba(0,0,0,.5)',
+          paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : undefined,
         }}
         onClick={(e) => e.stopPropagation()}
       >

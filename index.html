@@ -4,7 +4,9 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- App-like: sem pinça-zoom nem auto-zoom ao focar campos (kiosk/PWA);
+         viewport-fit=cover para o app ocupar a tela toda respeitando o notch. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#f0464e" />
     <!-- iOS: instalar na tela inicial em modo standalone, com a marca. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />

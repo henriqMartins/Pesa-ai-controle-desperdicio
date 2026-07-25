@@ -131,14 +131,56 @@ body,
   height: 100%;
 }
 
+html {
+  /* Impede o iOS de reescalar a fonte ao girar a tela (texto "pulando"). */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Sem "repuxo" elástico nas bordas → sensação de app nativo, não de página. */
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
+  /* Nada rola na horizontal: qualquer transbordo é contido, não vira scroll.
+     `clip` não cria contexto de rolagem, então não quebra os headers sticky. */
+  overflow-x: clip;
+  overscroll-behavior: none;
   background-color: var(--bg-app);
   color: var(--tx);
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
+
+/* Mídia nunca força a página a exceder a largura da tela. */
+img, svg, video, canvas { max-width: 100%; }
+
+/* iOS dá zoom automático ao focar campos com fonte < 16px. No mobile forçamos
+   16px nos controles para o foco nunca disparar zoom (reforça o user-scalable=no
+   do viewport, respeitado de formas diferentes entre navegadores). */
+@media (max-width: 1023px) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ─── Áreas seguras (notch / barra de gestos) ─────────────────────────────────
+   O viewport-fit=cover estende o app sob o notch; estas classes recuam o
+   conteúdo fixo para fora dele — inclusive na horizontal (celular deitado). */
+.safe-top    { padding-top: max(env(safe-area-inset-top), 0px); }
+.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+.safe-x {
+  padding-left: max(env(safe-area-inset-left), 0px);
+  padding-right: max(env(safe-area-inset-right), 0px);
+}
+
+/* Espaço reservado para a bottom-nav (+ barra de gestos) no <main>; a barra só
+   existe abaixo de 1024px, então o recuo some no layout desktop. */
+.pb-nav { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+@media (min-width: 1024px) { .pb-nav { padding-bottom: 0; } }
 
 .bg-app { background-color: var(--bg-app); }
 

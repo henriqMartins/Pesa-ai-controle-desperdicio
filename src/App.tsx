@@ -1,4 +1,4 @@
-                                                                                                                                                                                                                                                          import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom'
 import Monitor from './pages/Monitor'
 import Produtos from './pages/Produtos'
@@ -195,6 +195,84 @@ function BotaoSair({ compacto = false }: { compacto?: boolean }) {
   )
 }
 
+// ─── Menu "mais ações" (mobile) ─────────────────────────────────────────────────
+// No celular a barra superior não comporta 5 botões sem estourar a largura, então
+// as ações secundárias (Exibição, Filtrar, Bloquear, Sair) vão para este menu.
+
+function MenuMobile({ onExibicao, onFiltrar }: { onExibicao: () => void; onFiltrar: () => void }) {
+  const [aberto, setAberto] = useState(false)
+  const { lockar } = useLock()
+  const ref = useRef<HTMLDivElement>(null)
+
+  // Fecha ao tocar/clicar fora ou ao apertar Esc.
+  useEffect(() => {
+    if (!aberto) return
+    function fora(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setAberto(false)
+    }
+    function tecla(e: KeyboardEvent) {
+      if (e.key === 'Escape') setAberto(false)
+    }
+    document.addEventListener('mousedown', fora)
+    document.addEventListener('keydown', tecla)
+    return () => {
+      document.removeEventListener('mousedown', fora)
+      document.removeEventListener('keydown', tecla)
+    }
+  }, [aberto])
+
+  const itemCls = 'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold transition-colors'
+  const svg = { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+
+  function acao(fn: () => void) {
+    setAberto(false)
+    fn()
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setAberto((v) => !v)}
+        className="flex h-9 w-9 flex-none items-center justify-center rounded-xl transition-colors"
+        style={{ background: 'var(--w-05)', border: '1px solid var(--bd-07)', color: 'var(--tx-72)' }}
+        aria-label="Mais ações"
+        aria-haspopup="menu"
+        aria-expanded={aberto}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" />
+        </svg>
+      </button>
+
+      {aberto && (
+        <div
+          role="menu"
+          className="anim-pop absolute right-0 top-11 z-50 w-52 rounded-2xl p-1.5"
+          style={{ background: 'var(--surface-2)', border: '1px solid var(--bd-10)', boxShadow: '0 12px 34px rgba(0,0,0,.45)', color: 'var(--tx-72)' }}
+        >
+          <button role="menuitem" className={itemCls} onClick={() => acao(onFiltrar)}>
+            <svg {...svg}><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+            Filtrar
+          </button>
+          <button role="menuitem" className={itemCls} onClick={() => acao(onExibicao)}>
+            <svg {...svg}><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" /></svg>
+            Exibição
+          </button>
+          <button role="menuitem" className={itemCls} onClick={() => acao(lockar)}>
+            <svg {...svg}><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+            Bloquear
+          </button>
+          <div className="my-1 h-px" style={{ background: 'var(--bd-08)' }} />
+          <button role="menuitem" className={itemCls} style={{ color: 'var(--red)' }} onClick={() => acao(() => void sair())}>
+            <svg {...svg}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+            Sair
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Toast ───────────────────────────────────────────────────────────────────────
 
 function Toast({ msg }: { msg: string }) {
@@ -225,9 +303,9 @@ function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-full bg-app">
-      {/* ── Top bar (desktop / tablet) ── */}
+      {/* ── Top bar (desktop / tablet em paisagem ≥1024px) ── */}
       <header
-        className="sticky top-0 z-30 hidden border-b sm:block"
+        className="safe-top safe-x sticky top-0 z-30 hidden border-b lg:block"
         style={{ background: 'var(--header-bg)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: 'var(--bd-07)' }}
       >
         <nav className="mx-auto flex max-w-5xl items-center gap-1 px-5 py-2.5">
@@ -257,12 +335,14 @@ function Layout({ children }: { children: ReactNode }) {
           ))}
 
           <div className="ml-auto flex items-center gap-2">
-            <RelogioAoVivo />
-            <BotaoExibicao onClick={() => setExibicaoAberta(true)} />
+            {/* Relógio só a partir de xl: a 1024px o espaço é do essencial. */}
+            <div className="hidden xl:block"><RelogioAoVivo /></div>
+            {/* Ícones compactos: rótulos por texto não caberiam em tablet a 1024px. */}
+            <BotaoExibicao compacto onClick={() => setExibicaoAberta(true)} />
             <BotaoTema />
-            <BotaoFiltrar onClick={() => setFiltrosAbertos(true)} />
-            <BotaoLock />
-            <BotaoSair />
+            <BotaoFiltrar compacto onClick={() => setFiltrosAbertos(true)} />
+            <BotaoLock compacto />
+            <BotaoSair compacto />
             <button
               onClick={() => setRegistrarAberto(true)}
               className="whitespace-nowrap btn-accent rounded-xl px-4 py-2 text-sm font-bold"
@@ -273,35 +353,46 @@ function Layout({ children }: { children: ReactNode }) {
         </nav>
       </header>
 
-      {/* ── Top bar enxuta (mobile) ── */}
+      {/* ── Top bar enxuta (celular / tablet retrato < 1024px) ── */}
       <header
-        className="sticky top-0 z-30 flex items-center justify-between border-b px-4 py-3 sm:hidden"
-        style={{ background: 'var(--header-bg)', backdropFilter: 'blur(12px)', borderColor: 'var(--bd-07)' }}
+        className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b lg:hidden"
+        style={{
+          background: 'var(--header-bg)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderColor: 'var(--bd-07)',
+          // padding base + safe-area (aditivo — sem substituir o recuo padrão).
+          paddingTop: 'calc(0.75rem + env(safe-area-inset-top))',
+          paddingBottom: '0.75rem',
+          paddingLeft: 'calc(1rem + env(safe-area-inset-left))',
+          paddingRight: 'calc(1rem + env(safe-area-inset-right))',
+        }}
       >
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: GRAD }}>
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-lg" style={{ background: GRAD }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" />
             </svg>
           </div>
-          <span className="text-sm font-extrabold" style={{ color: 'var(--orange)' }}>Aquino</span>
+          <span className="truncate text-sm font-extrabold" style={{ color: 'var(--orange)' }}>Aquino</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-none items-center gap-2">
           <RelogioAoVivo />
-          <BotaoFiltrar compacto onClick={() => setFiltrosAbertos(true)} />
-          <BotaoExibicao compacto onClick={() => setExibicaoAberta(true)} />
           <BotaoTema />
-          <BotaoLock compacto />
-          <BotaoSair compacto />
+          <MenuMobile
+            onExibicao={() => setExibicaoAberta(true)}
+            onFiltrar={() => setFiltrosAbertos(true)}
+          />
         </div>
       </header>
 
-      <main className="pb-24 sm:pb-0">{children}</main>
+      {/* pb-nav: reserva o espaço da bottom-nav + safe-area; zera em ≥1024px. */}
+      <main className="pb-nav">{children}</main>
 
-      {/* ── Bottom nav + FAB (mobile) ── */}
+      {/* ── Bottom nav + FAB (celular / tablet retrato) ── */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t sm:hidden"
-        style={{ background: 'var(--header-bg)', backdropFilter: 'blur(12px)', borderColor: 'var(--bd-08)' }}
+        className="safe-bottom safe-x fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t lg:hidden"
+        style={{ background: 'var(--header-bg)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: 'var(--bd-08)' }}
       >
         {navItens.map(({ to, label, Icon }) => (
           <NavLink
@@ -318,8 +409,13 @@ function Layout({ children }: { children: ReactNode }) {
 
       <button
         onClick={() => setRegistrarAberto(true)}
-        className="fixed bottom-[68px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full text-3xl font-bold text-white sm:hidden"
-        style={{ background: GRAD, boxShadow: '0 8px 24px rgba(240,70,78,.5)' }}
+        className="fixed z-40 flex h-14 w-14 items-center justify-center rounded-full text-3xl font-bold text-white lg:hidden"
+        style={{
+          background: GRAD,
+          boxShadow: '0 8px 24px rgba(240,70,78,.5)',
+          bottom: 'calc(68px + env(safe-area-inset-bottom))',
+          right: 'calc(1rem + env(safe-area-inset-right))',
+        }}
         aria-label="Registrar desperdício"
       >
         ＋
