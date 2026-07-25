@@ -109,6 +109,18 @@ grant select, insert, update, delete on public.pratos             to authenticat
 grant select, insert, update, delete on public.prato_ingredientes to authenticated;
 grant execute on function public.salvar_prato(jsonb)              to authenticated;
 
+-- service_role (backup e keep-alive no GitHub Actions) BYPASSA o RLS, mas ainda
+-- precisa do GRANT de tabela — só o BYPASSRLS não basta. Sem isto os workflows
+-- recebem 42501 "permission denied". É seguro: a service_role só roda no
+-- servidor (secret do Actions), nunca no frontend.
+grant select, insert, update, delete on public.alimentos          to service_role;
+grant select, insert, update, delete on public.funcionarios       to service_role;
+grant select, insert, update, delete on public.motivos            to service_role;
+grant select, insert, update, delete on public.registros          to service_role;
+grant select, insert, update, delete on public.pratos             to service_role;
+grant select, insert, update, delete on public.prato_ingredientes to service_role;
+grant execute on function public.salvar_prato(jsonb)              to service_role;
+
 
 -- =====================================================================
 -- Verificação (rodar no terminal, com as variáveis do HML)
