@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMonitor, type ItemRanking } from '../hooks/useMonitor'
-import { useIsMobile } from '../hooks/useIsMobile'
+import { useEhCelular } from '../hooks/useIsMobile'
 import { useOrientation } from '../hooks/useOrientation'
 import { FUSO } from '../lib/fuso'
 
@@ -127,11 +127,22 @@ function PainelRanking({ titulo, itens, vazio }: { titulo: string; itens: ItemRa
 
 export default function ModoExibicao({ onClose }: { onClose: () => void }) {
   const d = useMonitor()
-  const isMobile = useIsMobile()
+  // Pelo MENOR lado da viewport, não pela largura: a trava de orientação abaixo
+  // muda a largura, e decidir por ela faria a tela girar sem parar.
+  const ehCelular = useEhCelular()
   // No celular o painel rende melhor em paisagem: tenta travar nessa orientação
   // (quando o navegador permite) e observa a orientação atual para adaptar a UI.
-  const orientacao = useOrientation(isMobile ? 'landscape' : undefined)
-  const sugerirRotacao = isMobile && orientacao === 'portrait'
+  const orientacao = useOrientation(ehCelular ? 'landscape' : undefined)
+  const sugerirRotacao = ehCelular && orientacao === 'portrait'
+
+  // `onClose` chega inline do Layout, com identidade nova a cada render dele.
+  // Numa ref, o efeito de fullscreen não re-executa: senão ele sairia e
+  // reentraria em fullscreen a cada re-render (um refresh de token basta), e o
+  // evento de saída pendente fecharia o modo sozinho.
+  const fechar = useRef(onClose)
+  useEffect(() => {
+    fechar.current = onClose
+  }, [onClose])
 
   // Entra em fullscreen real ao abrir; sai ao fechar.
   useEffect(() => {
@@ -139,11 +150,11 @@ export default function ModoExibicao({ onClose }: { onClose: () => void }) {
     el.requestFullscreen?.().catch(() => { /* navegador pode bloquear sem gesto */ })
 
     function aoTeclar(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') fechar.current()
     }
     // O Escape do navegador só encerra o fullscreen; fechamos o modo junto.
     function aoSairFullscreen() {
-      if (!document.fullscreenElement) onClose()
+      if (!document.fullscreenElement) fechar.current()
     }
     document.addEventListener('keydown', aoTeclar)
     document.addEventListener('fullscreenchange', aoSairFullscreen)
@@ -153,7 +164,7 @@ export default function ModoExibicao({ onClose }: { onClose: () => void }) {
       document.removeEventListener('fullscreenchange', aoSairFullscreen)
       if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {})
     }
-  }, [onClose])
+  }, [])
 
   return (
     <div className="anim-fade fixed inset-0 z-[70] flex flex-col bg-app" style={{ background: 'var(--bg-app)' }}>
