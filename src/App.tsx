@@ -316,8 +316,8 @@ function Layout({ children }: { children: ReactNode }) {
               </svg>
             </div>
             <div>
-              <div className="text-[13px] font-extrabold leading-none" style={{ color: 'var(--orange)' }}>Petiscaria Aquino</div>
-              <div className="mt-0.5 text-[10px] font-semibold leading-none text-white/40">Monitor de Desperdício</div>
+              <div className="text-[16px] font-extrabold leading-none" style={{ color: 'var(--orange)' }}>Petiscaria Aquino</div>
+              <div className="mt-0.5 text-[13px] font-semibold leading-none text-white/40">Monitor de Desperdício</div>
             </div>
           </div>
 
