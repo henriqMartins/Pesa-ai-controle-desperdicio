@@ -139,6 +139,16 @@ html {
   overscroll-behavior: none;
 }
 
+/* ─── Escala em telas grandes ─────────────────────────────────────────────────
+   O layout é quase todo em rem (texto, espaçamentos, larguras max-w-*). Em
+   monitores grandes tudo ficava pequeno e sobrava espaço ("zoom out"). Aqui
+   ampliamos a base conforme a largura cresce — é um zoom global seguro, sem
+   empurrar a página (que o `zoom` no body causaria). Não afeta celular/tablet. */
+@media (min-width: 1600px) { html { font-size: 17.5px; } }
+@media (min-width: 1920px) { html { font-size: 19px; } }
+@media (min-width: 2560px) { html { font-size: 21px; } }
+@media (min-width: 3200px) { html { font-size: 24px; } }
+
 body {
   margin: 0;
   /* Nada rola na horizontal: qualquer transbordo é contido, não vira scroll.

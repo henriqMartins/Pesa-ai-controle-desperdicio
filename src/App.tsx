@@ -308,7 +308,7 @@ function Layout({ children }: { children: ReactNode }) {
         className="safe-top safe-x sticky top-0 z-30 hidden border-b lg:block"
         style={{ background: 'var(--header-bg)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderColor: 'var(--bd-07)' }}
       >
-        <nav className="mx-auto flex max-w-5xl items-center gap-1 px-5 py-2.5">
+        <nav className="mx-auto flex max-w-7xl items-center gap-1 px-5 py-2.5">
           <div className="mr-5 flex flex-none items-center gap-3">
             <div className="flex h-9 w-9 flex-none items-center justify-center rounded-xl" style={{ background: GRAD, boxShadow: '0 6px 18px rgba(240,70,78,.38)' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

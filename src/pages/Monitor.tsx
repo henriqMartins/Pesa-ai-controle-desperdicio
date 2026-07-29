@@ -29,9 +29,9 @@ function formatarDataHora(iso: string) {
 function Kpi({ rotulo, valor, sub }: { rotulo: string; valor: string; sub?: string }) {
   return (
     <div className="panel rounded-2xl px-5 py-4">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">{rotulo}</p>
+      <p className="text-sm font-bold uppercase tracking-widest text-white/40">{rotulo}</p>
       <p className="mt-2 text-3xl font-extrabold tabular-nums" style={{ color: 'var(--orange)' }}>{valor}</p>
-      {sub && <p className="mt-0.5 text-xs text-white/35">{sub}</p>}
+      {sub && <p className="mt-1 text-sm text-white/35">{sub}</p>}
     </div>
   )
 }
@@ -67,7 +67,7 @@ function ChipsPeriodo({
         <button
           key={o.valor}
           onClick={() => onChange(o.valor)}
-          className="rounded-lg px-2 py-1 text-[11px] font-bold transition-colors"
+          className="rounded-lg px-2 py-1 text-xs font-bold transition-colors"
           style={valor === o.valor ? CHIP_P_ATIVO : CHIP_P_IDLE}
         >
           {o.label}
@@ -101,7 +101,7 @@ function PainelRanking({
   return (
     <div className="panel rounded-2xl p-4">
       <div className="mb-3 flex flex-col gap-2">
-        <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40">{titulo}</h3>
+        <h3 className="text-sm font-bold uppercase tracking-widest text-white/40">{titulo}</h3>
         {acoes}
       </div>
       {itens.length === 0 && <p className="text-sm text-white/30">{vazio}</p>}
@@ -219,7 +219,7 @@ export default function Monitor() {
 
   if (d.loading) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-28 animate-pulse rounded-2xl" style={{ background: 'var(--surface)' }} />
@@ -231,7 +231,7 @@ export default function Monitor() {
 
   return (
     <>
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
       {/* ── Erro de carregamento + retry ── */}
       {d.erro && (
         <div
@@ -297,7 +297,7 @@ export default function Monitor() {
         {/* Últimos lançamentos */}
         <div className="panel rounded-2xl p-4">
           <div className="mb-3 flex flex-col gap-2">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Últimos lançamentos</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-white/40">Últimos lançamentos</h3>
             <ChipsPeriodo
               opcoes={[
                 { valor: 'hoje', label: 'Hoje' },
@@ -334,7 +334,7 @@ export default function Monitor() {
               >
                 <div className="min-w-0">
                   <div className="truncate text-sm font-semibold text-white/85">{r.alimentos.nome}</div>
-                  <div className="text-[11px] text-white/35">{r.funcionarios.nome} · {formatarDataHora(r.criado_em)}</div>
+                  <div className="text-xs text-white/35">{r.funcionarios.nome} · {formatarDataHora(r.criado_em)}</div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
                   <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--orange)' }}>

@@ -171,7 +171,7 @@ export default function Produtos() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5 px-4 py-8">
+    <div className="mx-auto max-w-6xl space-y-5 px-4 py-8">
       {/* busca + novo */}
       <div className="flex gap-2">
         <input type="text" placeholder="🔍 buscar produto..." value={busca} onChange={(e) => setBusca(e.target.value)} className="field" />
@@ -179,11 +179,11 @@ export default function Produtos() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {[0, 1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl" style={{ background: 'var(--surface)' }} />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {filtrados.map((a) => (
             <button
               key={a.id}
