@@ -10,9 +10,12 @@
 -- (não puxam do catálogo `alimentos`). O custo é recalculado a partir dos
 -- inputs salvos — não há snapshot de preço como em `registros`.
 --
--- ACESSO: por ora o RLS é PERMISSIVO (igual ao resto do sistema). A restrição
--- real por papel (só gestor) entra na fase de segurança (Supabase Auth + RLS
--- por papel) — ver docs/plano-seguranca.md.
+-- ⚠️  ACESSO: as políticas no fim deste arquivo são PERMISSIVAS para a `anon key`
+--     (herança do sistema original sem login). A restrição real — `pratos` e
+--     `prato_ingredientes` exclusivos do papel gestor — vive em
+--     migrate_v2_rls_auth.sql, que precisa ser rodado DEPOIS deste script.
+--     Rodar este arquivo num banco já fechado reabre o acesso `anon`: rode a
+--     migração de RLS em seguida. Ver docs/plano-seguranca.md.
 -- =====================================================================
 
 -- Prato pronto (cabeçalho da ficha)

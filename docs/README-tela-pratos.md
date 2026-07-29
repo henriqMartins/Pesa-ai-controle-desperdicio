@@ -1,5 +1,25 @@
 # Handoff: Monitor de Desperdício — Petiscaria Aquino
 
+> ⚠️ **DOCUMENTO DE HANDOFF — PARCIALMENTE CONGELADO.**
+>
+> **Ainda vale:** a **§8** (fórmulas de custo, perda, markup e preço sugerido dos
+> pratos) é a **fonte canônica** do cálculo implementado em
+> [`src/lib/calculoPrato.ts`](../src/lib/calculoPrato.ts), e a estrutura/hierarquia
+> visual descrita aqui foi seguida.
+>
+> **Não vale mais:**
+> - **"Não há login — o sistema é aberto"** e a Decisão 6 ("Login: descartado").
+>   O sistema tem **login por PIN** com dois papéis e **RLS por papel** no banco —
+>   ver [plano-seguranca.md](plano-seguranca.md).
+> - **A paleta azul/navy** (`#1f2a5e`, `#0b1330`, `#141d45`…) e qualquer cor fixa.
+>   O projeto roda uma paleta **quente laranja** 100% tokenizada em
+>   [`src/index.css`](../src/index.css), com temas claro e escuro. O mapa de
+>   tradução protótipo → token está em
+>   [plano-tela-pratos-visual.md](plano-tela-pratos-visual.md#11-mapa-de-tradução-protótipo-azul--token-oficial).
+>
+> Para o estado real do sistema: [produto.md](produto.md) ·
+> [arquitetura.md](arquitetura.md) · [modelo-dados.md](modelo-dados.md).
+
 ## Visão Geral
 
 Sistema web de controle de desperdício de alimentos para a **Petiscaria Aquino**. O sistema funciona como um **dashboard ao vivo** que atualiza automaticamente os indicadores a cada novo lançamento registrado. Não há login — o sistema é aberto.
@@ -21,7 +41,7 @@ Os arquivos neste pacote são **protótipos de referência criados em HTML** —
 | 3 | Registrar | Entrada rápida com chips (desktop/tablet) + passo a passo (mobile) |
 | 4 | Produtos | Grade de cards + modal de cadastro |
 | 5 | Equipe | Lista + modal com toggle ativo/inativo |
-| 6 | Login | **Descartado** — sistema aberto, sem autenticação |
+| 6 | Login | **Descartado** — sistema aberto, sem autenticação ⟵ *revertido: hoje há login por PIN, ver §7* |
 | 7 | Pratos prontos | Nova aba "Pratos" — lista de fichas + tela de criação/edição (ficha técnica e precificação), acesso restrito à gestora |
 
 ---
@@ -265,6 +285,11 @@ interface Employee {
 ### 7. Login — Descartado
 
 Sistema aberto, sem autenticação. Não implementar tela de login.
+
+> ❌ **DECISÃO REVERTIDA.** O sistema tem hoje **login por PIN de 6 dígitos** com
+> dois perfis (funcionário/gestor) e **RLS por papel** no Postgres — a "abertura"
+> significava, na prática, banco aberto na internet, já que a `anon key` vai no
+> bundle. Ver [plano-seguranca.md](plano-seguranca.md).
 
 ---
 

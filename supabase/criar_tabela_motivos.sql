@@ -15,6 +15,11 @@
 -- migrate_v1_to_v2.sql (migração). Este arquivo isola só `motivos` para
 -- aplicação pontual num banco que já tem as demais tabelas.
 -- `motivos` NÃO precisa entrar na publicação de Realtime (só `registros`).
+--
+-- ⚠️  A política criada aqui é PERMISSIVA para a `anon key` (modelo original,
+--     sem login). Num banco já fechado, rode migrate_v2_rls_auth.sql DEPOIS
+--     deste script — senão `motivos` fica aberto na internet enquanto as outras
+--     tabelas seguem protegidas. Ver docs/plano-seguranca.md.
 -- =====================================================================
 
 -- 1. Tabela
@@ -25,7 +30,8 @@ create table if not exists motivos (
   criado_em timestamptz not null default now()
 );
 
--- 2. RLS + política permissiva (sistema aberto, igual às demais tabelas)
+-- 2. RLS + política permissiva (modelo original, sem login) — substituída por
+--    migrate_v2_rls_auth.sql, que precisa rodar depois deste script
 alter table motivos enable row level security;
 drop policy if exists "anon_acesso_total" on motivos;
 create policy "anon_acesso_total" on motivos

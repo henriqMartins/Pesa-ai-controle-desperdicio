@@ -1,16 +1,34 @@
 # Plano de segurança
 
-> Documento de avaliação e planejamento. Não é implementação — explica cada
-> medida, por que ela importa e em que ordem fazer. Veja também
-> [arquitetura](arquitetura.md) e [infraestrutura](infraestrutura.md).
+> **Status: implementado.** As Fases 0 a 4 foram executadas (o que sobrou está
+> marcado como *não feito* na seção [Situação atual](#situação-atual)). Este
+> documento continua sendo a **explicação do modelo** — por que cada medida
+> existe e o que foi descartado —, não uma lista de tarefas pendentes. Veja
+> também [arquitetura](arquitetura.md), [modelo-dados](modelo-dados.md#rls-e-permissões)
+> e [infraestrutura](infraestrutura.md).
 
-## Contexto
+## Situação atual
 
-Hoje o sistema é **aberto**: não há login e o RLS está permissivo
-(`for all to anon using (true)` em [schema.sql](../supabase/schema.sql)). Como a
+| Fase | O que era | Situação |
+|---|---|---|
+| 0 | Separar prod × hml | ✅ feito |
+| 1 | Auth real por PIN | ✅ feito — [`src/lib/auth.ts`](../src/lib/auth.ts), `TelaPin`, `ProtectedRoute` |
+| 2 | RLS por papel | ✅ feito — [`migrate_v2_rls_auth.sql`](../supabase/migrate_v2_rls_auth.sql) |
+| 3 | Lock e lockout | ✅ feito — `LockOverlay`, `useLock`, `useLockout` |
+| 3 | Bloqueio por horário | ❌ **não feito** (não houve demanda da operação) |
+| 4 | CSP e headers na Vercel | ✅ feito — [`vercel.json`](../vercel.json) |
+| 4 | Backup fora do Supabase | ✅ feito — workflow semanal com artefato |
+| 4 | MFA no gestor · Leaked Password Protection | ❌ **não feito** (toggles do painel) |
+| — | Autoria pelo `auth.uid()` | ❌ **não feito** — ver [Decisão pendente](#decisão-pendente--autoria-do-registro) |
+
+## Contexto (o problema que originou o plano)
+
+O sistema **nasceu aberto**: sem login e com RLS permissivo
+(`for all to anon using (true)`, ainda visível em
+[schema.sql](../supabase/schema.sql), que é o script de banco do zero). Como a
 `anon key` e a URL **sempre** vão no bundle do navegador (prefixo `VITE_`, é por
-design), qualquer pessoa que abra o DevTools tem a chave e pode chamar a API REST
-do Supabase **direto, pulando o frontend React**.
+design), qualquer pessoa que abrisse o DevTools tinha a chave e podia chamar a API
+REST do Supabase **direto, pulando o frontend React**.
 
 A consequência prática disso guia todo o plano:
 
@@ -119,8 +137,14 @@ chutar por robô). **Usar 6 dígitos** (1 milhão). O Supabase já aplica rate
 limiting nativo no login; o **lockout após X tentativas** entra na Fase 3.
 
 **Como o papel é descoberto:** a conta logada (gestor/funcionário) define o que a
-UI mostra e o que o RLS permite. O papel vem do `user_metadata` do Auth
+UI mostra e o que o RLS permite. O papel vem do **`app_metadata`** do Auth
 (`{ papel: 'gestor' }`), gravado na criação da conta.
+
+> **Correção em relação ao esboço original deste plano:** o papel **não** pode
+> ficar em `user_metadata`. O próprio usuário logado consegue reescrever
+> `user_metadata` via `auth.updateUser` — ou seja, um funcionário se promoveria a
+> gestor com uma chamada. `app_metadata` só é gravável pela `service_role`. É de
+> lá que leem tanto `papelDaSessao` (front) quanto `auth_papel()` (RLS).
 
 **Arquivos/pontos envolvidos:** novo `TelaPin` (teclado numérico), `ProtectedRoute`,
 constante com os emails/papéis, ajuste em [App.tsx](../src/App.tsx), uso do
@@ -129,25 +153,50 @@ constante com os emails/papéis, ajuste em [App.tsx](../src/App.tsx), uso do
 ### Fase 2 — RLS por papel (fechar o banco)
 
 **O quê:** trocar as políticas `to anon using (true)` por políticas `to
-authenticated` com regras por papel. Esboço da intenção:
+authenticated` com regras por papel, e revogar o `grant ... to anon`.
+
+O esboço inicial era mais restritivo do que o que foi implementado. O **modelo
+final**, calibrado com a operação real (funcionário precisa corrigir o próprio
+lançamento e cadastrar um produto/motivo no meio do serviço, sem depender da dona):
 
 | Tabela | Funcionário | Gestor |
 |---|---|---|
-| `registros` | inserir (e ler os próprios) | tudo |
-| `alimentos`, `motivos`, `funcionarios` | só leitura | tudo (CRUD) |
+| `registros`, `motivos`, `alimentos` | tudo | tudo |
+| `funcionarios` (equipe) | só leitura | tudo |
+| `pratos`, `prato_ingredientes` | — | tudo |
 
-Revogar os `grant ... to anon` e o acesso da `anon key` às tabelas.
+O SQL canônico é [`migrate_v2_rls_auth.sql`](../supabase/migrate_v2_rls_auth.sql);
+o DDL comentado está em [modelo-dados.md](modelo-dados.md#rls-e-permissões).
+
+> **Detalhe que quebra na prática:** revogar o `anon` não basta — a
+> `service_role` (backup e keep-alive no GitHub Actions) *bypassa o RLS mas não o
+> `GRANT`* de tabela. Sem `grant ... to service_role`, os workflows recebem
+> `42501 permission denied`. A migração já concede.
 
 **Por quê:** este é o ponto que **realmente fecha a porta** que estava aberta.
 Depois disso, a `anon key` no bundle não dá mais acesso aos dados.
 
-**Por que vincular ao `auth.uid()`:** trocar o `funcionario_id` vindo do dropdown
-pelo identificador do usuário logado dá uma **trilha de auditoria confiável** —
-não dá mais para "se passar" por outro funcionário só escolhendo o nome na lista.
+**Arquivos/pontos envolvidos:** [`migrate_v2_rls_auth.sql`](../supabase/migrate_v2_rls_auth.sql).
+O [schema.sql](../supabase/schema.sql) **não** foi reescrito: ele segue sendo o
+script de "banco do zero" com o RLS aberto, e a migração é aplicada depois.
 
-**Arquivos/pontos envolvidos:** [schema.sql](../supabase/schema.sql) (políticas e
-grants), nova migração em `supabase/`, ajuste no fluxo de registro que hoje usa
-[useFuncionarioAtual.ts](../src/hooks/useFuncionarioAtual.ts).
+### Decisão pendente — autoria do registro
+
+**Não implementado.** A intenção original era trocar o `funcionario_id` vindo da
+lista pelo `auth.uid()` do usuário logado, o que daria uma **trilha de auditoria
+confiável** — não daria mais para "se passar" por outro funcionário só escolhendo
+o nome.
+
+Isso não foi feito porque **as duas contas são compartilhadas**: várias pessoas
+usam o mesmo PIN de funcionário. Amarrar a autoria ao `auth.uid()` hoje faria
+todos os lançamentos aparecerem como "funcionario@petiscaria.local" — pior do que
+o nome escolhido na lista, que ao menos identifica quem registrou (mesmo sem
+garantia). O caminho real é **uma conta por pessoa**; enquanto isso não for
+decidido com a dona, a autoria segue vindo de
+[useFuncionarioAtual.ts](../src/hooks/useFuncionarioAtual.ts) + `funcionarios`.
+
+**Consequência aceita:** a autoria é *declarada*, não *autenticada*. Serve para
+organizar a operação, não para responsabilizar ninguém.
 
 ### Fase 3 — Lock, lockout e horários (camada de conveniência)
 
@@ -190,69 +239,74 @@ sessão por trás é autenticada.
 
 ---
 
-## Plano de implementação
+## Plano de implementação — o que foi entregue
 
-Passo a passo executável. Cada item começa como `[ ]` e vira `[x]` conforme for
-concluído. Tudo é testado no projeto **hml** antes de aplicar no de produção.
+Registro do que foi executado (e onde), para auditoria futura. Tudo foi testado no
+projeto **hml** antes de ir para produção.
 
 ### Etapa 0 — Ambientes prod × hml
 
-- [ ] Criar um segundo projeto no painel do Supabase (nome sufixo `-hml`).
-- [ ] Aplicar [schema.sql](../supabase/schema.sql) no projeto hml.
-- [ ] Apontar `.env.local` para o hml; conferir `.env.example` atualizado.
-- [ ] Confirmar que a Vercel (produção) usa as variáveis do projeto da **loja** no
-      painel, não as de hml.
+- [x] Segundo projeto no painel do Supabase (hml).
+- [x] Scripts do banco aplicados no hml.
+- [x] `.env.local` apontando para o hml; `.env.example` conferido.
+- [x] Vercel (produção) usando as variáveis do projeto da **loja**.
 
 ### Etapa 1 — Auth por PIN + gating do app
 
-- [ ] No Supabase (hml e depois prod), criar 2 usuários no Auth com email fantasma
-      e `user_metadata` de papel:
+- [x] Dois usuários no Auth com email fantasma e o papel em **`app_metadata`**
+      (não `user_metadata` — ver a correção na Fase 1):
   - `gestor@petiscaria.local` → `{ "papel": "gestor" }`
   - `funcionario@petiscaria.local` → `{ "papel": "funcionario" }`
-  - senha = PIN de 6 dígitos (guardada com a dona, fora do repositório).
-- [ ] `src/lib/auth.ts` — constantes dos emails/papéis + helpers:
-      `entrarComPin(papel, pin)` (chama `signInWithPassword`), `sair()`,
-      `sessaoAtual()`, `papelAtual()` (lê `user_metadata.papel`).
-- [ ] `src/hooks/useSessao.ts` — estado reativo da sessão via
-      `supabase.auth.onAuthStateChange` + `getSession`.
-- [ ] `src/components/TelaPin.tsx` — teclado numérico; escolha de perfil
-      (gestor/funcionário) e campo de 6 dígitos; chama `entrarComPin`.
-- [ ] `src/components/ProtectedRoute.tsx` — sem sessão → renderiza `TelaPin`;
-      com sessão → renderiza as rotas. Envolver `<Routes>` em [App.tsx](../src/App.tsx).
-- [ ] Aposentar o dropdown de funcionário do fluxo de registro: passar a usar o
-      usuário logado (substituindo o uso de
-      [useFuncionarioAtual.ts](../src/hooks/useFuncionarioAtual.ts)).
+  - senha = PIN de 6 dígitos (guardado com a dona, fora do repositório).
+- [x] [`src/lib/auth.ts`](../src/lib/auth.ts) — emails/papéis + `entrarComPin`,
+      `verificarPin`, `sair` e `papelDaSessao` (lê `app_metadata.papel`).
+- [x] [`src/hooks/useSessao.ts`](../src/hooks/useSessao.ts) — sessão reativa via
+      `getSession` + `onAuthStateChange`, com `carregando` para não piscar a `TelaPin`.
+- [x] [`src/components/TelaPin.tsx`](../src/components/TelaPin.tsx) +
+      [`TecladoPin.tsx`](../src/components/TecladoPin.tsx) — perfil + 6 dígitos,
+      com envio automático ao completar.
+- [x] [`src/components/ProtectedRoute.tsx`](../src/components/ProtectedRoute.tsx)
+      envolvendo o `Layout` em [App.tsx](../src/App.tsx); gating da aba/rota
+      `/pratos` por [`useEhGestor`](../src/hooks/useEhGestor.ts).
+- [ ] ~~Aposentar o dropdown de funcionário~~ — **descartado por ora**; ver
+      [Decisão pendente](#decisão-pendente--autoria-do-registro).
 
 ### Etapa 2 — RLS por papel
 
-- [ ] Nova migração `supabase/migrate_v2_rls_auth.sql`:
-  - `drop policy "anon_acesso_total"` nas 4 tabelas.
-  - `revoke ... from anon` (tirar o acesso da anon key às tabelas).
-  - Função `auth_papel()` que lê o papel do JWT (`auth.jwt()->'user_metadata'`).
-  - Políticas `to authenticated`:
-    - `registros`: funcionário faz `insert`/`select`; gestor faz tudo.
-    - `alimentos`, `motivos`, `funcionarios`: `select` para todos; `insert/update/
-      delete` só para gestor.
-  - `registros.funcionario_id` passa a referenciar o `auth.uid()` do logado.
-- [ ] Aplicar em hml, rodar o teste de `curl` da seção Verificação (deve falhar
-      sem login), e só então aplicar em prod.
+- [x] [`supabase/migrate_v2_rls_auth.sql`](../supabase/migrate_v2_rls_auth.sql):
+  - `drop policy` de todos os nomes já usados, nas 6 tabelas (idempotente).
+  - `revoke all ... from anon` nas 6 tabelas e na função `salvar_prato`.
+  - Função `auth_papel()` lendo `auth.jwt() -> 'app_metadata' ->> 'papel'`.
+  - Políticas `to authenticated` no modelo final da tabela da Fase 2.
+  - `grant` para `authenticated` **e** `service_role` (bypass de RLS não dispensa
+    o `GRANT`).
+- [x] Aplicado em hml, validado com o `curl` da seção Verificação, e então em prod.
 
-### Etapa 3 — Lock, lockout e horário
+### Etapa 3 — Lock e lockout
 
-- [ ] Botão "Lockar agora" no [Layout](../src/App.tsx) → volta à `TelaPin` sem
-      derrubar a sessão (re-valida só o PIN).
-- [ ] Lockout: contador de tentativas erradas na `TelaPin` (bloqueio temporário
-      após N erros).
-- [ ] (Opcional) Política RLS com checagem de horário para reforçar o bloqueio de
-      expediente no servidor.
+- [x] Botão "Bloquear" no [Layout](../src/App.tsx) →
+      [`LockOverlay`](../src/components/LockOverlay.tsx) por cima do app, com a
+      sessão viva; estado em [`useLock`](../src/hooks/useLock.ts) (persistido, e
+      limpo no `SIGNED_OUT`).
+- [x] O desbloqueio confere o PIN **no servidor** por um cliente Supabase isolado
+      (`verificarPin`) — re-autenticar no cliente principal com sessão ativa
+      travava o `signInWithPassword`.
+- [x] [`useLockout`](../src/hooks/useLockout.ts) — 5 erros → 1 min de bloqueio,
+      persistido em `localStorage` (recarregar não zera).
+- [ ] Bloqueio por horário — **não feito**; sem demanda da operação. Se entrar,
+      precisa ser também no RLS (comparação de horário no servidor) para não ser
+      só client-side.
 
 ### Etapa 4 — Extras
 
-- [ ] Ativar MFA na conta de gestor.
-- [ ] Ativar Leaked Password Protection no painel do Supabase.
-- [ ] `vercel.json` com CSP e headers de segurança.
-- [ ] Validar o backup periódico (já iniciado no backup semanal) apontando também
-      para o projeto de produção.
+- [x] [`vercel.json`](../vercel.json) com CSP e headers de segurança.
+- [x] Backup semanal apontando para produção
+      ([`backup-dados.yml`](../.github/workflows/backup-dados.yml), artefato com
+      90 dias de retenção).
+- [ ] MFA na conta de gestor — **não feito**.
+- [ ] Leaked Password Protection — **não feito** (nota: sendo a senha um PIN de 6
+      dígitos, a checagem contra o HaveIBeenPwned tende a rejeitar PINs comuns;
+      vale ativar junto com a escolha do PIN definitivo).
 
 ### Testes
 
@@ -260,16 +314,23 @@ concluído. Tudo é testado no projeto **hml** antes de aplicar no de produção
       (redireciona sem sessão) — seguindo o padrão de testes já existente no
       projeto.
 
-## Verificação (quando implementar)
+## Verificação
 
-Para confirmar que o banco está realmente fechado após a Fase 2, o teste decisivo
-é tentar acessar **sem login**, simulando um atacante com a `anon key`:
+Rode isto após qualquer mexida no banco — inclusive após re-rodar `schema.sql`,
+`criar_tabela_motivos.sql` ou `criar_tabelas_pratos.sql`, que reabrem o acesso
+`anon` e exigem a migração de RLS em seguida.
+
+O teste decisivo é acessar **sem login**, simulando um atacante com a `anon key`:
 
 ```bash
-# Deve retornar erro/lista vazia DEPOIS da Fase 2 (hoje retorna todos os dados):
+# Esperado: 401 / permission denied — NÃO os dados.
 curl "$VITE_SUPABASE_URL/rest/v1/registros?select=*" \
   -H "apikey: $VITE_SUPABASE_ANON_KEY"
 ```
 
-Demais checagens: login com cada papel mostra só o que deveria; funcionário não
-consegue editar produtos; registro fica amarrado ao `auth.uid()` correto.
+Repita para `alimentos`, `funcionarios`, `motivos` e `pratos` — todas devem negar.
+
+Demais checagens (login com cada papel mostra só o que deveria, funcionário não
+edita a Equipe nem vê Pratos, lock/desbloqueio, lockout que sobrevive a reload)
+estão no roteiro de [teste-aceitacao.md](teste-aceitacao.md), que é o checklist
+oficial antes de liberar uma versão.

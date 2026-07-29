@@ -14,17 +14,21 @@ Antes, **não havia como corrigir isso dentro do app** — a única saída era a
 abrir o painel do Supabase e mexer na linha à mão, o que gera dependência do
 desenvolvedor e desconfiança no número do mês.
 
-> O banco **já permitia** apagar/editar (`grant ... delete, update on registros
-> to anon` no `schema.sql`) — **não foi preciso migração**; faltava só a interface
-> e as funções no front.
+> O banco **já permitia** apagar/editar — **não foi preciso migração**; faltava só
+> a interface e as funções no front. (Na época o `grant` era para o role `anon`;
+> hoje é para `authenticated`, e tanto funcionário quanto gestor podem corrigir —
+> ver [modelo-dados.md](modelo-dados.md#rls-e-permissões).)
 
 ## Decisões
 
 1. **Exclusão + edição, as duas.** Excluir resolve "esse lançamento não devia
    existir"; editar resolve "o valor/motivo está errado" sem perder a hora original.
-2. **Proteção contra toque acidental.** Como o sistema é aberto (sem login),
-   qualquer pessoa no balcão pode mexer. A exclusão pede **confirmação**; isso
-   basta para evitar engano, sem precisar de autenticação.
+2. **Proteção contra toque acidental.** A exclusão pede **confirmação** com
+   contexto (alimento, valor e autor), o que basta para evitar engano.
+   *Nota:* este recurso foi feito quando o sistema era aberto (sem login), e a
+   confirmação era a única barreira. Hoje há login por PIN e RLS, mas a decisão
+   se mantém — o risco real é o toque errado de quem está autorizado, não o
+   acesso de fora.
 3. **Hard delete** (apaga de vez), não soft delete. Ferramenta interna, equipe
    pequena — simplicidade vale mais que trilha de auditoria. (Soft delete via
    coluna `cancelado` fica como evolução futura, se um dia for preciso auditar.)
@@ -77,4 +81,8 @@ desenvolvedor e desconfiança no número do mês.
 
 - **Soft delete / auditoria:** trocar `DELETE` por uma coluna `cancelado` e
   filtrar nas consultas, caso um dia seja preciso saber o que foi apagado.
-- **Restrição por papel:** se a equipe crescer, limitar exclusão/edição a `gestor`.
+- **Restrição por papel:** hoje a política `reg_all` permite que funcionário e
+  gestor corrijam qualquer lançamento — decisão consciente (o funcionário precisa
+  consertar o próprio erro na hora, sem depender da dona). Se a equipe crescer,
+  restringir a exclusão a `gestor` é uma mudança só de política RLS, sem tocar no
+  front.

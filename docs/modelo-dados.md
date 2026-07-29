@@ -40,7 +40,10 @@ create table if not exists alimentos (
 ```
 
 ### `funcionarios`
-Usados para identificação e atribuição do registro. O sistema não tem senha — o funcionário seleciona o próprio nome na tela.
+Usados para **atribuir a autoria** do lançamento: quem registra escolhe o próprio
+nome na lista. Não são contas de acesso — o login é por PIN em duas contas do
+Supabase Auth (ver [plano-seguranca.md](plano-seguranca.md)); a coluna `papel`
+aqui é rótulo de equipe, e o papel que decide permissão é o do JWT.
 
 | Coluna | Tipo | Observações |
 |---|---|---|
@@ -200,9 +203,10 @@ sugerido é `totalCusto*(1+margem/100)`. Perda `%` = `((bruto-liquido)/bruto)*10
 (no mesmo script), que faz upsert do prato + substituição completa dos ingredientes
 numa transação. O cliente chama `supabase.rpc('salvar_prato', { payload })`.
 
-> **RLS:** hoje permissivo para a `anon key`, como as demais tabelas. A restrição
-> real por papel (só gestor) fica para a fase de segurança — ver
-> [plano-seguranca.md](plano-seguranca.md).
+> **RLS:** ambas as tabelas são **exclusivas do gestor** — políticas
+> `pra_gestor`/`prai_gestor` exigem `auth_papel() = 'gestor'`. Como
+> `salvar_prato` é `SECURITY INVOKER`, o RLS vale dentro dela: um funcionário que
+> a chamasse direto pela REST seria barrado. Ver a seção de RLS abaixo.
 
 ## Consultas (totais e rankings)
 
@@ -237,42 +241,86 @@ order by total desc;
 
 ## RLS e permissões
 
-O sistema usa a `anon key` sem autenticação de usuário (ambiente interno, um só
-local). O RLS está **ativo** com políticas permissivas para o role `anon`, e as
-tabelas recebem `GRANT` explícito — **ambos** precisam passar para o acesso e o
-Realtime funcionarem (sem o `GRANT`, o `anon` leva "permission denied" antes
-mesmo de o RLS ser avaliado).
+O sistema exige **sessão autenticada** (login por PIN → Supabase Auth) e decide a
+autorização por **papel lido do JWT**. O acesso do role `anon` às tabelas foi
+**revogado**: a `anon key` que vai no bundle só serve para o endpoint `/auth`.
+O SQL canônico é [`migrate_v2_rls_auth.sql`](../supabase/migrate_v2_rls_auth.sql).
+
+> ⚠️ [`schema.sql`](../supabase/schema.sql) ainda cria as políticas antigas e
+> abertas (`anon_acesso_total` + `grant ... to anon`), porque é o script de
+> "banco do zero". **Sempre rode `migrate_v2_rls_auth.sql` depois dele** — e
+> nunca re-rode `schema.sql`, `criar_tabela_motivos.sql` ou
+> `criar_tabelas_pratos.sql` num banco já fechado sem rodar a migração de RLS em
+> seguida, sob pena de reabrir o acesso `anon`.
+
+**Modelo de acesso implementado:**
+
+| Tabela | Funcionário | Gestor |
+|---|---|---|
+| `registros` | tudo (corrige o próprio lançamento) | tudo |
+| `motivos` | tudo | tudo |
+| `alimentos` (produtos) | tudo | tudo |
+| `funcionarios` (equipe) | só leitura | tudo |
+| `pratos`, `prato_ingredientes` | — | tudo |
 
 ```sql
--- Ativar RLS nas quatro tabelas
-alter table alimentos    enable row level security;
-alter table funcionarios enable row level security;
-alter table motivos      enable row level security;
-alter table registros    enable row level security;
+-- Papel do usuário logado, lido do JWT. `app_metadata` (só a service_role grava),
+-- NUNCA `user_metadata` (que o próprio usuário editaria via auth.updateUser).
+create or replace function public.auth_papel()
+returns text language sql stable as $$
+  select auth.jwt() -> 'app_metadata' ->> 'papel';
+$$;
 
--- Política permissiva para a anon key (idempotente: drop antes de recriar)
--- Repita o par drop/create para cada tabela (alimentos, funcionarios, motivos, registros):
-drop policy if exists "anon_acesso_total" on registros;
-create policy "anon_acesso_total" on registros
-  for all to anon using (true) with check (true);
+-- Tudo liberado para quem está autenticado (registros, motivos, alimentos):
+create policy "reg_all" on registros
+  for all to authenticated using (true) with check (true);
 
--- GRANT por tabela (tabelas criadas via SQL Editor não recebem grant automático)
-grant select, insert, update, delete on public.alimentos    to anon, authenticated;
-grant select, insert, update, delete on public.funcionarios to anon, authenticated;
-grant select, insert, update, delete on public.motivos      to anon, authenticated;
-grant select, insert, update, delete on public.registros    to anon, authenticated;
+-- Equipe: todos leem, só gestor escreve.
+create policy "fun_select" on funcionarios
+  for select to authenticated using (true);
+create policy "fun_update" on funcionarios
+  for update to authenticated
+  using (auth_papel() = 'gestor') with check (auth_papel() = 'gestor');
+
+-- Pratos: recurso exclusivo do gestor.
+create policy "pra_gestor" on pratos
+  for all to authenticated
+  using (auth_papel() = 'gestor') with check (auth_papel() = 'gestor');
+
+-- A anon key deixa de acessar as tabelas...
+revoke all on public.registros from anon;
+-- ...e o papel autenticado recebe o GRANT (o RLS acima é quem filtra).
+grant select, insert, update, delete on public.registros to authenticated;
+-- service_role (backup/keep-alive no Actions) bypassa RLS, mas ainda precisa do GRANT.
+grant select, insert, update, delete on public.registros to service_role;
 ```
 
+> **Por que GRANT *e* política:** tabelas criadas pelo SQL Editor não recebem
+> `GRANT` automático, e sem ele o role leva "permission denied" (42501) antes
+> mesmo de o RLS ser avaliado. Ambos precisam passar. Isso vale até para a
+> `service_role`, que ignora o RLS mas não o `GRANT`.
+
 > **Segurança:** a `service_role key` nunca vai ao front-end — ela ignora o RLS.
-> Só a `anon key` (protegida pelo RLS) é usada no cliente.
+> Só a `anon key` é usada no cliente, e ela hoje não abre nenhuma tabela.
+
+Verificação decisiva (deve responder `401 permission denied`, não os dados):
+
+```bash
+curl "$VITE_SUPABASE_URL/rest/v1/registros?select=*" -H "apikey: $VITE_SUPABASE_ANON_KEY"
+```
 
 ## Scripts SQL
 
+Ordem para um **banco do zero**: `schema.sql` → `criar_tabelas_pratos.sql` →
+(`seed.sql`, opcional) → **`migrate_v2_rls_auth.sql` por último**.
+
 | Arquivo | Quando usar |
 |---|---|
-| [`schema.sql`](../supabase/schema.sql) | Criar o banco do zero (idempotente). |
+| [`schema.sql`](../supabase/schema.sql) | Criar as 4 tabelas base do zero (idempotente). Deixa o RLS **aberto** — exige a migração de RLS depois. |
+| [`criar_tabelas_pratos.sql`](../supabase/criar_tabelas_pratos.sql) | Criar `pratos`/`prato_ingredientes` + RPC `salvar_prato`. Idempotente; também deixa o RLS aberto. |
+| [`migrate_v2_rls_auth.sql`](../supabase/migrate_v2_rls_auth.sql) | **Fechar o banco**: RLS por papel para `authenticated`, revogação do `anon` e grants de `authenticated`/`service_role`. Idempotente — rode sempre por último. |
 | [`migrate_v1_to_v2.sql`](../supabase/migrate_v1_to_v2.sql) | Migrar um banco do schema antigo (`valor_por_kg`/`peso_g`) preservando dados, e criar a tabela `motivos`. |
-| [`criar_tabela_motivos.sql`](../supabase/criar_tabela_motivos.sql) | Criar **só** a tabela `motivos` (+RLS, grant, motivos padrão) num banco que já tem as demais. Use quando `/rest/v1/motivos` responde 404. |
+| [`criar_tabela_motivos.sql`](../supabase/criar_tabela_motivos.sql) | Criar **só** a tabela `motivos` num banco que já tem as demais. Use quando `/rest/v1/motivos` responde 404. |
 | [`seed.sql`](../supabase/seed.sql) | Popular dados de exemplo (alimentos, funcionários, motivos, registros). |
-| [`criar_tabelas_pratos.sql`](../supabase/criar_tabelas_pratos.sql) | Criar as tabelas `pratos`/`prato_ingredientes` (+RPC `salvar_prato`, RLS, grants). Idempotente. |
 | [`reset_e_recriar.sql`](../supabase/reset_e_recriar.sql) | Apagar as tabelas (dev, sem dados a preservar). |
+| [`reset_prod_entrega.sql`](../supabase/reset_prod_entrega.sql) | Preparar **produção** para a entrega: zera os dados, recria os 5 motivos padrão, grava o `papel` em `app_metadata`, redefine os PINs e derruba as sessões. Destrutivo, com trava `set app.confirmo = 'SIM'`. |

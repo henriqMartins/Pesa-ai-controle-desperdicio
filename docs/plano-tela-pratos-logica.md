@@ -1,9 +1,13 @@
 # Plano de Cadastro & Lógica — Tela "Pratos" (IMPLEMENTADO)
 
-> **Status:** implementado (dados, cálculo, formulário, hook e integração). Ficam
-> **deferidas** as duas medidas de acesso real (identificação da gestora via Auth
-> e RLS por papel), por decisão "permissivo agora, segurança depois" — ver
-> [plano-seguranca.md](plano-seguranca.md). O plano **visual e estrutural** está em
+> **Status:** implementado por completo — dados, cálculo, formulário, hook,
+> integração **e o acesso real**. As duas medidas que estavam deferidas
+> ("permissivo agora, segurança depois") foram entregues depois deste plano:
+> a gestora é identificada pela **sessão de Auth** (`useEhGestor` a partir de
+> `app_metadata.papel`, não mais pelo funcionário escolhido na lista) e as tabelas
+> `pratos`/`prato_ingredientes` são **exclusivas do gestor no RLS**
+> (`pra_gestor`/`prai_gestor` em [`migrate_v2_rls_auth.sql`](../supabase/migrate_v2_rls_auth.sql)).
+> Ver [plano-seguranca.md](plano-seguranca.md). O plano **visual e estrutural** está em
 > [plano-tela-pratos-visual.md](plano-tela-pratos-visual.md) e não foi alterado —
 > os componentes de UI recebem dados e handlers por props.
 
@@ -43,14 +47,19 @@ Implementado em [`src/lib/calculoPrato.ts`](../src/lib/calculoPrato.ts) + testes
 - [x] Validação mínima: nome obrigatório (botão Salvar desabilita por prop).
 - [x] Máscara decimal (vírgula) coerente com Produtos/Registrar (`num`/`replace`).
 
-### Acesso (gestora)
-- [x] Gating de UX: [`useEhGestor`](../src/hooks/useEhGestor.ts) deriva do papel
-      `gestor` do funcionário selecionado ([useFuncionarioAtual](../src/hooks/useFuncionarioAtual.ts)).
-- [ ] **Identificação real** da gestora (Supabase Auth + PIN) — **DEFERIDO** para a
-      fase de segurança (decisão: "permissivo agora, segurança depois").
-- [ ] **RLS/regra no backend** restringindo `pratos`/`prato_ingredientes` ao papel
-      gestor — **DEFERIDO**; hoje o RLS é permissivo como as demais tabelas. Ver
-      [plano-seguranca.md](plano-seguranca.md).
+### Acesso (gestora) — concluído
+- [x] Gating de UX: [`useEhGestor`](../src/hooks/useEhGestor.ts) esconde a aba e
+      redireciona a rota `/pratos`. **Mudou de fonte:** o papel vem hoje da
+      **sessão de Auth** (`papelDaSessao`, lendo `app_metadata.papel` do JWT), não
+      mais do funcionário selecionado na lista.
+- [x] **Identificação real** da gestora: login por PIN (Supabase Auth) —
+      [`src/lib/auth.ts`](../src/lib/auth.ts), `TelaPin`, `ProtectedRoute`.
+- [x] **RLS no backend:** políticas `pra_gestor`/`prai_gestor` exigem
+      `auth_papel() = 'gestor'` em `pratos` e `prato_ingredientes`; o `execute` de
+      `salvar_prato` foi revogado do `anon`, e a função é `SECURITY INVOKER` —
+      então o RLS vale dentro dela e um funcionário que a chamasse pela REST é
+      barrado. Ver [`migrate_v2_rls_auth.sql`](../supabase/migrate_v2_rls_auth.sql)
+      e [plano-seguranca.md](plano-seguranca.md).
 
 ### Integração
 - [x] Componentes de [plano-tela-pratos-visual.md](plano-tela-pratos-visual.md)

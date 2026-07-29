@@ -5,8 +5,9 @@ duas camadas que se complementam:
 
 | Camada | O que cobre | Quando roda | Onde |
 |---|---|---|---|
-| **Automatizada** (Vitest) | Lógica pura onde um bug silencioso corromperia os números | A cada `npm test` / antes de cada commit | `src/**/*.test.ts` |
-| **Manual** (checklist) | Telas, tempo real, PWA, UX no tablet | Antes de entregar à cliente / após mudanças grandes | [plano-testes.md](plano-testes.md) |
+| **Automatizada** (Vitest) | Lógica pura onde um bug silencioso corromperia os números, e o comportamento dos componentes críticos | A cada `npm test`, antes de cada commit e no CI | `src/**/*.test.ts[x]` |
+| **Manual** (checklist por área) | Telas, tempo real, PWA, UX no tablet | Após mudanças grandes | [plano-testes.md](plano-testes.md) |
+| **Manual** (aceite ponta a ponta) | Segurança do banco, permissões por papel, lock/logout | Antes de liberar uma versão | [teste-aceitacao.md](teste-aceitacao.md) |
 
 > **Por que esse desenho?** Sendo um projeto pequeno e mantido por uma pessoa,
 > automatizar tudo (cada clique, cada tela) custaria mais do que entrega. Então
@@ -24,17 +25,41 @@ npm run test:watch  # fica observando: re-roda só o que mudou ao salvar
 npm run test:coverage  # roda + mostra quanto do código está coberto
 ```
 
-Saída esperada: `Test Files  3 passed (3)` e `Tests  20 passed (20)`.
+Saída esperada hoje: `Test Files  16 passed (16)` e `Tests  89 passed (89)`.
+Os mesmos comandos rodam no CI a cada push/PR — ver [ci.md](ci.md).
 
 ---
 
 ## O que está coberto hoje
 
+**Lógica pura (o número não pode estar errado)**
+
 | Arquivo de teste | O que valida | Por que importa |
 |---|---|---|
-| [`src/lib/unidades.test.ts`](../src/lib/unidades.test.ts) | Conversão de unidade digitada → unidade base, e a reexibição (`500 g` ⇄ `0,5 kg`) | Se converter errado, **todo custo e relatório** fica errado |
-| [`src/hooks/useMonitor.test.ts`](../src/hooks/useMonitor.test.ts) | Agregação dos KPIs: totais dia/mês, média, top alimentos, top motivos, ranking | É o número que a dona usa para decidir — não pode estar errado |
-| [`src/lib/exportar.test.ts`](../src/lib/exportar.test.ts) | Montagem das linhas do Excel/PDF e disparo do download | Garante que o relatório exportado bate com a tela |
+| [`lib/unidades.test.ts`](../src/lib/unidades.test.ts) | Conversão de unidade digitada → unidade base, e a reexibição (`500 g` ⇄ `0,5 kg`) | Se converter errado, **todo custo e relatório** fica errado |
+| [`hooks/useMonitor.test.ts`](../src/hooks/useMonitor.test.ts) | `agregar()`: totais dia/mês, média, projeção, top alimentos, top motivos, ranking | É o número que a dona usa para decidir |
+| [`lib/filtros.test.ts`](../src/lib/filtros.test.ts) | Intervalos por período, recorte da base e os 3 modos do filtro avançado | Um período errado muda a conclusão do relatório |
+| [`lib/calculoPrato.test.ts`](../src/lib/calculoPrato.test.ts) | Custo por ingrediente, perda (bruto ÷ líquido), total, markup e preço sugerido | Erro aqui vira preço de venda errado no cardápio |
+| [`lib/mapPrato.test.ts`](../src/lib/mapPrato.test.ts) | Conversão banco ⇄ view-model (máscara decimal, nulos dos pesos) | Um `0` virando `""` (ou vice-versa) corromperia a ficha salva |
+| [`lib/exportar.test.ts`](../src/lib/exportar.test.ts) | Montagem das linhas do Excel/PDF e disparo do download | Garante que o relatório exportado bate com a tela |
+| [`lib/auth.test.ts`](../src/lib/auth.test.ts) | Login por PIN, papel lido de `app_metadata` (e ignorado em `user_metadata`) | É o alicerce da autorização — o RLS confia nesse papel |
+| [`hooks/useLockout.test.ts`](../src/hooks/useLockout.test.ts) | Bloqueio após N erros, liberação por tempo e persistência entre montagens | Sem persistir, recarregar a página burlaria o bloqueio |
+
+**Componentes (comportamento, não pixel)**
+
+| Arquivo de teste | O que valida |
+|---|---|
+| [`TelaPin.test.tsx`](../src/components/TelaPin.test.tsx) | Envio automático aos 6 dígitos, erro de PIN, troca de perfil |
+| [`LockOverlay.test.tsx`](../src/components/LockOverlay.test.tsx) | Desbloqueio pelo PIN e a saída para trocar de conta |
+| [`ProtectedRoute.test.tsx`](../src/components/ProtectedRoute.test.tsx) | Sem sessão → `TelaPin`; com sessão → conteúdo; bloqueado → overlay |
+| [`RegistrarModal.test.tsx`](../src/components/RegistrarModal.test.tsx) | Fluxo de registro, custo estimado e regras de habilitação do botão |
+| [`FiltrosModal.test.tsx`](../src/components/FiltrosModal.test.tsx) | Troca de modo/período e o resultado exibido |
+| [`ErrorBoundary.test.tsx`](../src/components/ErrorBoundary.test.tsx) | Erro de render vira tela amigável, não tela branca |
+| [`pages/Produtos.test.tsx`](../src/pages/Produtos.test.tsx) | Grade, busca e o modal de novo/editar |
+| [`pages/Equipe.test.tsx`](../src/pages/Equipe.test.tsx) | Lista e o gating de escrita por papel |
+
+> Ao adicionar um arquivo de teste, atualize as tabelas acima e os números da
+> seção "Como rodar" — é o que mantém este documento confiável.
 
 ---
 

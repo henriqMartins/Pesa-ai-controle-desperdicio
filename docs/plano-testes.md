@@ -1,17 +1,24 @@
 # Plano de testes manual — Pesa Aí
 
-> Checklist de testes **manuais** (funcionais, UX, dados, infra e aceite) a
-> executar antes de entregar/atualizar o sistema. Os testes **automatizados**
-> (lógica de cálculo, agregação e exportação) estão em [testes.md](testes.md) e
-> rodam com `npm test` — não se repetem aqui.
+> Checklist de testes **manuais por área**, para usar após mudanças numa parte
+> específica do sistema. Os testes **automatizados** (cálculo, agregação,
+> exportação, componentes) estão em [testes.md](testes.md) e rodam com `npm test`
+> — não se repetem aqui.
+>
+> Para liberar uma **versão** (segurança do banco, permissões por papel, lock e
+> logout ponta a ponta), o roteiro oficial é
+> [teste-aceitacao.md](teste-aceitacao.md). Este documento é o complementar,
+> por área.
 
 ## Como usar
 
 - Execute cada teste e marque **✅ passou** ou **❌ falhou**.
 - Em caso de falha, anote o comportamento observado vs. esperado.
 - Rode na ordem (do básico ao avançado). As telas são: **Monitor**, **Produtos**,
-  **Equipe**, **Motivos**, e o **modal Registrar** (botão `＋ Registrar` no
-  desktop / **FAB** no celular).
+  **Equipe**, **Motivos**, **Pratos** (só gestor), e o **modal Registrar** (botão
+  `＋ Registrar` no desktop / **FAB** no celular).
+- Onde o resultado depender do perfil, teste com **os dois PINs** (funcionário e
+  gestor).
 
 ---
 
@@ -19,10 +26,28 @@
 
 | # | Teste | Passos | Esperado |
 |---|---|---|---|
-| C1 | App carrega sem erros | Abrir a URL | Monitor aparece; sem erros no console |
+| C1 | App carrega sem erros | Abrir a URL | **Tela de PIN** aparece; sem erros no console |
 | C2 | Conexão com Supabase | DevTools → Console | Sem erro de `VITE_SUPABASE_URL` ausente |
 | C3 | Variáveis de ambiente | Conferir URL do projeto Supabase | Status 200 |
 | C4 | Realtime habilitado | Abrir 2 abas | Registro feito numa aba aparece na outra sem recarregar |
+| C5 | Sessão persiste | Entrar com o PIN → F5 | Volta direto ao Monitor, sem pedir o PIN nem piscar a tela de login |
+| C6 | Rota profunda | Abrir a URL direto em `/monitor` (ou `/pratos` como gestor) | Carrega a tela; **não** dá 404 (rewrite da Vercel) |
+
+---
+
+## 1.1 Acesso (PIN, lock e papéis)
+
+> Cobertura completa em [teste-aceitacao.md](teste-aceitacao.md) §2, §3, §4 e §6.
+> O mínimo para uma regressão rápida:
+
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| S1 | Login por PIN | Digitar os 6 dígitos | Entra sozinho ao completar, sem botão de confirmar |
+| S2 | PIN errado | Digitar PIN inválido | "PIN incorreto"; campo limpo; deixa tentar de novo |
+| S3 | Lockout | Errar 5 vezes | Bloqueia com contagem regressiva; teclado desabilitado; **F5 não zera** |
+| S4 | Bloquear tela | Botão **Bloquear** | Overlay de PIN; o app continua montado por baixo; PIN correto libera na hora |
+| S5 | Sair | Botão **Sair** | Volta ao login; o lock não fica "grudado" no próximo acesso |
+| S6 | Gating de papel | Entrar como funcionário | Aba **Pratos** não aparece; Equipe sem "+ Novo"/editar |
 
 ---
 
@@ -43,6 +68,10 @@
 ---
 
 ## 3. Equipe (funcionários)
+
+> **Rode esta seção logado como gestor** — a escrita em `funcionarios` é restrita
+> ao papel gestor no RLS. Como funcionário, a lista é visível mas sem "+ Novo" nem
+> editar (teste S6).
 
 | # | Teste | Passos | Esperado |
 |---|---|---|---|
@@ -109,7 +138,9 @@
 | P5 | Mais desperdiçados | Registrar alimentos diferentes | Painel ordena o de maior valor primeiro, com barra proporcional |
 | P6 | Principais motivos | Registros com motivos variados | Painel agrupa por motivo e ordena por valor |
 | P7 | Maior do dia | Ver subtexto do card do dia | Mostra o alimento de maior custo do dia |
-| P8 | Estado vazio | Mês sem registros | Painéis mostram "Sem dados no mês"; botões de exportar **não** aparecem |
+| P8 | Estado vazio | Mês sem registros | Painéis mostram "Sem dados no período."/"Nenhum registro no período."; botões de exportar **não** aparecem |
+| P8b | Falha de carga | Derrubar a rede → abrir o Monitor | Faixa de erro com "Tentar de novo"; **não** mostra "R$ 0,00" como se não houvesse desperdício |
+| P8c | Fuso horário | Mudar o fuso do aparelho para outro país e recarregar | "Hoje"/"Este mês" continuam pelo horário de São Paulo |
 
 ### 6.1 Realtime
 
@@ -129,6 +160,52 @@
 | CL5 | Editar motivo | Tocar ✎ → trocar/limpar motivo → Salvar | Motivo atualizado; painel de motivos reflete |
 | CL6 | Trocar o alimento na edição | Tocar ✎ → escolher outro alimento → Salvar | Usa o **preço atual** do novo alimento |
 | CL7 | Edição reflete ao vivo | Monitor em 2 abas → editar numa | Atualiza na outra sem F5 |
+
+---
+
+### 6.3 Mini-filtros de período (chips de cada painel)
+
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| MF1 | Hoje / Ontem | Nos "Últimos lançamentos", alternar Hoje ↔ Ontem | Lista muda para os lançamentos do dia certo |
+| MF2 | Outra data | Chip **Outra** → escolher uma data com registros | Mostra só os daquele dia; sem data escolhida, pede "Escolha uma data." |
+| MF3 | Mês × Total | Nos painéis de ranking, alternar Mês ↔ Total | "Total" inclui meses anteriores; aparece "Carregando…" na primeira vez (carga sob demanda) |
+| MF4 | Independência | Deixar cada painel num período diferente | Cada painel mantém o próprio período; nenhum "arrasta" o outro |
+
+### 6.4 Filtros avançados (modal "Filtrar")
+
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| FA1 | Mais registrados | Modo "mais registrados" + período mês | Ranqueia por **nº de ocorrências** (não por valor) |
+| FA2 | Maior valor | Modo "maior valor" | Ordena lançamentos individuais pelo custo; o maior aparece em destaque |
+| FA3 | Por produto | Modo "por produto" → escolher um produto | Lista as datas em que ele foi registrado + soma de ocorrências e valor |
+| FA4 | Intervalo personalizado | Período "range" com **de** e **até** | Inclui o dia "até" inteiro (limite superior é a meia-noite do dia seguinte) |
+| FA5 | Período sem dados | Escolher um intervalo vazio | Mensagem de vazio, sem erro no console |
+
+### 6.5 Modo de exibição (TV / balcão)
+
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| MX1 | Entrar e sair | Botão **Exibição** → `Esc` | Entra em tela cheia real; `Esc` (ou o X) fecha e sai do fullscreen |
+| MX2 | Ao vivo | Deixar aberto → registrar em outra aba | KPIs e rankings atualizam sem F5 |
+| MX3 | Não fecha sozinho | Deixar aberto por alguns minutos | Continua aberto (um refresh de token não deve derrubar o modo) |
+| MX4 | Celular em retrato | Abrir no celular em pé | Tenta girar para paisagem; se o navegador recusar, mostra a dica "Gire o aparelho" e o layout se adapta |
+| MX5 | Legibilidade | Ver de longe numa TV | Números grandes o suficiente; sem corte nem scroll horizontal |
+
+---
+
+## 6.6 Pratos (ficha técnica / precificação — só gestor)
+
+| # | Teste | Passos | Esperado |
+|---|---|---|---|
+| PR1 | Acesso | Entrar como **gestor** | Aba **Pratos** aparece; como funcionário, não |
+| PR2 | Criar prato | "+ Novo" → nome + 2 ingredientes → Salvar | Aparece na lista com custo e preço sugerido |
+| PR3 | Tipos de ingrediente | Um `kg` com qtd em g, um `un` e um `fixo` | `kg`/`L` dividem por 1000; `un`/`fixo` não |
+| PR4 | Embalagem e margem | Preencher embalagem e margem % | Custo total soma a embalagem; preço sugerido = total × (1 + margem/100) |
+| PR5 | Cálculo de perda | Ativar o toggle e informar peso bruto e líquido | Custo encarece na proporção bruto ÷ líquido; perda acima de 15% é sinalizada |
+| PR6 | Editar | Abrir um prato salvo → mudar um ingrediente → Salvar | Ficha reflete a mudança; **não** duplica ingredientes (a RPC substitui a lista) |
+| PR7 | Excluir | Excluir um prato → confirmar | Sai da lista; os ingredientes vão junto (cascade) |
+| PR8 | Máscara decimal | Digitar `12,50` | Aceita a vírgula e calcula como 12,5 |
 
 ---
 
@@ -193,11 +270,14 @@
 
 | # | Teste rápido | O que verifica |
 |---|---|---|
-| REG1 | Registrar e ver no Monitor | Fluxo principal inteiro |
-| REG2 | Cadastrar produto e usá-lo no Registrar | Integração Produtos → Registrar |
-| REG3 | Exportar Excel | Exportação ainda funciona |
-| REG4 | Abrir 2 abas e registrar | Realtime funcionando |
-| REG5 | Trocar tema e dar F5 | Tema persiste (localStorage) |
+| REG1 | Entrar com o PIN (os dois perfis) | Auth + gating por papel |
+| REG2 | Registrar e ver no Monitor | Fluxo principal inteiro |
+| REG3 | Cadastrar produto e usá-lo no Registrar | Integração Produtos → Registrar |
+| REG4 | Exportar Excel | Exportação ainda funciona |
+| REG5 | Abrir 2 abas e registrar | Realtime funcionando |
+| REG6 | Trocar tema e dar F5 | Tema persiste (localStorage), sem flash |
+| REG7 | Bloquear e desbloquear | Lock sem derrubar a sessão |
+| REG8 | Recarregar em `/monitor` | Rewrite da Vercel (SPA fallback) |
 
 ---
 

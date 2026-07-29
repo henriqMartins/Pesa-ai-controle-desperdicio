@@ -1,10 +1,23 @@
 -- =====================================================================
 -- Sistema de Controle de Desperdício — Petiscaria
--- Schema do banco (Postgres / Supabase)
+-- Schema do banco (Postgres / Supabase) — TABELAS BASE
 --
 -- Como usar: cole este arquivo no SQL Editor do projeto Supabase e execute.
--- Quatro tabelas resolvem o sistema. Totais e rankings são CONSULTAS sobre a
+-- Quatro tabelas resolvem o núcleo. Totais e rankings são CONSULTAS sobre a
 -- tabela de registros — não precisam de tabela própria.
+--
+-- ⚠️  ATENÇÃO — ESTE SCRIPT DEIXA O RLS **ABERTO** PARA A `anon key`.
+--     Ele é o script de "banco do zero" e preserva o modelo original (sistema
+--     sem login). A sequência completa é:
+--
+--       1. schema.sql                (este arquivo)
+--       2. criar_tabelas_pratos.sql  (pratos + prato_ingredientes + RPC)
+--       3. seed.sql                  (opcional)
+--       4. migrate_v2_rls_auth.sql   ← OBRIGATÓRIO, FECHA O BANCO
+--
+--     Rodar este arquivo num banco JÁ FECHADO reabre o acesso `anon`: rode
+--     migrate_v2_rls_auth.sql em seguida e confirme com o curl da verificação
+--     (docs/plano-seguranca.md#verificação).
 -- =====================================================================
 
 -- Alimentos cadastrados pela dona
@@ -19,7 +32,9 @@ create table if not exists alimentos (
   criado_em        timestamptz not null default now()
 );
 
--- Funcionários (identificação na tela — sem senha nem PIN)
+-- Funcionários (autoria do lançamento: quem registra escolhe o próprio nome).
+-- Não são contas de acesso — o login é por PIN em 2 contas do Supabase Auth, e o
+-- papel que decide permissão é o do JWT (app_metadata.papel), não esta coluna.
 create table if not exists funcionarios (
   id        uuid primary key default gen_random_uuid(),
   nome      text not null,
@@ -97,14 +112,17 @@ end $$;
 
 
 -- =====================================================================
--- RLS (Row Level Security)
+-- RLS (Row Level Security) — VERSÃO ABERTA, HISTÓRICA
 --
 -- O Supabase exige RLS ativo para que o Realtime funcione corretamente.
--- Como este sistema é aberto (sem login), criamos políticas permissivas
+-- As políticas abaixo são as do sistema ORIGINAL, sem login: permissivas
 -- para a anon key — qualquer pessoa com a URL pode ler e escrever.
 --
--- Se no futuro for necessário restringir acesso (ex.: só gestor vê o
--- ranking), substitua a política de `registros` por regras específicas.
+-- ⚠️  Elas foram SUBSTITUÍDAS em produção por migrate_v2_rls_auth.sql, que
+--     exige sessão autenticada e decide por papel (app_metadata.papel).
+--     Este bloco só continua aqui porque o Realtime precisa de RLS ativo
+--     desde a criação das tabelas. SEMPRE rode migrate_v2_rls_auth.sql
+--     depois deste arquivo.
 -- =====================================================================
 
 alter table alimentos    enable row level security;
@@ -112,7 +130,8 @@ alter table funcionarios enable row level security;
 alter table motivos      enable row level security;
 alter table registros    enable row level security;
 
--- Políticas permissivas para a anon key (sistema aberto, ambiente interno)
+-- Políticas permissivas para a anon key (modelo original, sem login) —
+-- substituídas por migrate_v2_rls_auth.sql, que precisa rodar depois deste script
 -- DROP IF EXISTS garante que re-executar o script não gera erro de duplicata
 drop policy if exists "anon_acesso_total" on alimentos;
 drop policy if exists "anon_acesso_total" on funcionarios;
